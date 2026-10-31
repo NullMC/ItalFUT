@@ -1,0 +1,3 @@
+[functions.auth-username]
+# Public pre-authentication endpoint. Protect at network edge and retain Auth rate limits.
+verify_jwt = false
