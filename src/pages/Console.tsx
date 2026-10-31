@@ -35,6 +35,7 @@ export function ConsoleHome() {
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
+  const [slugEdited, setSlugEdited] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const plan = draft();
@@ -86,8 +87,8 @@ export function ConsoleHome() {
     <div className="setup-notice"><Typography fontWeight={800}>Nota sul lancio</Typography><p>Finché Stripe non è collegato, la creazione produce uno spazio in bozza, con funzioni base per preparare i contenuti. La pubblicazione e l'attivazione dei moduli extra richiedono un intervento amministrativo verificato, non un pagamento simulato.</p></div>
     <Dialog open={creating} onClose={() => !busy && setCreating(false)} fullWidth maxWidth="sm"><form onSubmit={create}>
       <DialogTitle fontWeight={800}>Diamo un nome al tuo torneo</DialogTitle><DialogContent><Stack spacing={2.5} sx={{ pt: 1 }}>
-        <TextField label="Nome della piattaforma" value={name} onChange={e => { setName(e.target.value); if (!slug) setSlug(formatSlug(e.target.value)); }} required />
-        <TextField label="Indirizzo pubblico" value={slug} onChange={e => setSlug(formatSlug(e.target.value))} helperText={'italfut.it/t/' + (slug || 'nome-torneo')} required />
+        <TextField label="Nome della piattaforma" value={name} onChange={e => { setName(e.target.value); if (!slugEdited) setSlug(formatSlug(e.target.value)); }} required />
+        <TextField label="Indirizzo pubblico" value={slug} onChange={e => { setSlugEdited(true); setSlug(formatSlug(e.target.value)); }} helperText={'italfut.it/t/' + (slug || 'nome-torneo')} required />
         <Alert severity="info">Configurazione: {plan.months} {plan.months === 1 ? 'mese' : 'mesi'}, {plan.modules.length} moduli opzionali. Preventivo illustrativo: {formatEuro(quote.total)}. Nessun addebito.</Alert>
         {error && <Alert severity="error">{error}</Alert>}
       </Stack></DialogContent><DialogActions sx={{ p: 3 }}><Button onClick={() => setCreating(false)}>Annulla</Button><Button variant="contained" type="submit" disabled={busy}>{busy ? 'Creazione…' : 'Crea piattaforma'}</Button></DialogActions>

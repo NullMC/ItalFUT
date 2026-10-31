@@ -32,7 +32,7 @@ export function SiteLayout() {
       window.setTimeout(() => document.getElementById(href.split('#')[1])?.scrollIntoView({ behavior: 'smooth' }), 50);
     } else navigate(href);
   };
-  return <div className="app-root">
+  return <div className="app-root min-h-screen">
     <header className={'topbar ' + (home ? 'topbar-home' : '')}>
       <Container maxWidth="xl" className="topbar-inner">
         <Brand />

@@ -86,6 +86,12 @@ export const EDITORS: EditorDefinition[] = [
   ] },
 ];
 
+function datetimeLocal(value: unknown) {
+  const date = new Date(String(value));
+  if (Number.isNaN(date.getTime())) return '';
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 16);
+}
 function labelFor(row: Row, config: EditorDefinition) {
   if (config.key === 'players') return String(row.first_name ?? '') + ' ' + String(row.last_name ?? '');
   if (config.key === 'matches') return String(row.matchday ?? 'Partita') + ' · ' + String(row.kickoff_at ?? '').slice(0, 16).replace('T', ' ');
@@ -144,7 +150,7 @@ export function CrudEditor({ tenantId, config, editable }: { tenantId: string; c
 
   const open = (row?: Row) => {
     setEditing(row ?? null); setError('');
-    setValues(Object.fromEntries(config.fields.map(field => [field.key, row?.[field.key] == null ? '' : String(row[field.key]).slice(0, field.type === 'datetime-local' ? 16 : undefined)])));
+    setValues(Object.fromEntries(config.fields.map(field => [field.key, row?.[field.key] == null ? (field.values && (field.required || field.key === 'status') ? field.values[0] : '') : field.type === 'datetime-local' ? datetimeLocal(row[field.key]) : String(row[field.key])])));
     setDialog(true);
   };
   const save = async (event: FormEvent) => {
@@ -153,7 +159,8 @@ export function CrudEditor({ tenantId, config, editable }: { tenantId: string; c
       const payload: Record<string, string | number | null> = {};
       for (const field of config.fields) {
         const input = (values[field.key] ?? '').trim();
-        payload[field.key] = input === '' ? null : field.type === 'number' ? Number(input) : input;
+        if (!input && !editing) continue;
+        payload[field.key] = input === '' ? (field.key === 'sort_order' || field.key === 'goals' ? 0 : null) : field.type === 'number' ? Number(input) : field.type === 'datetime-local' ? new Date(input).toISOString() : input;
       }
       const sb = client();
       const result = editing
