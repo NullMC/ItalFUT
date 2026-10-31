@@ -292,7 +292,7 @@ a.public-card:hover,a.public-team-card:hover{transform:none;border-color:#719677
  .match-visual{width:min(100%,630px);margin:0;max-width:none}
  .section-spacing{padding:75px 0}
  .config-grid{grid-template-columns:1fr}
- .quote-panel{position:static;grid-row:1;margin-bottom:18px}
+ .quote-panel{position:static;grid-row:auto;margin-bottom:18px}
  .tenant-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
  .workspace{grid-template-columns:1fr}
  .workspace-sidebar{flex-direction:row;overflow-x:auto;align-items:center;scrollbar-width:thin;padding:12px;gap:8px}
