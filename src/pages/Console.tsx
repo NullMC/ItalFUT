@@ -28,7 +28,7 @@ function formatSlug(text: string) {
 }
 
 export function ConsoleHome() {
-  const { session, profile, signOut } = useAuth();
+  const { session, signOut } = useAuth();
   const navigate = useNavigate();
   const [owned, setOwned] = useState<Owned[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,16 +75,14 @@ export function ConsoleHome() {
     finally { setBusy(false); }
   };
   return <div className="console-home"><Container maxWidth="lg">
-    <div className="console-welcome"><div><span>CONSOLE ORGANIZZATORE</span><Typography variant="h3">Ciao, {profile?.username ?? 'organizzatore'}.</Typography><p>Qui trovi tutte le piattaforme che gestisci e i tuoi prossimi progetti.</p></div><Stack direction="row" gap={1}><Button variant="outlined" onClick={() => void signOut()} startIcon={<LogoutRoundedIcon />}>Esci</Button><Button variant="contained" startIcon={<AddRoundedIcon />} onClick={() => setCreating(true)}>Nuova piattaforma</Button></Stack></div>
+    <div className="console-welcome"><div><Typography variant="h3">I tuoi tornei</Typography><p>Gestisci le tue competizioni o creane una nuova.</p></div><Stack direction="row" gap={1}><Button variant="outlined" onClick={() => void signOut()} startIcon={<LogoutRoundedIcon />}>Esci</Button><Button variant="contained" startIcon={<AddRoundedIcon />} onClick={() => setCreating(true)}>Nuova piattaforma</Button></Stack></div>
     {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
-    {loading ? <div className="center-min"><CircularProgress /></div> : <div className="tenant-cards">
+    {loading ? <div className="center-min"><CircularProgress /></div> : owned.some(item => item.tenants) ? <div className="tenant-cards">
       {owned.filter(item => item.tenants).map(({ tenants: tenant, role }) => tenant && <button key={tenant.id} className="tenant-card" onClick={() => navigate('/console/' + tenant.slug)}>
-        <span className="tenant-card-status"><span className={tenant.status === 'active' ? 'dot-active' : 'dot-wait'} />{tenant.status === 'active' ? 'Online' : tenant.status === 'draft' ? 'Bozza, in attesa di attivazione' : 'Sospesa'}</span>
-        <strong>{tenant.name}</strong><small>{tenant.slug}.italfut · {role}</small><span className="tenant-card-arrow"><ArrowForwardRoundedIcon /></span>
+        <span className="tenant-card-status"><span className={tenant.status === 'active' ? 'dot-active' : 'dot-wait'} />{tenant.status === 'active' ? 'Online' : tenant.status === 'draft' ? 'Bozza' : 'Sospesa'}</span>
+        <strong>{tenant.name}</strong><small>/t/{tenant.slug} · {role}</small><span className="tenant-card-arrow"><ArrowForwardRoundedIcon /></span>
       </button>)}
-      <button className="tenant-card tenant-card-new" onClick={() => setCreating(true)}><AddRoundedIcon sx={{ fontSize: 34 }} /><strong>Un nuovo torneo?</strong><small>Configura il prossimo spazio.</small></button>
-    </div>}
-    <div className="setup-notice"><Typography fontWeight={800}>Nota sul lancio</Typography><p>Finché Stripe non è collegato, la creazione produce uno spazio in bozza, con funzioni base per preparare i contenuti. La pubblicazione e l'attivazione dei moduli extra richiedono un intervento amministrativo verificato, non un pagamento simulato.</p></div>
+    </div> : <div className="console-empty"><Typography variant="h5">Ancora nessun torneo</Typography><p>Crea il tuo primo spazio per gestire squadre, incontri e risultati.</p><Button variant="contained" onClick={() => setCreating(true)} startIcon={<AddRoundedIcon />}>Crea un torneo</Button></div>}
     <Dialog open={creating} onClose={() => !busy && setCreating(false)} fullWidth maxWidth="sm"><form onSubmit={create}>
       <DialogTitle fontWeight={800}>Diamo un nome al tuo torneo</DialogTitle><DialogContent><Stack spacing={2.5} sx={{ pt: 1 }}>
         <TextField label="Nome della piattaforma" value={name} onChange={e => { setName(e.target.value); if (!slugEdited) setSlug(formatSlug(e.target.value)); }} required />
@@ -163,12 +161,12 @@ export function TenantConsole() {
     <aside className="workspace-sidebar">
       <div className="workspace-back"><Button onClick={() => navigate('/console')} size="small">← Le tue piattaforme</Button></div>
       <div className="workspace-identity"><div className="workspace-avatar" style={{ backgroundColor: tenant.brand_color }}>{tenant.name.slice(0, 1).toUpperCase()}</div><div><b>{tenant.name}</b><small>{tenant.slug}</small></div></div>
-      <div className="workspace-nav"><div className="workspace-nav-title">PANORAMICA</div>
+      <div className="workspace-nav"><div className="workspace-nav-title">Il torneo</div>
         <button className={section === 'overview' ? 'active' : ''} onClick={() => navigate('/console/' + slug)}><DashboardRoundedIcon fontSize="small" />Dashboard</button>
         <button className={section === 'settings' ? 'active' : ''} onClick={() => navigate('/console/' + slug + '/settings')}><SettingsRoundedIcon fontSize="small" />Aspetto e impostazioni</button>
-        <div className="workspace-nav-title">GESTIONE TORNEO</div>
+        <div className="workspace-nav-title">Contenuti</div>
         {EDITORS.map(item => <button key={item.key} className={section === item.key ? 'active' : ''} onClick={() => navigate('/console/' + slug + '/' + item.key)}><span className="workspace-nav-dot" />{item.label}{!enabled(item.feature) && <LockOutlinedIcon sx={{ fontSize: 15, ml: 'auto' }} />}</button>)}
-        <div className="workspace-nav-title">ABBONAMENTO</div>
+        <div className="workspace-nav-title">Funzionalità</div>
         <button className={section === 'modules' ? 'active' : ''} onClick={() => navigate('/console/' + slug + '/modules')}><AddRoundedIcon fontSize="small" />Moduli e upgrade</button>
       </div><div className="workspace-side-bottom"><Button onClick={() => void signOut()} startIcon={<LogoutRoundedIcon />} color="inherit" size="small">Esci</Button></div>
     </aside>
@@ -177,13 +175,14 @@ export function TenantConsole() {
       <div className="workspace-inner">
         {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
         {section === 'overview' && <>
-          <div className="workspace-intro"><Typography variant="h3">La tua regia, per ogni partita.</Typography><p>Organizza {tenant.name} da un unico spazio di lavoro.</p></div>
-          <div className="workspace-dashboard-grid">
-            <div className="workspace-highlight"><span>IL TUO SPAZIO</span><Typography variant="h4">{tenant.name}</Typography><p>{tenant.tagline || 'Personalizza la tua piattaforma, pubblica i tornei e racconta ogni risultato.'}</p><Button variant="contained" color="secondary" onClick={() => navigate('/console/' + slug + '/settings')}>Personalizza</Button></div>
-            <div className="workspace-summary"><strong>{features.filter(f => enabled(f.code)).length}</strong><span>Moduli attivi</span><p>Una configurazione su misura, pronta a crescere con la tua competizione.</p><Button onClick={() => navigate('/console/' + slug + '/modules')} endIcon={<ArrowForwardRoundedIcon />}>Gestisci i moduli</Button></div>
+          <div className="workspace-intro"><Typography variant="h3">Dashboard</Typography><p>{tenant.name} · Gestisci i contenuti del torneo.</p></div>
+          <div className="workspace-overview-strip">
+            <div><strong>{tenant.name}</strong><span>Torneo</span></div>
+            <div><strong>{features.filter(f => enabled(f.code)).length}</strong><span>Moduli attivi</span></div>
+            <Button variant="outlined" onClick={() => navigate('/console/' + slug + '/settings')} endIcon={<ArrowForwardRoundedIcon />}>Impostazioni</Button>
           </div>
-          <div className="quick-section"><Typography variant="h5">Da dove vuoi iniziare?</Typography><div className="quick-grid">{EDITORS.filter(e => CORE.includes(e.feature)).slice(0, 5).map(item => <button key={item.key} onClick={() => navigate('/console/' + slug + '/' + item.key)}><span>{item.label}</span><ArrowForwardRoundedIcon fontSize="small" /></button>)}</div></div>
-          {tenant.status !== 'active' && <Alert severity="info" sx={{ mt: 4 }}>La piattaforma è in bozza: puoi inserire i contenuti di base e vedere l'anteprima autenticata, ma la pubblicazione richiede l'attivazione dal backoffice centrale ItalFUT.</Alert>}
+          <div className="quick-section"><Typography variant="h5">Gestione rapida</Typography><div className="quick-grid">{EDITORS.filter(e => CORE.includes(e.feature)).slice(0, 5).map(item => <button key={item.key} onClick={() => navigate('/console/' + slug + '/' + item.key)}><span>{item.label}</span><ArrowForwardRoundedIcon fontSize="small" /></button>)}</div></div>
+          {tenant.status !== 'active' && <Alert severity="info" sx={{ mt: 4 }}>Spazio in bozza. Puoi preparare i contenuti, ma il sito non sarà pubblico fino all'attivazione.</Alert>}
         </>}
         {section === 'settings' && <div className="settings-panel"><Typography variant="h4">Identità della piattaforma</Typography><p>Queste impostazioni personalizzano il sito pubblico del tuo torneo.</p>
           <form onSubmit={saveSettings}><Stack spacing={2.5} sx={{ maxWidth: 650, mt: 4 }}>

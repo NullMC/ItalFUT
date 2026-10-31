@@ -186,11 +186,11 @@ export function CrudEditor({ tenantId, config, editable }: { tenantId: string; c
     </div>
     {error && <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>}
     {loading ? <div className="center-min"><CircularProgress /></div> :
-      items.length === 0 ? <div className="empty-editor"><Typography variant="h6">Nessun elemento, per ora.</Typography><p>Inizia a costruire questa sezione direttamente dal tuo pannello.</p>{editable && <Button variant="outlined" onClick={() => open()} startIcon={<AddRoundedIcon />}>Crea il primo elemento</Button>}</div>
+      items.length === 0 ? <div className="empty-editor"><Typography variant="h6">Nessun elemento in {config.label.toLowerCase()}</Typography><p>Aggiungi il primo elemento per iniziare.</p>{editable && <Button variant="outlined" onClick={() => open()} startIcon={<AddRoundedIcon />}>Aggiungi {config.label.toLowerCase()}</Button>}</div>
       : <div className="editor-list">{items.map(row => <div className="editor-row" key={row.id}><div className="editor-row-initial">{labelFor(row, config).charAt(0).toUpperCase()}</div>
-        <div className="editor-row-details"><strong>{labelFor(row, config)}</strong><small>{secondaryFor(row, config) || 'Creato nella tua piattaforma'}</small></div>
+        <div className="editor-row-details"><strong>{labelFor(row, config)}</strong>{secondaryFor(row, config) && <small>{secondaryFor(row, config)}</small>}</div>
         {typeof row.status === 'string' && <Chip label={row.status} size="small" variant="outlined" />}
-        {editable && <Stack direction="row"><IconButton aria-label="Modifica" onClick={() => open(row)}><EditOutlinedIcon fontSize="small" /></IconButton><IconButton aria-label="Elimina" color="error" onClick={() => void remove(row)}><DeleteOutlineRoundedIcon fontSize="small" /></IconButton></Stack>}
+        {editable && <Stack direction="row"><IconButton aria-label={'Modifica ' + labelFor(row, config)} onClick={() => open(row)}><EditOutlinedIcon fontSize="small" /></IconButton><IconButton aria-label={'Elimina ' + labelFor(row, config)} color="error" onClick={() => void remove(row)}><DeleteOutlineRoundedIcon fontSize="small" /></IconButton></Stack>}
       </div>)}</div>}
     <Dialog open={dialog} onClose={() => !saving && setDialog(false)} maxWidth="sm" fullWidth>
       <form onSubmit={save}><DialogTitle fontWeight={800}>{editing ? 'Modifica' : 'Nuovo elemento'} · {config.label}</DialogTitle>
