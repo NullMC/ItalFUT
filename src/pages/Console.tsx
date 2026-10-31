@@ -49,7 +49,7 @@ export function ConsoleHome() {
     let live = true;
     if (!session) return;
     setLoading(true);
-    void client().from('tenant_members').select('role,tenants(*)').eq('user_id', session.user.id)
+    void Promise.resolve(client().from('tenant_members').select('role,tenants(*)').eq('user_id', session.user.id))
       .then(({ data, error: issue }) => {
         if (!live) return;
         if (issue) setError(issue.message);
