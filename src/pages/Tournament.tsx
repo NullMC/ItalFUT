@@ -61,7 +61,7 @@ function BrandImage({ url, name, size = 46 }: { url: unknown; name: string; size
     : <span className="tournament-logo fallback-logo" style={{ width: size, height: size }}>{name.charAt(0)}</span>;
 }
 function Empty({ title = 'Qui non c’è ancora nulla.', text = 'I contenuti compariranno quando l’organizzatore inizierà a pubblicarli.' }: { title?: string; text?: string }) {
-  return <div className="public-empty"><SportsSoccerRoundedIcon sx={{ fontSize: 36, mb: 1 }} /><Typography variant="h5">{title}</Typography><p>{text}</p></div>;
+  return <div className="public-empty"><SportsSoccerRoundedIcon aria-hidden="true" sx={{ fontSize: 36, mb: 1 }} /><Typography variant="h5">{title}</Typography><p>{text}</p></div>;
 }
 function MatchList({ matches, data, slug }: { matches: Row[]; data: Data; slug: string }) {
   if (!matches.length) return <Empty title="Nessuna partita in programma." />;
@@ -136,17 +136,18 @@ export function Tournament() {
   if (!tenant) return <Container sx={{ py: 12 }}><Typography variant="h3">Torneo non disponibile</Typography><Typography color="text.secondary">Questo indirizzo non è ancora pubblico, oppure non esiste.</Typography><Button component={RouterLink} to="/">Torna a ItalFUT</Button></Container>;
   const pageFeature = navigation.find(nav => nav.slug === page)?.feature;
   return <div className="tournament-app" style={containerStyle}>
+    <a className="skip-link" href="#tournament-content">Vai ai contenuti del torneo</a>
     <header className="tournament-header"><Container maxWidth="lg" className="tournament-header-inner">
       <RouterLink to={base} className="tournament-brand"><BrandImage url={tenant.logo_url} name={tenant.name} size={42} /><b>{tenant.name}</b></RouterLink>
       <RouterLink to="/" className="tournament-backlink">ItalFUT <ArrowOutwardRoundedIcon sx={{ fontSize: 15 }} /></RouterLink>
     </Container></header>
-    <div className="tournament-nav"><Container maxWidth="lg"><div className="tournament-nav-scroll">
-      <RouterLink to={base} className={page === 'home' ? 'active' : ''}>Home</RouterLink>
-      {navigation.filter(nav => enabled(nav.feature)).map(nav => <RouterLink key={nav.slug} to={base + '/' + nav.slug} className={page === nav.slug ? 'active' : ''}>{nav.label}</RouterLink>)}
+    <div className="tournament-nav" role="navigation" aria-label="Sezioni del torneo"><Container maxWidth="lg"><div className="tournament-nav-scroll">
+      <RouterLink to={base} aria-current={page === 'home' ? 'page' : undefined} className={page === 'home' ? 'active' : ''}>Home</RouterLink>
+      {navigation.filter(nav => enabled(nav.feature)).map(nav => <RouterLink key={nav.slug} to={base + '/' + nav.slug} aria-current={page === nav.slug ? 'page' : undefined} className={page === nav.slug ? 'active' : ''}>{nav.label}</RouterLink>)}
     </div></Container></div>
     {tenant.status !== 'active' && <div className="preview-alert"><Container maxWidth="lg">Anteprima riservata al tuo account · sito ancora in bozza, non pubblico.</Container></div>}
-    {pageFeature && !enabled(pageFeature) ? <Container maxWidth="lg" sx={{ py: 8 }}><Empty title="Sezione non disponibile." text="L'organizzatore non ha ancora attivato questo modulo." /></Container> :
-      <main className="tournament-main"><Container maxWidth="lg">
+    {pageFeature && !enabled(pageFeature) ? <Container id="tournament-content" maxWidth="lg" sx={{ py: 8 }}><Empty title="Sezione non disponibile." text="L'organizzatore non ha ancora attivato questo modulo." /></Container> :
+      <main id="tournament-content" className="tournament-main"><Container maxWidth="lg">
         {page === 'home' && <>
           <section className="tournament-hero" style={src(tenant.cover_url) ? { backgroundImage: 'linear-gradient(90deg, rgba(5,24,21,.93),rgba(5,24,21,.55)), url(' + src(tenant.cover_url) + ')' } : undefined}>
             <Typography variant="h2">{tenant.name}</Typography>{tenant.tagline && <p>{tenant.tagline}</p>}

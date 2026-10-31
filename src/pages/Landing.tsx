@@ -31,7 +31,7 @@ export function Landing() {
         </div>
         <div className="match-visual" aria-label="Esempio dimostrativo di risultati e classifica">
           <div className="match-visual-top"><span><SportsSoccerRoundedIcon fontSize="small" /> Street Cup</span><small>Dati dimostrativi</small></div>
-          <div className="match-visual-title">LA GIORNATA<br />IN PRIMO PIANO.</div>
+          <div className="match-visual-title">RISULTATI<br />E CLASSIFICA.</div>
           <div className="match-visual-board">
             <div className="match-visual-section">Risultati · Giornata 5</div>
             <div className="match-visual-score"><span><i className="team-token emerald">R</i>Real Bari</span><strong>3 <em>—</em> 1</strong><span>FC Levante<i className="team-token pink">L</i></span></div>

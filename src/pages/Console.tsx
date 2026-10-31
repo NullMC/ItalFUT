@@ -161,17 +161,17 @@ export function TenantConsole() {
     <aside className="workspace-sidebar">
       <div className="workspace-back"><Button onClick={() => navigate('/console')} size="small">← Le tue piattaforme</Button></div>
       <div className="workspace-identity"><div className="workspace-avatar" style={{ backgroundColor: tenant.brand_color }}>{tenant.name.slice(0, 1).toUpperCase()}</div><div><b>{tenant.name}</b><small>{tenant.slug}</small></div></div>
-      <div className="workspace-nav"><div className="workspace-nav-title">Il torneo</div>
-        <button className={section === 'overview' ? 'active' : ''} onClick={() => navigate('/console/' + slug)}><DashboardRoundedIcon fontSize="small" />Dashboard</button>
-        <button className={section === 'settings' ? 'active' : ''} onClick={() => navigate('/console/' + slug + '/settings')}><SettingsRoundedIcon fontSize="small" />Aspetto e impostazioni</button>
+      <nav className="workspace-nav" aria-label="Gestione del torneo"><div className="workspace-nav-title">Il torneo</div>
+        <button aria-current={section === 'overview' ? 'page' : undefined} className={section === 'overview' ? 'active' : ''} onClick={() => navigate('/console/' + slug)}><DashboardRoundedIcon fontSize="small" />Dashboard</button>
+        <button aria-current={section === 'settings' ? 'page' : undefined} className={section === 'settings' ? 'active' : ''} onClick={() => navigate('/console/' + slug + '/settings')}><SettingsRoundedIcon fontSize="small" />Aspetto e impostazioni</button>
         <div className="workspace-nav-title">Contenuti</div>
-        {EDITORS.map(item => <button key={item.key} className={section === item.key ? 'active' : ''} onClick={() => navigate('/console/' + slug + '/' + item.key)}><span className="workspace-nav-dot" />{item.label}{!enabled(item.feature) && <LockOutlinedIcon sx={{ fontSize: 15, ml: 'auto' }} />}</button>)}
+        {EDITORS.map(item => <button key={item.key} aria-current={section === item.key ? 'page' : undefined} className={section === item.key ? 'active' : ''} onClick={() => navigate('/console/' + slug + '/' + item.key)}><span className="workspace-nav-dot" />{item.label}{!enabled(item.feature) && <LockOutlinedIcon sx={{ fontSize: 15, ml: 'auto' }} />}</button>)}
         <div className="workspace-nav-title">Funzionalità</div>
-        <button className={section === 'modules' ? 'active' : ''} onClick={() => navigate('/console/' + slug + '/modules')}><AddRoundedIcon fontSize="small" />Moduli e upgrade</button>
-      </div><div className="workspace-side-bottom"><Button onClick={() => void signOut()} startIcon={<LogoutRoundedIcon />} color="inherit" size="small">Esci</Button></div>
+        <button aria-current={section === 'modules' ? 'page' : undefined} className={section === 'modules' ? 'active' : ''} onClick={() => navigate('/console/' + slug + '/modules')}><AddRoundedIcon fontSize="small" />Moduli e upgrade</button>
+      </nav><div className="workspace-side-bottom"><Button onClick={() => void signOut()} startIcon={<LogoutRoundedIcon />} color="inherit" size="small">Esci</Button></div>
     </aside>
     <div className="workspace-content">
-      <div className="workspace-top"><span><span className={tenant.status === 'active' ? 'dot-active' : 'dot-wait'} /> {tenant.status === 'active' ? 'Piattaforma online' : tenant.status === 'draft' ? 'Bozza privata' : 'Sospesa'}</span><Button component={RouterLink} to={'/t/' + tenant.slug} target="_blank" endIcon={<ArrowOutwardRoundedIcon />}>Anteprima sito</Button></div>
+      <div className="workspace-top"><span><span className={tenant.status === 'active' ? 'dot-active' : 'dot-wait'} /> {tenant.status === 'active' ? 'Piattaforma online' : tenant.status === 'draft' ? 'Bozza privata' : 'Sospesa'}</span><Button component={RouterLink} to={'/t/' + tenant.slug} target="_blank" rel="noopener noreferrer" endIcon={<ArrowOutwardRoundedIcon />}>Anteprima sito</Button></div>
       <div className="workspace-inner">
         {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
         {section === 'overview' && <>
