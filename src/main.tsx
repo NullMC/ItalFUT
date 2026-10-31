@@ -7,6 +7,7 @@ import { AuthProvider } from './auth/AuthProvider';
 import { theme } from './theme';
 import { App } from './App';
 import './styles.css';
+import './styles.refined.css';
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
