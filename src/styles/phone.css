@@ -1,0 +1,185 @@
+/* Hero 3D device — original CSS 3D phone (no Apple assets) showing a fully
+   navigable, clearly-labelled illustrative tournament. Refs: 21st.dev Phone Scroll
+   Hero (ruixen.ui), Phone Mockups (solaceui), Tilt (ibelick). */
+.itf-phone-stage {
+  --phone-w: clamp(250px, 23vw, 320px);
+  position: relative; display: grid; place-items: center; isolation: isolate;
+  width: 100%; min-height: calc(var(--phone-w) * 2.15);
+  perspective: 1400px; perspective-origin: 50% 45%;
+  touch-action: pan-y;
+}
+.itf-phone-stage { --phone-bg: #f5f6f1; --phone-paper: #ffffff; --phone-ink: #0f1d17; --phone-muted: #56665d; --phone-border: #e1e7df; --phone-accent: #0f6b4a; --phone-accent-ink: #fff; }
+:root[data-theme="dark"] .itf-phone-stage { --phone-bg: #08110d; --phone-paper: #111d18; --phone-ink: #eef4ef; --phone-muted: #a8bab0; --phone-border: #233630; --phone-accent: #c6f36a; --phone-accent-ink: #0b1a06; }
+
+.itf-phone-ambient-light {
+  position: absolute; z-index: -1; inset: 8% 0 4%;
+  background: radial-gradient(closest-side, var(--accent-glow), transparent 75%);
+  filter: blur(40px); opacity: .75; pointer-events: none;
+}
+.itf-phone-arrival, .itf-phone-float, .itf-phone-tilt { transform-style: preserve-3d; position: relative; }
+.itf-phone-tilt { transform-origin: 50% 55%; will-change: transform; }
+.itf-phone-frame {
+  position: relative; width: var(--phone-w); aspect-ratio: .49; padding: 10px; border-radius: calc(var(--phone-w) * .16);
+  transform-style: preserve-3d;
+  background: linear-gradient(115deg, #3a4540 0%, #1a221e 18%, #59655e 38%, #1b2420 52%, #0c1110 74%, #48534d 100%);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.14) inset,
+    0 0 0 2px #0b0f0d inset,
+    0 2px 0 rgba(255,255,255,.18) inset,
+    -26px 40px 80px -20px rgba(0,0,0,.65),
+    -60px 90px 140px -40px rgba(0,0,0,.45),
+    0 0 90px -20px var(--accent-glow);
+}
+/* Side thickness: a darker slab offset in Z gives the device real depth. */
+.itf-phone-frame::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; transform: translateZ(-14px);
+  background: linear-gradient(90deg, #0a0e0c, #2a332e 30%, #0d1210 70%, #222a26); z-index: -1;
+}
+/* Moving specular reflection across glass */
+.itf-phone-frame::after {
+  content: ""; position: absolute; inset: 10px; border-radius: calc(var(--phone-w) * .13); pointer-events: none; z-index: 20;
+  background: linear-gradient(115deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 28%, rgba(255,255,255,0) 62%, rgba(255,255,255,.07) 74%, rgba(255,255,255,0) 86%);
+  mix-blend-mode: screen;
+}
+.itf-phone-button { position: absolute; width: 4px; border-radius: 3px; background: linear-gradient(90deg, #0c100e, #4b5650, #141a17); }
+.itf-phone-button--action { left: -3px; top: 17%; height: 4.5%; }
+.itf-phone-button--volume { left: -3px; top: 25%; height: 12%; box-shadow: 0 calc(var(--phone-w) * .02) 0 transparent; }
+.itf-phone-button--power { right: -3px; top: 27%; height: 15%; }
+
+.itf-phone-screen {
+  position: relative; height: 100%; overflow: hidden; display: flex; flex-direction: column;
+  border-radius: calc(var(--phone-w) * .13); background: var(--phone-bg); color: var(--phone-ink);
+  font-family: var(--font-sans); font-size: 12px; transform: translateZ(1px);
+}
+.itf-phone-status { display: flex; align-items: center; justify-content: space-between; padding: 12px 22px 4px; font-size: 11.5px; font-weight: 650; flex: none; }
+.itf-phone-dynamic-island { position: absolute; left: 50%; top: 9px; width: 31%; height: 23px; border-radius: 20px; background: #000; transform: translateX(-50%); }
+.itf-phone-status-icons { display: flex; gap: 4px; align-items: center; }
+.itf-phone-signal, .itf-phone-wifi, .itf-phone-battery { display: block; background: currentColor; }
+.itf-phone-signal { width: 14px; height: 9px; clip-path: polygon(0 75%, 20% 75%, 20% 100%, 0 100%, 0 75%, 27% 50%, 47% 50%, 47% 100%, 27% 100%, 27% 50%, 54% 25%, 74% 25%, 74% 100%, 54% 100%, 54% 25%, 80% 0, 100% 0, 100% 100%, 80% 100%); }
+.itf-phone-wifi { width: 12px; height: 9px; clip-path: polygon(50% 100%, 0 30%, 25% 5%, 50% 0, 75% 5%, 100% 30%); }
+.itf-phone-battery { width: 20px; height: 10px; border-radius: 3px; background: linear-gradient(90deg, currentColor 70%, transparent 70%); box-shadow: 0 0 0 1px currentColor inset; opacity: .9; }
+
+.itf-phone-appbar { position: relative; display: flex; justify-content: space-between; align-items: center; padding: 6px 14px 6px 16px; flex: none; }
+.itf-demo-brand-button { border: 0; background: none; padding: 4px 0; cursor: pointer; font-size: 17px; letter-spacing: -.02em; }
+.itf-phone-appbrand b { font-family: var(--font-display); font-weight: 800; letter-spacing: .02em; }
+.itf-phone-appbrand span { font-family: var(--font-serif); font-style: italic; }
+.itf-phone-appbrand em { display: none; }
+.itf-demo-menu-trigger { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 12px; border: 1px solid var(--phone-border); background: var(--phone-paper); cursor: pointer; }
+.itf-demo-menu { position: absolute; right: 12px; top: 44px; z-index: 30; display: grid; min-width: 150px; padding: 6px; border-radius: 16px; background: var(--phone-paper); border: 1px solid var(--phone-border); box-shadow: 0 18px 40px -16px rgba(0,0,0,.4); }
+.itf-demo-menu button { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border: 0; background: none; border-radius: 10px; text-align: left; cursor: pointer; font-weight: 550; }
+.itf-demo-menu button:hover { background: var(--phone-bg); }
+
+.itf-demo-current-page { display: flex; align-items: center; justify-content: space-between; padding: 4px 16px 8px; font-weight: 650; font-size: 13px; flex: none; border-bottom: 1px solid var(--phone-border); }
+.itf-demo-current-page button { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; padding: 2px 0; font-weight: 650; cursor: pointer; }
+.itf-demo-status-bullet { font-size: 9.5px; letter-spacing: .08em; padding: 3px 7px; border-radius: 999px; color: var(--phone-muted); border: 1px solid var(--phone-border); }
+
+.itf-phone-scrollview { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.itf-phone-scrollview::-webkit-scrollbar { display: none; }
+.itf-demo-view { padding-bottom: 10px; }
+
+.itf-phone-competition { margin: 12px 12px 4px; padding: 14px; border-radius: 20px; color: #f4fbef; overflow: hidden; position: relative;
+  background: radial-gradient(120% 90% at 100% 0%, rgba(198,243,106,.45), transparent 55%), linear-gradient(140deg, #0f6b4a, #0a3d2b 70%); }
+.itf-phone-competition::after { content: ""; position: absolute; right: -30px; bottom: -40px; width: 120px; height: 120px; border-radius: 50%; border: 1px solid rgba(255,255,255,.18); }
+.itf-phone-competition-title { display: flex; gap: 10px; align-items: center; }
+.itf-phone-cup { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: rgba(255,255,255,.14); color: #e9ffb8; }
+.itf-phone-competition-title strong { display: block; font-family: var(--font-display); font-size: 25px; font-weight: 800; letter-spacing: .01em; line-height: 1; }
+.itf-phone-competition-title small { opacity: .8; font-size: 11px; }
+.itf-phone-competition-metrics { display: flex; gap: 12px; margin-top: 14px; font-size: 10.5px; opacity: .92; }
+.itf-phone-competition-metrics b { font-family: var(--font-display); font-size: 15px; margin-right: 2px; }
+
+.itf-phone-content { padding: 6px 12px 4px; display: grid; gap: 8px; }
+.itf-demo-section-title { display: flex; justify-content: space-between; align-items: center; padding: 4px 2px 0; font-size: 12.5px; }
+.itf-demo-section-title--space { margin-top: 6px; }
+.itf-demo-section-title button { display: inline-flex; align-items: center; gap: 1px; border: 0; background: none; color: var(--phone-accent); font-weight: 600; font-size: 11px; cursor: pointer; padding: 6px 0; }
+:root[data-theme="dark"] .itf-demo-section-title button { color: #d4f78a; }
+
+.itf-phone-match { width: 100%; display: grid; gap: 8px; padding: 10px 11px; border-radius: 16px; border: 1px solid var(--phone-border); background: var(--phone-paper); text-align: left; cursor: pointer; transition: transform .18s var(--ease-out), border-color .18s; }
+.itf-phone-match:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--phone-accent) 45%, var(--phone-border)); }
+.itf-phone-match-meta { display: flex; justify-content: space-between; font-size: 10px; color: var(--phone-muted); }
+.itf-demo-done { color: var(--phone-muted); }
+.itf-demo-planned { color: var(--phone-accent); font-weight: 650; }
+:root[data-theme="dark"] .itf-demo-planned { color: #d4f78a; }
+.itf-phone-match-teams { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 6px; }
+.itf-phone-match-teams > span { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 11px; }
+.itf-phone-match-teams > span:last-child { flex-direction: row-reverse; text-align: right; }
+.itf-phone-match-teams b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.itf-phone-match-teams strong { font-family: var(--font-display); font-size: 20px; font-weight: 800; letter-spacing: .02em; }
+.itf-phone-teamlogo { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 8.5px; font-weight: 750; color: #fff; background: var(--team-color); box-shadow: 0 0 0 2px color-mix(in srgb, var(--team-color) 25%, transparent); }
+.itf-phone-teamlogo--small { width: 19px; height: 19px; font-size: 7px; }
+
+.itf-demo-link-card { display: flex; align-items: center; gap: 8px; width: 100%; padding: 11px 12px; margin-top: 4px; border: 1px solid var(--phone-border); border-radius: 14px; background: var(--phone-paper); font-weight: 600; text-align: left; cursor: pointer; }
+.itf-demo-link-card span { flex: 1; }
+.itf-demo-page { padding-top: 10px; }
+.itf-demo-page-heading { display: grid; gap: 1px; padding: 0 2px 4px; }
+.itf-demo-page-heading span { font-size: 10.5px; color: var(--phone-muted); }
+.itf-demo-page-heading strong { font-size: 21px; letter-spacing: -.03em; }
+.itf-demo-filter { display: inline-flex; align-items: center; gap: 6px; justify-self: start; padding: 4px 4px 4px 10px; border-radius: 999px; background: var(--phone-paper); border: 1px solid var(--phone-border); font-weight: 600; font-size: 11px; }
+.itf-demo-filter button { border: 0; background: none; display: grid; place-items: center; cursor: pointer; }
+.itf-demo-round-nav { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+.itf-demo-round-nav button { min-height: 32px; border-radius: 10px; border: 1px solid var(--phone-border); background: var(--phone-paper); font-family: var(--font-display); font-weight: 700; font-size: 15px; cursor: pointer; }
+.itf-demo-round-nav button.is-active { background: var(--phone-accent); color: var(--phone-accent-ink); border-color: transparent; }
+.itf-phone-list-caption { font-size: 10.5px; color: var(--phone-muted); padding: 2px; }
+.itf-demo-empty, .itf-demo-footnote, .itf-phone-demo-note { font-size: 10.5px; color: var(--phone-muted); padding: 4px 2px; }
+.itf-phone-demo-note { text-align: center; padding: 10px 12px 2px; }
+
+.itf-demo-table-wrap { display: grid; border: 1px solid var(--phone-border); border-radius: 14px; background: var(--phone-paper); overflow: hidden; }
+.itf-demo-standing-head, .itf-demo-standing { display: grid; grid-template-columns: 1fr 26px 30px 26px; align-items: center; gap: 4px; padding: 8px 10px; font-size: 11px; }
+.itf-demo-standing-head { font-size: 9.5px; color: var(--phone-muted); font-weight: 650; border-bottom: 1px solid var(--phone-border); }
+.itf-demo-standing { border: 0; border-bottom: 1px solid var(--phone-border); background: none; text-align: left; cursor: pointer; }
+.itf-demo-standing:last-child { border-bottom: 0; }
+.itf-demo-standing:hover { background: var(--phone-bg); }
+.itf-demo-standing b { font-family: var(--font-display); font-size: 14px; }
+.itf-demo-standing-name { display: flex; align-items: center; gap: 6px; min-width: 0; font-weight: 600; white-space: nowrap; overflow: hidden; }
+.itf-demo-standing-name em { font-style: normal; width: 12px; color: var(--phone-muted); font-family: var(--font-display); font-weight: 700; }
+
+.itf-demo-search { display: flex; align-items: center; gap: 6px; padding: 0 10px; height: 36px; border-radius: 12px; border: 1px solid var(--phone-border); background: var(--phone-paper); }
+.itf-demo-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: inherit; color: inherit; }
+.itf-demo-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.itf-demo-team-list { display: grid; gap: 6px; }
+.itf-demo-team-button, .itf-demo-roster-item { display: flex; align-items: center; gap: 9px; width: 100%; padding: 9px 10px; border-radius: 14px; border: 1px solid var(--phone-border); background: var(--phone-paper); text-align: left; cursor: pointer; }
+.itf-demo-team-button > span:nth-child(2), .itf-demo-roster-item > span:nth-child(2) { flex: 1; display: grid; }
+.itf-demo-team-button small, .itf-demo-roster-item small { color: var(--phone-muted); font-size: 10px; }
+.itf-demo-shirt { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; background: var(--phone-bg); font-family: var(--font-display); font-weight: 800; font-size: 14px; }
+
+.itf-demo-scoreboard { display: grid; grid-template-columns: 1fr auto 1fr; gap: 6px; align-items: center; padding: 14px 8px; border-radius: 18px; background: var(--phone-paper); border: 1px solid var(--phone-border); text-align: center; }
+.itf-demo-scoreboard button { display: grid; justify-items: center; gap: 6px; border: 0; background: none; font-weight: 600; font-size: 11px; cursor: pointer; }
+.itf-demo-scoreboard strong { display: block; font-family: var(--font-display); font-size: 30px; font-weight: 800; }
+.itf-demo-scoreboard small { color: var(--phone-muted); font-size: 10px; }
+.itf-demo-location { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--phone-muted); padding: 0 2px; }
+.itf-demo-events { display: grid; gap: 6px; }
+.itf-demo-events button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px; border: 1px solid var(--phone-border); border-radius: 12px; background: var(--phone-paper); text-align: left; cursor: pointer; }
+.itf-demo-events button > span:nth-of-type(2) { flex: 1; display: grid; }
+.itf-demo-events small { color: var(--phone-muted); font-size: 10px; }
+.itf-demo-goal-minute { font-family: var(--font-display); font-weight: 800; font-size: 14px; width: 24px; }
+.itf-demo-team-heading { display: flex; gap: 10px; align-items: center; }
+.itf-demo-team-heading .itf-phone-teamlogo { width: 42px; height: 42px; font-size: 12px; }
+.itf-demo-team-heading div { display: grid; }
+.itf-demo-team-heading span { font-size: 10.5px; color: var(--phone-muted); }
+.itf-demo-team-heading strong { font-size: 19px; letter-spacing: -.02em; }
+.itf-demo-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.itf-demo-facts span { display: grid; padding: 8px; border-radius: 12px; background: var(--phone-paper); border: 1px solid var(--phone-border); font-size: 10px; color: var(--phone-muted); }
+.itf-demo-facts b { font-family: var(--font-display); font-size: 19px; color: var(--phone-ink); }
+.itf-demo-manager { font-size: 11px; color: var(--phone-muted); }
+.itf-demo-player-heading { display: grid; justify-items: center; gap: 2px; padding: 12px 0 6px; text-align: center; }
+.itf-demo-player-shirt { width: 64px; height: 64px; border-radius: 20px; display: grid; place-items: center; background: var(--phone-accent); color: var(--phone-accent-ink); font-family: var(--font-display); font-size: 32px; font-weight: 800; margin-bottom: 6px; }
+.itf-demo-player-heading span { font-size: 10.5px; color: var(--phone-muted); }
+.itf-demo-player-heading strong { font-size: 19px; }
+.itf-demo-player-stat { display: grid; justify-items: center; padding: 14px; border-radius: 16px; background: var(--phone-paper); border: 1px solid var(--phone-border); }
+.itf-demo-player-stat strong { font-family: var(--font-display); font-size: 34px; font-weight: 800; line-height: 1; }
+.itf-demo-player-stat span { font-size: 10.5px; color: var(--phone-muted); }
+
+.itf-demo-bottom-nav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; padding: 6px 8px 4px; border-top: 1px solid var(--phone-border); background: color-mix(in srgb, var(--phone-paper) 88%, transparent); flex: none; }
+.itf-demo-bottom-nav button { display: grid; justify-items: center; gap: 2px; padding: 6px 0; border: 0; border-radius: 12px; background: none; font-size: 9.5px; font-weight: 600; color: var(--phone-muted); cursor: pointer; min-height: 40px; }
+.itf-demo-bottom-nav button.is-active { color: var(--phone-ink); background: color-mix(in srgb, var(--phone-accent) 16%, transparent); }
+.itf-phone-home-indicator { width: 36%; height: 4px; border-radius: 4px; background: var(--phone-ink); opacity: .7; margin: 4px auto 7px; flex: none; }
+
+.itf-phone-screen button:focus-visible { outline: 2px solid var(--phone-accent); outline-offset: 1px; }
+
+@media (max-width: 960px) { .itf-phone-stage { --phone-w: 270px; } }
+@media (max-width: 420px) { .itf-phone-stage { --phone-w: min(250px, 68vw); } }
+@media (pointer: coarse) {
+  /* Touch: a fixed, gentler cinematic angle; the screen faces the user while used. */
+  .itf-phone-tilt { transform: rotateX(6deg) rotateY(-14deg) rotateZ(3deg) !important; transition: transform .5s var(--ease-out); }
+  .itf-phone-tilt:focus-within { transform: none !important; }
+}
+@media (prefers-reduced-motion: reduce) { .itf-phone-tilt { transform: rotateY(-10deg) !important; } }

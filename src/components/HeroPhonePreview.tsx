@@ -30,6 +30,8 @@ type Route = {
   playerNumber?: number;
 };
 type MainPage = 'home' | 'matches' | 'standings' | 'teams';
+/** Resting cinematic angle of the device (degrees). */
+const TILT = { x: 9, y: -24, z: 5 };
 
 const navigation: { id: MainPage; label: string; icon: typeof HomeRoundedIcon }[] = [
   { id: 'home', label: 'Home', icon: HomeRoundedIcon },
@@ -81,8 +83,9 @@ export function HeroPhonePreview() {
   const [interacting, setInteracting] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
-  const rotateX = useSpring(-4, { stiffness: 115, damping: 26 });
-  const rotateY = useSpring(-11, { stiffness: 115, damping: 26 });
+  const rotateX = useSpring(TILT.x, { stiffness: 90, damping: 22 });
+  const rotateY = useSpring(TILT.y, { stiffness: 90, damping: 22 });
+  const rotateZ = useSpring(TILT.z, { stiffness: 90, damping: 22 });
 
   const navigate = (next: Route) => {
     setHistory(old => [...old, route]);
@@ -112,17 +115,15 @@ export function HeroPhonePreview() {
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
     if (reducedMotion || interacting || event.pointerType !== 'mouse') return;
     // Keep the real clickable screen facing forward; the outer stage alone tilts.
-    if ((event.target as Element).closest('.itf-phone-frame')) {
-      rotateX.set(0); rotateY.set(0);
-      return;
-    }
+    if ((event.target as Element).closest('.itf-phone-frame')) return;
     const bounds = event.currentTarget.getBoundingClientRect();
     if (!bounds.width || !bounds.height) return;
-    rotateY.set(((event.clientX - bounds.left) / bounds.width - .5) * 6);
-    rotateX.set(-((event.clientY - bounds.top) / bounds.height - .5) * 5);
+    rotateY.set(TILT.y + ((event.clientX - bounds.left) / bounds.width - .5) * 14);
+    rotateX.set(TILT.x - ((event.clientY - bounds.top) / bounds.height - .5) * 10);
   };
-  const straighten = () => { rotateX.set(0); rotateY.set(0); };
-  const restoreTilt = () => { rotateX.set(-4); rotateY.set(-11); };
+  // Facing the user while touched/focused keeps every control fully usable.
+  const straighten = () => { rotateX.set(0); rotateY.set(-4); rotateZ.set(0); };
+  const restoreTilt = () => { rotateX.set(TILT.x); rotateY.set(TILT.y); rotateZ.set(TILT.z); };
   const isMain = navigation.some(item => item.id === route.page);
   const title = route.page === 'home' ? 'Street Cup'
     : route.page === 'matches' ? 'Calendario'
@@ -143,7 +144,6 @@ export function HeroPhonePreview() {
     <>
       {route.page === 'home' && <>
         <div className="itf-phone-competition">
-          <span className="itf-phone-competition-tag">ANTEPRIMA INTERATTIVA</span>
           <div className="itf-phone-competition-title">
             <span className="itf-phone-cup"><EmojiEventsRoundedIcon sx={{ fontSize: 22 }} /></span>
             <div><strong>Street Cup</strong><small>Stagione 2026/27</small></div>
@@ -290,7 +290,7 @@ export function HeroPhonePreview() {
     </>
   );
 
-  return <div className="itf-phone-stage"
+  return <div className="itf-phone-stage" role="group"
     aria-label="Demo interattiva ItalFUT dentro uno smartphone tridimensionale"
     onPointerMove={handlePointerMove} onPointerLeave={restoreTilt}>
     <div className="itf-phone-ambient-light" aria-hidden="true" />
@@ -301,7 +301,7 @@ export function HeroPhonePreview() {
       <motion.div className="itf-phone-float"
         animate={reducedMotion || interacting ? { y: 0 } : { y: [0, -5, 0] }}
         transition={{ duration: reducedMotion || interacting ? .2 : 8, repeat: reducedMotion || interacting ? 0 : Infinity, ease: 'easeInOut' }}>
-        <motion.div className="itf-phone-tilt" style={{ rotateX, rotateY, rotateZ: interacting ? 0 : 3 }}>
+        <motion.div className="itf-phone-tilt" style={{ rotateX, rotateY, rotateZ }}>
           <div className="itf-phone-frame" onPointerEnter={() => { straighten(); setInteracting(true); }}
             onPointerLeave={() => { setInteracting(false); restoreTilt(); }}
             onFocusCapture={() => { straighten(); setInteracting(true); }}
