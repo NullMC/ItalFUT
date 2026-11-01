@@ -19,7 +19,7 @@ import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import {
   demoMatches, demoTeams, goalEvents, goalsForPlayer, matchDate, matchTime,
-  standings, teamById, type DemoMatch, type DemoPlayer, type DemoTeam, type TeamId,
+  standings, teamById, type DemoMatch, type DemoTeam, type TeamId,
 } from './heroDemoData';
 
 type Page = 'home' | 'matches' | 'standings' | 'teams' | 'match' | 'team' | 'player';
@@ -107,7 +107,7 @@ export function HeroPhonePreview() {
   const openPlayer = (teamId: TeamId, playerNumber: number) =>
     navigate({ page: 'player', teamId, playerNumber });
 
-  useEffect(() => { scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' }); }, [route]);
+  useEffect(() => { scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' }); }, [route]);
   // Distinct screens within the mockup have their own scrollable viewport.
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
     if (reducedMotion || interacting || event.pointerType !== 'mouse') return;
