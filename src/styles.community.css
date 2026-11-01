@@ -224,3 +224,18 @@ a.public-card:hover,a.public-team-card:hover{border-color:#6da083;box-shadow:0 7
   .if-feature-accordion__plus{transition:none!important}
   .quick-grid button:hover{transform:none}
 }
+
+/* Organizer appearance: functional color presets from the referenced 21st themes. */
+.palette-picker{border:0;margin:0;padding:0;min-width:0}
+.palette-picker legend{font-size:14px;font-weight:750;color:#334c3c;margin:0 0 12px}
+.palette-picker__options{display:flex;flex-wrap:wrap;gap:10px}
+.palette-picker__option{display:flex;flex-direction:column;align-items:center;gap:9px;min-width:115px;
+  padding:12px 13px;border:1px solid #d2cbbb;border-radius:12px;background:#fffdfa;color:#193329;
+  font-size:12px;font-weight:750;cursor:pointer;transition:border-color .2s ease,background-color .2s ease}
+.palette-picker__option:hover{border-color:#0f7058;background:#f5f5ec}
+.palette-picker__option[aria-pressed="true"]{border-color:#0f7058;background:#e8f0df;box-shadow:inset 0 0 0 1px #0f7058}
+.palette-picker__option:focus-visible{outline:3px solid #4d9d7c;outline-offset:2px}
+.palette-picker__swatch{width:43px;height:43px;border-radius:50%;display:grid;place-items:center;border:2px solid rgba(255,255,255,.65);color:#fff}
+.palette-picker:disabled .palette-picker__option{opacity:.5;cursor:not-allowed}
+@media(max-width:480px){.palette-picker__options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.palette-picker__option{min-width:0;padding:10px 6px;font-size:10px}}
+@media(prefers-reduced-motion:reduce){.palette-picker__option{transition:none}}

@@ -17,6 +17,11 @@ import { CrudEditor, EDITORS } from '../components/CrudEditor';
 
 type Owned = { role: MemberRole; tenants: Tenant | null };
 type PlanDraft = { months: number; modules: FeatureCode[] };
+const COLOR_PRESETS = [
+  { name: 'Stadium', color: '#173d32', source: 'ItalFUT' },
+  { name: 'Sea Green', color: '#227472', source: '21st.dev' },
+  { name: 'Green Notes', color: '#0f7058', source: '21st.dev' },
+] as const;
 function draft(): PlanDraft {
   try {
     const value = JSON.parse(sessionStorage.getItem('italfut_configuration') ?? '{}') as Partial<PlanDraft>;
@@ -188,7 +193,24 @@ export function TenantConsole() {
           <form onSubmit={saveSettings}><Stack spacing={2.5} sx={{ maxWidth: 650, mt: 4 }}>
             <TextField label="Nome della piattaforma" required value={fields.name} onChange={e => setFields(f => ({ ...f, name: e.target.value }))} disabled={!editable} />
             <TextField label="Slogan" value={fields.tagline} onChange={e => setFields(f => ({ ...f, tagline: e.target.value }))} disabled={!editable} />
-            <TextField label="Colore del brand (#RRGGBB)" value={fields.brand_color} onChange={e => setFields(f => ({ ...f, brand_color: e.target.value }))} disabled={!editable} inputProps={{ pattern: '#[0-9a-fA-F]{6}' }} />
+            <fieldset className="palette-picker" disabled={!editable}>
+              <legend>Colore del torneo</legend>
+              <div className="palette-picker__options" role="group" aria-label="Colori predefiniti">
+                {COLOR_PRESETS.map(preset => <button
+                  key={preset.name}
+                  type="button"
+                  className="palette-picker__option"
+                  aria-pressed={fields.brand_color.toLowerCase() === preset.color.toLowerCase()}
+                  onClick={() => setFields(f => ({ ...f, brand_color: preset.color }))}
+                >
+                  <span className="palette-picker__swatch" style={{ backgroundColor: preset.color }} aria-hidden="true">
+                    {fields.brand_color.toLowerCase() === preset.color.toLowerCase() && <CheckRoundedIcon fontSize="small" />}
+                  </span>
+                  <span>{preset.name}</span>
+                </button>)}
+              </div>
+            </fieldset>
+            <TextField label="Colore personalizzato (#RRGGBB)" value={fields.brand_color} onChange={e => setFields(f => ({ ...f, brand_color: e.target.value }))} disabled={!editable} inputProps={{ pattern: '#[0-9a-fA-F]{6}' }} />
             <TextField label="URL logo" value={fields.logo_url} onChange={e => setFields(f => ({ ...f, logo_url: e.target.value }))} disabled={!editable} />
             <TextField label="URL immagine di copertina" value={fields.cover_url} onChange={e => setFields(f => ({ ...f, cover_url: e.target.value }))} disabled={!editable} />
             {editable && <Button variant="contained" type="submit" disabled={saving} sx={{ alignSelf: 'flex-start' }}>{saving ? 'Salvataggio…' : 'Salva impostazioni'}</Button>}

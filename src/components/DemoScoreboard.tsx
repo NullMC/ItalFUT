@@ -29,7 +29,7 @@ export function DemoScoreboard() {
       <span><SportsSoccerRoundedIcon fontSize="small" /> Street Cup</span>
       <small>Anteprima · dati di esempio</small>
     </div>
-    <div className="match-visual-title">IL TORNEO.<br />IN TEMPO REALE.</div>
+    <div className="match-visual-title">IL TORNEO.<br />SOTTO CONTROLLO.</div>
     <div className="match-visual-board">
       <AnimatedTabs
         tabs={demoTabs}

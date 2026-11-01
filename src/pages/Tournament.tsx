@@ -33,6 +33,13 @@ function dateOf(value: unknown) {
   return Number.isNaN(date.getTime()) ? String(value) : new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date);
 }
 function nameOf(row: Row | undefined) { return String(row?.name ?? 'Da definire'); }
+const statusLabels: Record<string, string> = {
+  scheduled: 'In programma', live: 'In corso', finished: 'Terminata', postponed: 'Rinviata',
+};
+function matchStatus(value: unknown) {
+  const status = String(value ?? '');
+  return statusLabels[status] ?? status;
+}
 function src(value: unknown) {
   const url = String(value ?? '');
   return /^https?:\/\//i.test(url) ? url : '';
@@ -71,7 +78,7 @@ function MatchList({ matches, data, slug }: { matches: Row[]; data: Data; slug: 
     const home = teamMap.get(String(match.home_team_id));
     const away = teamMap.get(String(match.away_team_id));
     return <RouterLink key={match.id} className="public-match" to={'/t/' + slug + '/partite/' + match.id}>
-      <div className="match-meta"><span>{String(match.matchday ?? 'Incontro')}</span><span>{dateOf(match.kickoff_at)}</span><Chip label={String(match.status)} size="small" variant="outlined" /></div>
+      <div className="match-meta"><span>{String(match.matchday ?? 'Incontro')}</span><span>{dateOf(match.kickoff_at)}</span><Chip label={matchStatus(match.status)} size="small" variant="outlined" className={'match-status match-status--' + String(match.status)} /></div>
       <div className="match-teams"><div><BrandImage url={home?.logo_url} name={nameOf(home)} />{nameOf(home)}</div><strong>{match.status === 'finished' || match.status === 'live' ? String(match.home_score ?? '–') + ' : ' + String(match.away_score ?? '–') : 'VS'}</strong><div>{nameOf(away)}<BrandImage url={away?.logo_url} name={nameOf(away)} /></div></div>
       <small>{String(match.venue ?? 'Campo da definire')}</small>
     </RouterLink>;
@@ -121,7 +128,8 @@ export function Tournament() {
   }, [slug]);
 
   const competitions = useMemo(() => (data.competitions ?? []).sort((a,b) => String(a.name).localeCompare(String(b.name))), [data]);
-  const selected = query.get('competizione') || competitions[0]?.id || '';
+  const requestedCompetition = query.get('competizione');
+  const selected = competitions.some(item => String(item.id) === requestedCompetition) ? requestedCompetition! : String(competitions[0]?.id ?? '');
   const filteredMatches = (data.matches ?? []).filter(match => !selected || match.competition_id === selected).sort((a, b) => String(b.kickoff_at).localeCompare(String(a.kickoff_at)));
   const ranking = useMemo(() => standings(selected, data), [selected, data]);
   const players = data.players ?? [];
