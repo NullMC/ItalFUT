@@ -212,3 +212,11 @@
 @media(prefers-reduced-transparency:reduce){
   .hero.hero-cinematic .hero-secondary{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(10,55,36,.88)}
 }
+
+/* Optical parallax: scroll alters shader depth without moving the readable hero copy. */
+.hero.hero-dynamic.hero-cinematic .hero-shader-parallax{
+  position:absolute;inset:-4% 0;z-index:1;pointer-events:none;
+}
+.hero.hero-dynamic.hero-cinematic .hero-shader-parallax .hero-ambient-shader{opacity:.87}
+@media(max-width:700px){.hero.hero-dynamic.hero-cinematic .hero-shader-parallax .hero-ambient-shader{opacity:.74}}
+@media(prefers-reduced-motion:reduce){.hero.hero-dynamic.hero-cinematic .hero-shader-parallax{transform:none!important}}

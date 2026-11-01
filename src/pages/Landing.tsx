@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Container, Typography } from '@mui/material';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
@@ -9,7 +10,7 @@ import { EXTRA } from '../lib/catalog';
 import { FeatureAccordion } from '../components/FeatureAccordion';
 import { CinematicShader } from '../components/CinematicShader';
 import { Reveal, ScrollRail } from '../components/MarketingMotion';
-import { motion, useReducedMotion } from 'motion/react';
+import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
 
 const capabilities = [
   { title: 'Una casa per ogni torneo', text: 'Una pagina dedicata con identità, competizioni, squadre e calendario. Tutto raggiungibile da un unico indirizzo.', icon: <TuneRoundedIcon /> },
@@ -21,9 +22,14 @@ const capabilities = [
 export function Landing() {
   const navigate = useNavigate();
   const reducedMotion = useReducedMotion();
+  const heroRef = useRef<HTMLElement>(null);
+  const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
+  const shaderParallax = useTransform(heroProgress, [0, 1], [0, 54]);
   return <>
-    <section className="hero hero-dynamic hero-cinematic">
-      <CinematicShader variant="stadium" className="hero-ambient-shader" />
+    <section className="hero hero-dynamic hero-cinematic" ref={heroRef}>
+      <motion.div className="hero-shader-parallax" style={{ y: reducedMotion ? 0 : shaderParallax }} aria-hidden="true">
+        <CinematicShader variant="stadium" className="hero-ambient-shader" />
+      </motion.div>
       <Container maxWidth="xl" className="hero-grid hero-photo-grid">
         <motion.div className="hero-copy" initial={reducedMotion ? false : { opacity: .92, y: 19 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : .7, ease: [.16, 1, .3, 1] }}>
           <Typography variant="h1" className="hero-title">Ogni torneo<br />merita <span>un grande</span><br />palcoscenico.</Typography>
