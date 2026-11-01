@@ -6,7 +6,7 @@
  * The screen is a clearly labeled illustrative preview of public tournament
  * views, not a claimed screenshot of an actual customer's tournament.
  */
-import { useState, type PointerEvent } from 'react';
+import { useState, type KeyboardEvent, type PointerEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion, useSpring } from 'motion/react';
 import SportsSoccerRoundedIcon from '@mui/icons-material/SportsSoccerRounded';
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
@@ -45,6 +45,17 @@ export function HeroPhonePreview() {
   const handlePointerLeave = () => {
     rotateX.set(-5);
     rotateY.set(-16);
+  };
+
+  const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const next: PreviewView = event.key === 'Home' ? 'matches'
+      : event.key === 'End' ? 'standings'
+      : view === 'matches' ? 'standings' : 'matches';
+    setView(next);
+    event.currentTarget.parentElement
+      ?.querySelector<HTMLButtonElement>(`#itf-demo-${next}-tab`)?.focus();
   };
 
   return (
@@ -100,10 +111,14 @@ export function HeroPhonePreview() {
                     <div className="itf-phone-tabs" role="tablist" aria-label="Visualizza l'anteprima del torneo">
                       <button type="button" role="tab" id="itf-demo-matches-tab"
                         aria-selected={view === 'matches'} aria-controls="itf-phone-demo-content"
+                        tabIndex={view === 'matches' ? 0 : -1}
+                        onKeyDown={handleTabKeyDown}
                         className={view === 'matches' ? 'is-selected' : ''}
                         onClick={() => setView('matches')}>Partite</button>
                       <button type="button" role="tab" id="itf-demo-standings-tab"
                         aria-selected={view === 'standings'} aria-controls="itf-phone-demo-content"
+                        tabIndex={view === 'standings' ? 0 : -1}
+                        onKeyDown={handleTabKeyDown}
                         className={view === 'standings' ? 'is-selected' : ''}
                         onClick={() => setView('standings')}>Classifica</button>
                     </div>
