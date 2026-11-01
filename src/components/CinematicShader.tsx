@@ -2,16 +2,16 @@ import { useEffect, useRef, useState } from 'react';
 import { useAppearance } from './AppearanceProvider';
 import fragmentSource from './shaders/touchline.frag?raw';
 
-type ShaderVariant = 'stadium' | 'ribbons' | 'auth';
+type ShaderVariant = 'ribbons' | 'auth';
 
 const vertexSource =
   'attribute vec2 a_position; void main() { gl_Position = vec4(a_position, 0.0, 1.0); }';
 
-const variants: Record<ShaderVariant, number> = { stadium: 0, ribbons: 1, auth: 2 };
+const variants: Record<ShaderVariant, number> = { ribbons: 1, auth: 2 };
 
 /**
  * Custom zero-dependency WebGL shader, informed by 21st.dev Aurora Shader - Green,
- * Silk Aurora and Horizon Hero. Renders a volumetrically lit 3D football in stadium/auth.
+ * Silk Aurora and Horizon Hero. The 3D football has been replaced by an\n * interactive CSS 3D iPhone showcase; this shader draws only ambient light.
  *
  * Performance: bounded resolution and framerate, intersection/visibility pauses, no WebGL
  * requirement for content, static reduced-motion/data-saver mode and CSS fallback.
@@ -103,7 +103,7 @@ export function CinematicShader({
       if (!bounds.width || !bounds.height) return;
       const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
       // Limit fragment work especially on mobile and high-DPI screens.
-      const maxWidth = variant === 'stadium' ? 1100 : 750;
+      const maxWidth = variant === 'ribbons' ? 1050 : 750;
       const scale = Math.min(dpr, maxWidth / bounds.width);
       const width = Math.max(1, Math.round(bounds.width * scale));
       const height = Math.max(1, Math.round(bounds.height * scale));

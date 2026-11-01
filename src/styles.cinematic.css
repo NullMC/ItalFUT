@@ -10,8 +10,8 @@
 .hero.hero-dynamic.hero-cinematic{position:relative;isolation:isolate;overflow:hidden;background:#061b16;color:#fff}
 .hero.hero-dynamic.hero-cinematic::before{
   content:'';position:absolute;inset:0;z-index:0;width:100%;height:100%;transform:none;animation:none;opacity:.26;border:0;
-  background:linear-gradient(90deg,rgba(2,16,12,.73),rgba(2,16,12,.08)),
-  url("https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Well_lit_soccer_stadium_%28Unsplash%29.jpg/1280px-Well_lit_soccer_stadium_%28Unsplash%29.jpg") center 56%/cover no-repeat;
+  background:radial-gradient(ellipse at 82% 36%,rgba(46,124,81,.33),transparent 54%),
+  linear-gradient(90deg,rgba(2,17,13,.65),rgba(2,25,17,.08));
   pointer-events:none
 }
 .hero.hero-dynamic.hero-cinematic .hero-ambient-shader{z-index:1;opacity:.87}

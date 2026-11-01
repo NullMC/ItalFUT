@@ -9,6 +9,7 @@ import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded';
 import { EXTRA } from '../lib/catalog';
 import { FeatureAccordion } from '../components/FeatureAccordion';
 import { CinematicShader } from '../components/CinematicShader';
+import { HeroPhonePreview } from '../components/HeroPhonePreview';
 import { Reveal, ScrollRail } from '../components/MarketingMotion';
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
 
@@ -28,9 +29,9 @@ export function Landing() {
   return <>
     <section className="hero hero-dynamic hero-cinematic" ref={heroRef}>
       <motion.div className="hero-shader-parallax" style={{ y: reducedMotion ? 0 : shaderParallax }} aria-hidden="true">
-        <CinematicShader variant="stadium" className="hero-ambient-shader" />
+        <CinematicShader variant="ribbons" className="hero-ambient-shader" />
       </motion.div>
-      <Container maxWidth="xl" className="hero-grid hero-photo-grid">
+      <Container maxWidth="xl" className="hero-grid hero-device-grid">
         <motion.div className="hero-copy" initial={reducedMotion ? false : { opacity: .92, y: 19 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : .7, ease: [.16, 1, .3, 1] }}>
           <Typography variant="h1" className="hero-title">Ogni torneo<br />merita <span>un grande</span><br />palcoscenico.</Typography>
           <Typography className="hero-description">Competizioni, squadre, partite e classifiche. Un unico spazio digitale per organizzare il tuo torneo e farlo seguire a tutti.</Typography>
@@ -40,6 +41,7 @@ export function Landing() {
           </div>
           <p className="hero-footnote">Parti dalle funzioni essenziali. Aggiungi soltanto i moduli che ti servono.</p>
         </motion.div>
+        <HeroPhonePreview />
       </Container>
     </section>
 
