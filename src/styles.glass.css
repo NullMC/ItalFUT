@@ -348,3 +348,140 @@ html[data-theme="dark"] .MuiButton-containedPrimary{color:#10251b}
 @media(max-width:640px){
   .liquid-glass{backdrop-filter:blur(7px) saturate(1.1);-webkit-backdrop-filter:blur(7px) saturate(1.1)}
 }
+
+
+/*
+ * Full-bleed football photography: Mario Klassen, Volksparkstadion (2017), CC0.
+ * https://commons.wikimedia.org/wiki/File:Well_lit_soccer_stadium_(Unsplash).jpg
+ * Fade color intentionally inherits the actual section below, in both themes.
+ */
+.hero.hero-dynamic{
+  --hero-next-section:var(--itf-surface);
+  background:var(--hero-next-section);
+  min-height:0;
+  isolation:isolate;
+}
+.hero.hero-dynamic::before{
+  content:'';
+  position:absolute;
+  z-index:0;
+  inset:0;
+  width:100%;
+  height:100%;
+  display:block;
+  border:0;
+  border-radius:0;
+  background:
+    linear-gradient(90deg,rgba(5,22,18,.86) 0%,rgba(5,22,18,.64) 48%,rgba(5,22,18,.26) 100%),
+    url("https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Well_lit_soccer_stadium_%28Unsplash%29.jpg/1280px-Well_lit_soccer_stadium_%28Unsplash%29.jpg") center 56% / cover no-repeat;
+  opacity:1;
+  transform:none;
+  animation:none;
+  pointer-events:none;
+}
+.hero.hero-dynamic::after{
+  content:'';
+  position:absolute;
+  z-index:1;
+  inset:auto 0 0;
+  display:block;
+  width:100%;
+  height:clamp(225px,34%,440px);
+  background:linear-gradient(to top,
+    var(--hero-next-section) 0%,
+    color-mix(in srgb,var(--hero-next-section) 74%,transparent) 31%,
+    transparent 100%);
+  mask-image:none;
+  opacity:1;
+  animation:none;
+  pointer-events:none;
+}
+.hero.hero-dynamic .hero-grid.hero-photo-grid{
+  position:relative;
+  z-index:2;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  width:100%;
+  min-height:clamp(690px,88svh,950px);
+  align-content:center;
+  justify-items:start;
+  gap:0;
+  padding-top:clamp(90px,12vh,155px);
+  padding-bottom:clamp(210px,27vh,320px);
+}
+.hero.hero-dynamic .hero-copy{
+  width:min(100%,920px);
+  max-width:920px;
+  min-width:0;
+  padding:0;
+  margin:0;
+}
+.hero.hero-dynamic .hero-title{
+  width:100%;
+  max-width:900px;
+  margin:0 0 clamp(22px,3.2vw,34px)!important;
+  font-size:clamp(4.65rem,7.5vw,8rem)!important;
+  line-height:.92!important;
+  color:#fff;
+  text-wrap:balance;
+  text-shadow:0 5px 26px rgba(0,0,0,.26);
+}
+.hero.hero-dynamic .hero-title span{color:#c6e978}
+.hero.hero-dynamic .hero-description{
+  width:min(100%,650px);
+  max-width:650px;
+  color:#f0f5ef;
+  font-size:clamp(1rem,1.48vw,1.18rem)!important;
+  line-height:1.7!important;
+  text-shadow:0 2px 15px rgba(0,0,0,.36);
+}
+.hero.hero-dynamic .hero-actions{
+  margin-top:clamp(27px,3.3vw,39px);
+  gap:13px;
+}
+.hero.hero-dynamic .hero-footnote{
+  max-width:650px;
+  color:#e6eee4;
+  font-size:13px;
+  text-shadow:0 2px 9px rgba(0,0,0,.4);
+}
+.hero.hero-dynamic + .feature-section{background:var(--hero-next-bg,var(--itf-surface))}
+@media(max-width:900px){
+  .hero.hero-dynamic::before{background-position:center 49%}
+  .hero.hero-dynamic .hero-grid.hero-photo-grid{
+    min-height:760px;
+    padding-top:100px;
+    padding-bottom:220px;
+  }
+  .hero.hero-dynamic .hero-title{font-size:clamp(4.4rem,9.2vw,6rem)!important}
+}
+@media(max-width:640px){
+  .hero.hero-dynamic::before{
+    background:
+      linear-gradient(90deg,rgba(4,22,17,.84),rgba(4,22,17,.53)),
+      url("https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Well_lit_soccer_stadium_%28Unsplash%29.jpg/1280px-Well_lit_soccer_stadium_%28Unsplash%29.jpg") 54% 50% / cover no-repeat;
+  }
+  .hero.hero-dynamic::after{display:block;height:260px}
+  .hero.hero-dynamic .hero-grid.hero-photo-grid{
+    min-height:min(835px,100svh);
+    padding-top:clamp(78px,13svh,112px);
+    padding-bottom:clamp(180px,23svh,235px);
+    align-content:center;
+  }
+  .hero.hero-dynamic .hero-title{
+    font-size:clamp(3.1rem,11.2vw,4.9rem)!important;
+    line-height:.94!important;
+    margin-bottom:23px!important;
+  }
+  .hero.hero-dynamic .hero-description{font-size:15px!important;max-width:490px}
+  .hero.hero-dynamic .hero-actions{flex-direction:column;align-items:stretch;max-width:390px}
+  .hero.hero-dynamic .hero-footnote{max-width:390px;font-size:12px}
+}
+@media(max-width:380px){
+  .hero.hero-dynamic .hero-grid.hero-photo-grid{
+    min-height:730px;
+    padding-top:80px;
+    padding-bottom:180px;
+  }
+  .hero.hero-dynamic .hero-title{font-size:clamp(2.95rem,10.5vw,3.4rem)!important}
+}

@@ -54,3 +54,10 @@ Theme architecture:
 - `src/components/TenantAnalytics.tsx` queries the tenant's own records; counts and progress bars represent actual statuses.
 - Dynamic backgrounds are lightweight CSS gradients, not expensive looping shader canvases; blur is reduced on mobile and removed when user prefers reduced transparency.
 - Validate at 320, 375, 768, 1024 and 1440px. Mobile nav overflow is horizontal only where content genuinely needs it. Accessibility: focus ring, native form labels, visible selected states, no automatic audio and reduced-motion variant.
+
+## Landing photo hero / 2026-11-01
+- Replaced the illustrative split-screen scoreboard with a single editorial left-aligned photo hero.
+- Stadium photo by Mario Klassen (Volksparkstadion), CC0: https://commons.wikimedia.org/wiki/File:Well_lit_soccer_stadium_(Unsplash).jpg
+- Photo uses a remote Wikimedia 1280px rendition, with a dark gradient behind white copy.
+- The lower fade derives directly from `--itf-surface` (the following feature-section background), automatically matching dark and light themes; the photo overlay remains separate from the fade.
+- Full-width single-column on every breakpoint; copy is max-width constrained and always readable; no illustrative data are mounted.

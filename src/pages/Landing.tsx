@@ -6,7 +6,6 @@ import LeaderboardRoundedIcon from '@mui/icons-material/LeaderboardRounded';
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded';
 import { EXTRA } from '../lib/catalog';
-import { DemoScoreboard } from '../components/DemoScoreboard';
 import { FeatureAccordion } from '../components/FeatureAccordion';
 
 const capabilities = [
@@ -20,7 +19,7 @@ export function Landing() {
   const navigate = useNavigate();
   return <>
     <section className="hero hero-dynamic">
-      <Container maxWidth="xl" className="hero-grid">
+      <Container maxWidth="xl" className="hero-grid hero-photo-grid">
         <div className="hero-copy">
           <Typography variant="h1" className="hero-title">Ogni torneo<br />merita <span>un grande</span><br />palcoscenico.</Typography>
           <Typography className="hero-description">Competizioni, squadre, partite e classifiche. Un unico spazio digitale per organizzare il tuo torneo e farlo seguire a tutti.</Typography>
@@ -30,7 +29,6 @@ export function Landing() {
           </div>
           <p className="hero-footnote">Parti dalle funzioni essenziali. Aggiungi soltanto i moduli che ti servono.</p>
         </div>
-        <DemoScoreboard />
       </Container>
     </section>
 
