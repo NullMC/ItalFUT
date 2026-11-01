@@ -16,7 +16,7 @@
   --itf-shadow:0 16px 45px rgba(15,49,36,.09);
   --itf-hero:#102820;--itf-hero-fg:#f5f9f2;
   --itf-floating:#dcebdd;--itf-field:#dfe9df;
-  --stat-done:#36a47a;--stat-live:#c29a48;--stat-planned:#7898a2;
+  --stat-done:#36a47a;--stat-live:#c29a48;--stat-planned:#7898a2;--stat-postponed:#bd8494;
   color-scheme:light;
 }
 html[data-theme="dark"]{
@@ -31,7 +31,7 @@ html[data-theme="dark"]{
   --itf-shadow:0 16px 48px rgba(0,0,0,.3);
   --itf-hero:#081711;--itf-hero-fg:#f5f9f2;
   --itf-floating:#233f34;--itf-field:#304a40;
-  --stat-done:#8ce0b4;--stat-live:#e4ba6c;--stat-planned:#8eb9c8;
+  --stat-done:#8ce0b4;--stat-live:#e4ba6c;--stat-planned:#8eb9c8;--stat-postponed:#d6a0b4;
   color-scheme:dark;
 }
 html,body,#root,.app-root{background:var(--if-paper);color:var(--itf-text)}

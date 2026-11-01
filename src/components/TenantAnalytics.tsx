@@ -17,6 +17,7 @@ const states = [
   { id: 'finished', label: 'Terminate', color: 'var(--stat-done)' },
   { id: 'live', label: 'In corso', color: 'var(--stat-live)' },
   { id: 'scheduled', label: 'In programma', color: 'var(--stat-planned)' },
+  { id: 'postponed', label: 'Rinviate', color: 'var(--stat-postponed)' },
 ] as const;
 
 export function TenantAnalytics({ tenantId }: { tenantId: string }) {
@@ -30,17 +31,28 @@ export function TenantAnalytics({ tenantId }: { tenantId: string }) {
     const fetchTotals = async () => {
       try {
         const sb = client();
-        const [teams, players, matches, competitions] = await Promise.all([
+        const [teams, players, competitions] = await Promise.all([
           sb.from('teams').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
           sb.from('players').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
-          sb.from('matches').select('id,status,kickoff_at').eq('tenant_id', tenantId).limit(1000),
           sb.from('competitions').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),
         ]);
-        const issue = [teams, players, matches, competitions].find(result => result.error)?.error;
+        const issue = [teams, players, competitions].find(result => result.error)?.error;
         if (issue) throw issue;
+        const allMatches: Match[] = [];
+        let offset = 0;
+        while (true) {
+          const response = await sb.from('matches').select('id,status,kickoff_at')
+            .eq('tenant_id', tenantId).order('kickoff_at', { ascending: false })
+            .range(offset, offset + 999);
+          if (response.error) throw response.error;
+          const page = (response.data ?? []) as Match[];
+          allMatches.push(...page);
+          if (page.length < 1000) break;
+          offset += 1000;
+        }
         if (active) setData({
           teams: teams.count ?? 0, players: players.count ?? 0,
-          matches: (matches.data ?? []) as Match[], competitions: competitions.count ?? 0,
+          matches: allMatches, competitions: competitions.count ?? 0,
         });
       } catch (cause) {
         if (active) setError(friendlyError(cause));
