@@ -40,12 +40,12 @@ export function Access({ register = false }: { register?: boolean }) {
       <CinematicShader variant="auth" className="access-showcase-shader" />
       <div className="access-showcase-lines" aria-hidden="true" />
       <div className="access-showcase-message">
-        <Typography variant="h2">Il calcio si vive.<br /><span>Il torneo si guida.</span></Typography>
+        <Typography component="p" variant="h2">Il calcio si vive.<br /><span>Il torneo si guida.</span></Typography>
         <p>Un unico spazio per organizzare squadre, incontri e classifiche. Ovunque tu sia.</p>
       </div>
     </aside>
     <div className="access-card liquid-glass">
-    <Typography variant="h3">{register ? 'Crea un account' : 'Accedi a ItalFUT'}</Typography>
+    <Typography component="h1" variant="h3">{register ? 'Crea un account' : 'Accedi a ItalFUT'}</Typography>
     <Typography color="text.secondary" sx={{ mt: 1, mb: 4 }}>{register ? 'Organizza il tuo primo torneo.' : 'Ritrova i tuoi tornei e continua a gestirli.'}</Typography>
     {!configured && <Alert severity="warning" sx={{ mb: 2 }}>Il collegamento a Supabase non è configurato per questa installazione.</Alert>}
     {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}

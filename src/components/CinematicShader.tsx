@@ -95,6 +95,7 @@ export function CinematicShader({
     let frameId = 0;
     let lastFrame = -1000;
     let isLost = false;
+    const frameInterval = window.innerWidth <= 700 ? 1000 / 24 : 1000 / 30;
     const mouse = { x: .58, y: .5 };
 
     const resize = () => {
@@ -115,7 +116,6 @@ export function CinematicShader({
 
     const draw = (seconds: number) => {
       if (isLost) return;
-      resize();
       gl.useProgram(program);
       gl.uniform2f(resolution, canvas.width, canvas.height);
       gl.uniform2f(pointer, mouse.x, mouse.y);
@@ -130,7 +130,7 @@ export function CinematicShader({
     };
     const tick = (now: number) => {
       if (!active) return;
-      if (now - lastFrame >= 33) { draw(now * .001); lastFrame = now; }
+      if (now - lastFrame >= frameInterval) { draw(now * .001); lastFrame = now; }
       frameId = window.requestAnimationFrame(tick);
     };
     const start = () => {
@@ -167,6 +167,7 @@ export function CinematicShader({
     motionQuery.addEventListener('change', onMotion);
     canvas.addEventListener('webglcontextlost', onContextLost);
     canvas.addEventListener('webglcontextrestored', onContextRestored);
+    resize();
     draw(1.8);
 
     return () => {

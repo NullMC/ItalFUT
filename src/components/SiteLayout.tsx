@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import { Outlet, Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { Box, Button, Container, Drawer, IconButton, Stack, Typography } from '@mui/material';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
@@ -18,6 +18,7 @@ export function Brand({ inverted = false }: { inverted?: boolean }) {
 
 export function SiteLayout() {
   const { session } = useAuth();
+  const reducedMotion = useReducedMotion();
   const [open, setOpen] = useState(false);
   const [activeNav, setActiveNav] = useState<string | null>(null);
   const location = useLocation();
@@ -61,7 +62,7 @@ export function SiteLayout() {
             onClick={() => { setActiveNav(link.href); go(link.href); }}>
             {link.label}
             {activeNav === link.href && <motion.span layoutId="itf-nav-track" className="desktop-nav-track"
-              transition={{ type: 'spring', duration: .28, bounce: 0 }} aria-hidden="true" />}
+              transition={reducedMotion ? { duration: 0 } : { type: 'spring', duration: .28, bounce: 0 }} aria-hidden="true" />}
           </button>)}
         </nav>
         <Stack direction="row" spacing={1} alignItems="center"><ThemeToggle />

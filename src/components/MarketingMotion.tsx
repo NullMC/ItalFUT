@@ -2,7 +2,7 @@
  * Based on the scroll composition patterns of 21st.dev Scroll Reveal (cnippet-dev)
  * and Sticky Scroll Reveal (Aceternity), customized to the ItalFUT editorial system.
  */
-import { motion, useReducedMotion, useScroll, type MotionValue } from 'motion/react';
+import { motion, useReducedMotion, useScroll } from 'motion/react';
 import { useRef, type ReactNode } from 'react';
 
 export function Reveal({
@@ -18,16 +18,12 @@ export function Reveal({
   >{children}</motion.div>;
 }
 
-export function ScrollRail({
-  onProgress,
-}: { onProgress?: (progress: MotionValue<number>) => void }) {
+export function ScrollRail() {
   const target = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target, offset: ['start end', 'end start'],
   });
-  // Optional subscriber allows other marketing sections to share the progress value.
-  if (onProgress) { /* reserved for a future composition, no observer needed */ }
   return <div className="itf-scroll-rail" ref={target} aria-hidden="true">
     <motion.span style={{ scaleY: reducedMotion ? 1 : scrollYProgress }} />
   </div>;
