@@ -1,54 +1,83 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, Checkbox, Container, Divider, FormControlLabel, Typography } from '@mui/material';
+import { Button, Checkbox } from '@mui/material';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import { motion, useReducedMotion } from 'motion/react';
 import { BASE_MONTHLY, CORE, estimate, EXTRA, formatEuro, MODULES, TERMS } from '../lib/catalog';
 import type { FeatureCode } from '../lib/types';
 import { AnimatedAmount } from '../components/AnimatedAmount';
+import { vatNote } from '../config/legal';
+import { Reveal } from '../components/MarketingMotion';
 
 export function Configurator() {
   const navigate = useNavigate();
+  const reduce = useReducedMotion();
   const [months, setMonths] = useState(1);
   const [selected, setSelected] = useState<FeatureCode[]>([]);
   const quote = estimate(months, selected);
   const chosen = MODULES.filter(m => selected.includes(m.code) && !m.core);
   const toggle = (code: FeatureCode) => setSelected(old => old.includes(code) ? old.filter(x => x !== code) : [...old, code]);
+  const gross = quote.monthly * months;
   const proceed = () => {
-    sessionStorage.setItem('italfut_configuration', JSON.stringify({ months, modules: selected }));
+    try { sessionStorage.setItem('italfut_configuration', JSON.stringify({ months, modules: selected })); } catch { /* storage unavailable */ }
     navigate('/console');
   };
-  return <div className="config-page"><Container maxWidth="lg">
-    <div className="config-heading"><Typography variant="h1">Costruisci il tuo torneo.</Typography><p>Imposta la durata, scegli le funzionalità e consulta il preventivo. Nessuna funzione superflua.</p></div>
-    <div className="config-grid"><div>
-      <section className="config-block glass-form-section" aria-labelledby="duration-title"><div className="config-block-head"><div><Typography id="duration-title" variant="h5">Durata</Typography><p>Per quanto tempo vuoi utilizzare la piattaforma?</p></div></div>
-        <div className="term-grid" role="group" aria-label="Durata della piattaforma">{TERMS.map(term => <button type="button" aria-pressed={term.months === months} className={'term-option ' + (term.months === months ? 'selected' : '')} onClick={() => setMonths(term.months)} key={term.months}>
-          <b>{term.label}</b>{term.discount ? <span>Risparmi {Math.round(term.discount * 100)}%</span> : <small>Tariffa base</small>}
-        </button>)}</div>
-      </section>
-      <section className="config-block glass-form-section" aria-labelledby="core-title"><div className="config-block-head"><div><Typography id="core-title" variant="h5">Sempre inclusi</Typography><p>Le funzioni essenziali per organizzare un torneo.</p></div></div>
-        <div className="core-grid">{MODULES.filter(m => CORE.includes(m.code)).map(m => <div key={m.code}><CheckRoundedIcon fontSize="small" />{m.name}</div>)}</div>
-        <p className="hint-text">Base da {formatEuro(BASE_MONTHLY)}/mese, prima degli sconti sulla durata.</p>
-      </section>
-      <section className="config-block glass-form-section" aria-labelledby="extras-title"><div className="config-block-head"><div><Typography id="extras-title" variant="h5">Moduli aggiuntivi</Typography><p>Attiva quelli utili alla tua competizione.</p></div></div>
-        <div className="extra-grid">{EXTRA.map(module => <div key={module.code} className={'extra-option ' + (selected.includes(module.code) ? 'selected' : '')}>
-          <FormControlLabel control={<Checkbox checked={selected.includes(module.code)} onChange={() => toggle(module.code)} />} label={<><b>{module.name}</b><small>{module.description}</small></>} />
-          <span>{formatEuro(module.monthly)}<small>/mese</small></span>
-        </div>)}</div>
-      </section>
+  return <div className="page config">
+    <div className="page-glow" aria-hidden="true" />
+    <div className="container">
+      <Reveal className="page-head">
+        <h1 className="page-title">Costruisci <span className="serif-accent">il tuo torneo.</span></h1>
+        <p className="lead">Scegli durata e moduli: il riepilogo mostra ogni voce e ogni sconto. Nessun costo nascosto, nessun modulo preselezionato.</p>
+      </Reveal>
+      <div className="config__grid">
+        <div className="config__steps">
+          <section className="panel glass" aria-labelledby="duration-title">
+            <header className="panel__head"><span className="panel__step display-num">1</span><div><h2 id="duration-title">Durata</h2><p>Per quanto tempo ti serve la piattaforma?</p></div></header>
+            <div className="term-grid" role="radiogroup" aria-labelledby="duration-title">
+              {TERMS.map(term => <button type="button" role="radio" aria-checked={term.months === months} key={term.months}
+                className={'term' + (term.months === months ? ' is-selected' : '')} onClick={() => setMonths(term.months)}>
+                {term.months === months && <motion.span layoutId="term-pill" className="term__pill" transition={reduce ? { duration: 0 } : { type: 'spring', bounce: .2, duration: .5 }} />}
+                <b className="display-num">{term.months}</b>
+                <span>{term.months === 1 ? 'mese' : 'mesi'}</span>
+                <small>{term.discount ? '−' + Math.round(term.discount * 100) + '%' : 'Tariffa base'}</small>
+              </button>)}
+            </div>
+          </section>
+          <section className="panel glass" aria-labelledby="core-title">
+            <header className="panel__head"><span className="panel__step display-num">2</span><div><h2 id="core-title">Sempre incluso</h2><p>Le {CORE.length} funzioni essenziali, a {formatEuro(BASE_MONTHLY)} al mese.</p></div></header>
+            <ul className="core-list">{MODULES.filter(m => CORE.includes(m.code)).map(m => <li key={m.code}><CheckRoundedIcon />{m.name}</li>)}</ul>
+          </section>
+          <section className="panel glass" aria-labelledby="extras-title">
+            <header className="panel__head"><span className="panel__step display-num">3</span><div><h2 id="extras-title">Moduli aggiuntivi</h2><p>Facoltativi. Attiva solo quelli che userai.</p></div></header>
+            <div className="extra-list">{EXTRA.map(module => {
+              const on = selected.includes(module.code);
+              return <label key={module.code} className={'extra' + (on ? ' is-on' : '')}>
+                <Checkbox checked={on} onChange={() => toggle(module.code)} slotProps={{ input: { 'aria-describedby': 'extra-' + module.code } }} />
+                <span className="extra__text"><b>{module.name}</b><small id={'extra-' + module.code}>{module.description}</small></span>
+                <span className="extra__price"><b>{formatEuro(module.monthly)}</b>/mese</span>
+              </label>;
+            })}</div>
+          </section>
+        </div>
+        <aside className="quote glass" aria-label="Riepilogo preventivo">
+          <h2>Riepilogo</h2>
+          <dl className="quote__rows">
+            <div><dt>Piattaforma base</dt><dd>{formatEuro(BASE_MONTHLY)}/mese</dd></div>
+            {chosen.map(module => <div key={module.code}><dt>{module.name}</dt><dd>+ {formatEuro(module.monthly)}/mese</dd></div>)}
+            <div className="quote__sep"><dt>Totale mensile</dt><dd>{formatEuro(quote.monthly)}</dd></div>
+            <div><dt>Durata</dt><dd>× {months} {months === 1 ? 'mese' : 'mesi'} = {formatEuro(gross)}</dd></div>
+            {quote.discount > 0 && <div className="quote__discount"><dt>Sconto durata ({Math.round(quote.discount * 100)}%)</dt><dd>− {formatEuro(Math.round((gross - quote.total) * 100) / 100)}</dd></div>}
+          </dl>
+          <div className="quote__total">
+            <span>Totale stimato</span>
+            <strong className="display-num"><AnimatedAmount amount={quote.total} /></strong>
+            <small>per {months} {months === 1 ? 'mese' : 'mesi'} · {vatNote}</small>
+          </div>
+          <Button variant="contained" size="large" fullWidth onClick={proceed} endIcon={<ArrowForwardRoundedIcon />}>Continua</Button>
+          <p className="quote__note">Preventivo indicativo. Oggi non è attivo alcun pagamento: proseguendo crei uno spazio in bozza e nessun importo viene addebitato. Rinnovo automatico non previsto.</p>
+        </aside>
+      </div>
     </div>
-    <aside className="quote-panel liquid-glass" aria-label="Riepilogo preventivo"><Typography variant="h4">Riepilogo</Typography>
-      <div className="quote-row"><span>Piattaforma base</span><strong>{formatEuro(BASE_MONTHLY)}/mese</strong></div>
-      {chosen.map(module => <div className="quote-row" key={module.code}><span>{module.name}</span><strong>+ {formatEuro(module.monthly)}/mese</strong></div>)}
-      <Divider sx={{ my: 2 }} />
-      <div className="quote-row"><span>Durata</span><strong>{months} {months === 1 ? 'mese' : 'mesi'}</strong></div>
-      {quote.discount > 0 && <div className="quote-row quote-discount"><span>Sconto durata</span><strong>−{Math.round(quote.discount * 100)}%</strong></div>}
-      <Divider sx={{ my: 2 }} />
-      <div className="quote-total-label">Totale stimato</div>
-      <div className="quote-total"><AnimatedAmount amount={quote.total} /><span> / {months} {months === 1 ? 'mese' : 'mesi'}</span></div>
-      <Typography variant="caption" sx={{ display: 'block', mt: 2, color: '#c8d9cf', lineHeight: 1.6 }}>Prezzi indicativi, moduli facoltativi selezionati solo da te. Imposte e condizioni finali saranno specificate prima di qualsiasi acquisto. Oggi non sono attivi pagamenti né addebiti.</Typography>
-      <Button color="secondary" variant="contained" size="large" fullWidth sx={{ mt: 3 }} onClick={proceed} endIcon={<ArrowForwardRoundedIcon />}>Continua</Button>
-    </aside></div>
-    <Box sx={{ pb: 9 }} />
-  </Container></div>;
+  </div>;
 }

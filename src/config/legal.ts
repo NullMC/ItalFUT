@@ -1,54 +1,80 @@
 /**
- * OPERATOR ACTION REQUIRED: These fields must be completed and verified BEFORE launch.
- * Never replace unknown legal/business details with invented names or numbers.
- * Review with your lawyer/accountant and update this config when policies are approved.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *  OPERATOR ACTION REQUIRED — single source of truth for legal/business data.
+ *  See docs/MANUAL_INFO_CHECKLIST.md for what each field needs and why.
+ *  Never fill these with invented values: empty fields are shown as
+ *  "da completare" on the legal pages and hidden in the footer.
+ * ─────────────────────────────────────────────────────────────────────────────
  */
-export const LEGAL_VERSION = 'BOZZA — 2026-11-01';
-export const LEGAL_REVIEWED = false; // Set true ONLY after professional review.
+export const LEGAL_VERSION = 'Bozza — 1 novembre 2026';
+export const LEGAL_REVIEWED = false; // true ONLY after review by a lawyer/accountant.
+
 export const legalConfig = {
-  operatorName: '',
-  legalForm: '',
-  vatNumber: '',
-  taxCode: '',
-  reaRegistration: '',
-  registeredOffice: '',
-  businessAddress: '',
+  // Identità dell'operatore (titolare del sito e del trattamento)
+  operatorName: '',          // es. nome e cognome (ditta individuale) o ragione sociale
+  legalForm: '',             // es. "Ditta individuale", "S.r.l."
+  vatNumber: '',             // Partita IVA (11 cifre) — obbligatoria sul sito se esercizio d'impresa
+  taxCode: '',               // Codice fiscale dell'impresa / del titolare
+  reaRegistration: '',       // es. "BA-123456" (se iscritti al Registro Imprese)
+  shareCapital: '',          // solo per società di capitali, es. "€ 10.000 i.v."
+  registeredOffice: '',      // indirizzo completo della sede legale
+  businessAddress: '',       // sede operativa, solo se diversa
+  // Contatti
   supportEmail: '',
   privacyEmail: '',
-  certifiedEmail: '',
+  certifiedEmail: '',        // PEC
   telephone: '',
-  dpoContact: '', // Leave empty if no DPO is legally required or appointed.
-  jurisdiction: 'Italia', // Check actual place of establishment.
-  hostingProvider: 'Supabase', // Verify deployment and all other hosts/CDNs.
-  serverRegion: 'UE — Francia (eu-west-3)', // Verify configured project and backups.
-  contactUrl: '', // Optional actual contact form.
-  accountRetention: '', // Period/criteria after closure to be legally determined.
-  tenantRetention: '', // Confirm retention and legal basis with operator.
-  logRetention: '', // Check real Supabase/host log retention.
-  legalRecordsRetention: '', // Accounting/tax exceptions as required by law.
-  supportResponsePolicy: '', // A verifiable business policy, no invented SLA.
-  acceptedPaymentMethods: '', // Not active yet; do not pretend Stripe is live.
-  billingStartCondition: '', // To complete before implementing payments.
-  autoRenewal: '', // To complete; no automatic renewal coded today.
+  contactUrl: '',
+  dpoContact: '',            // solo se un DPO è nominato
+  // Infrastruttura e fornitori
+  jurisdiction: 'Italia',
+  hostingProvider: '',       // es. "Cloudflare, Inc. (Cloudflare Pages)" — da verificare
+  databaseProvider: 'Supabase Inc.',
+  serverRegion: 'UE — Francia (eu-west-3)', // verificare in Supabase → Project Settings → General
+  // Conservazione dati
+  accountRetention: '',
+  tenantRetention: '',
+  logRetention: '',
+  legalRecordsRetention: '',
+  // Condizioni commerciali (da compilare prima di attivare i pagamenti)
+  pricesIncludeVat: null as boolean | null, // true = prezzi IVA inclusa, false = IVA esclusa
+  acceptedPaymentMethods: '',
+  billingStartCondition: '',
+  autoRenewal: '',
   refundContact: '',
-  contractualCustomerTypes: '', // B2C, B2B, or both; affects withdrawal wording.
-  officialDomain: '', // Exact production domain, once confirmed.
-  lastReviewedOn: '', // ISO date once verified.
-} as const;
+  contractualCustomerTypes: '', // "B2B", "B2C" o "B2B e B2C"
+  supportResponsePolicy: '',
+  officialDomain: '',          // es. "https://italfut.it"
+  lastReviewedOn: '',          // data ISO dell'ultima revisione professionale
+};
 
 export const legalNeedsReview = !LEGAL_REVIEWED ||
   !legalConfig.operatorName || !legalConfig.registeredOffice ||
   !legalConfig.vatNumber || !legalConfig.privacyEmail || !legalConfig.supportEmail;
 
+/** Footer line built only from real, configured values. */
+export const businessLine = [
+  legalConfig.operatorName,
+  legalConfig.vatNumber && 'P. IVA ' + legalConfig.vatNumber,
+  legalConfig.registeredOffice,
+].filter(Boolean).join(' · ');
+
+export const vatNote = legalConfig.pricesIncludeVat === true ? 'IVA inclusa'
+  : legalConfig.pricesIncludeVat === false ? 'IVA esclusa (aggiunta al riepilogo prima di qualsiasi pagamento)'
+  : 'Trattamento IVA da definire prima dell’attivazione dei pagamenti';
+
 export const requiredLegalFields: { key: keyof typeof legalConfig; label: string }[] = [
-  { key: 'operatorName', label: 'Ragione sociale / nome del titolare' },
+  { key: 'operatorName', label: 'Titolare / ragione sociale' },
   { key: 'legalForm', label: 'Forma giuridica' },
   { key: 'vatNumber', label: 'Partita IVA' },
-  { key: 'taxCode', label: 'Codice fiscale dell’impresa' },
-  { key: 'reaRegistration', label: 'Iscrizione Registro Imprese / REA (se applicabile)' },
-  { key: 'registeredOffice', label: 'Sede legale completa' },
+  { key: 'taxCode', label: 'Codice fiscale' },
+  { key: 'reaRegistration', label: 'Registro Imprese / REA' },
+  { key: 'shareCapital', label: 'Capitale sociale (società di capitali)' },
+  { key: 'registeredOffice', label: 'Sede legale' },
+  { key: 'businessAddress', label: 'Sede operativa' },
   { key: 'supportEmail', label: 'Email assistenza' },
-  { key: 'privacyEmail', label: 'Email per i diritti GDPR' },
-  { key: 'certifiedEmail', label: 'PEC (se applicabile)' },
-  { key: 'telephone', label: 'Recapito commerciale (se previsto)' },
+  { key: 'privacyEmail', label: 'Email privacy (diritti GDPR)' },
+  { key: 'certifiedEmail', label: 'PEC' },
+  { key: 'telephone', label: 'Telefono' },
+  { key: 'dpoContact', label: 'Responsabile protezione dati (DPO)' },
 ];

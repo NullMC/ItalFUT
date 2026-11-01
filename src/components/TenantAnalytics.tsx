@@ -5,6 +5,7 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Skeleton } from '@mui/material';
+import { motion, useReducedMotion } from 'motion/react';
 import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded';
 import SportsSoccerRoundedIcon from '@mui/icons-material/SportsSoccerRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
@@ -21,6 +22,7 @@ const states = [
 ] as const;
 
 export function TenantAnalytics({ tenantId }: { tenantId: string }) {
+  const reduce = useReducedMotion();
   const [data, setData] = useState<Totals | null>(null);
   const [error, setError] = useState('');
 
@@ -69,8 +71,20 @@ export function TenantAnalytics({ tenantId }: { tenantId: string }) {
     }));
   }, [data]);
 
+  // Matches per week for the last 10 weeks + next 2 (real kickoff dates only).
+  const weekly = useMemo(() => {
+    if (!data) return [] as { label: string; count: number; future: boolean }[];
+    const week = 7 * 86_400_000; const now = Date.now();
+    const start = now - 9 * week;
+    return Array.from({ length: 12 }, (_, i) => {
+      const from = start + i * week - week / 2, to = from + week;
+      const count = data.matches.filter(m => { const t = m.kickoff_at ? new Date(m.kickoff_at).getTime() : NaN; return t >= from && t < to; }).length;
+      return { label: new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: 'short' }).format(new Date(from + week / 2)), count, future: from + week / 2 > now };
+    });
+  }, [data]);
+
   if (error) return <Alert severity="warning" sx={{ mb: 3 }}>Statistiche non disponibili: {error}</Alert>;
-  if (!data) return <div className="analytics-loading" aria-label="Caricamento statistiche"><Skeleton variant="rounded" height={112} /><Skeleton variant="rounded" height={112} /><Skeleton variant="rounded" height={112} /></div>;
+  if (!data) return <div className="kpis" aria-busy="true" aria-label="Caricamento statistiche">{[0, 1, 2, 3].map(i => <Skeleton key={i} variant="rounded" height={128} sx={{ borderRadius: '20px' }} />)}</div>;
   const fixtures = data.matches.length;
   const overview = [
     { label: 'Competizioni', value: data.competitions, icon: <CalendarMonthRoundedIcon /> },
@@ -78,32 +92,47 @@ export function TenantAnalytics({ tenantId }: { tenantId: string }) {
     { label: 'Giocatori', value: data.players, icon: <SportsSoccerRoundedIcon /> },
     { label: 'Partite terminate', value: distribution[0]?.count ?? 0, icon: <CheckCircleOutlineRoundedIcon /> },
   ];
+  const peak = Math.max(1, ...weekly.map(w => w.count));
+  let offset = 0;
+  const R = 54, C = 2 * Math.PI * R;
 
-  return <section className="tenant-analytics" aria-label="Statistiche reali del torneo">
-    <div className="tenant-analytics__stats">
-      {overview.map(item => <div key={item.label} className="tenant-analytics__metric liquid-glass">
-        <div className="tenant-analytics__metric-head">{item.icon}<span>{item.label}</span></div>
-        <strong>{item.value.toLocaleString('it-IT')}</strong>
-      </div>)}
+  return <section className="analytics" aria-label="Statistiche del torneo">
+    <div className="kpis">
+      {overview.map((item, index) => <motion.div key={item.label} className="kpi glass"
+        initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * .05, duration: .5, ease: [.16, 1, .3, 1] }}>
+        <div className="kpi__head"><span className="kpi__icon" aria-hidden="true">{item.icon}</span>{item.label}</div>
+        <strong className="display-num">{item.value.toLocaleString('it-IT')}</strong>
+      </motion.div>)}
     </div>
-    <div className="tenant-analytics__distribution liquid-glass">
-      <div className="tenant-analytics__header">
-        <h4>Stato delle partite</h4>
-        <span>{fixtures.toLocaleString('it-IT')} incontri registrati</span>
+    <div className="analytics__row">
+      <div className="chart-card glass">
+        <div className="chart-card__head"><h2>Stato delle partite</h2><span>{fixtures.toLocaleString('it-IT')} incontri</span></div>
+        {fixtures === 0 ? <p className="chart-card__empty">Aggiungi le prime partite per vedere l’andamento del torneo.</p> :
+          <div className="donut-wrap">
+            <svg viewBox="0 0 140 140" className="donut" role="img" aria-label={distribution.map(s => s.label + ' ' + s.count).join(', ')}>
+              <circle cx="70" cy="70" r={R} className="donut__track" />
+              {distribution.filter(s => s.count > 0).map(state => {
+                const len = state.count / fixtures * C; const dash = `${len} ${C - len}`; const el = <circle key={state.id} cx="70" cy="70" r={R}
+                  stroke={state.color} strokeDasharray={dash} strokeDashoffset={-offset} className="donut__seg" />;
+                offset += len; return el;
+              })}
+              <text x="70" y="66" className="donut__num">{Math.round((distribution[0]?.count ?? 0) / fixtures * 100)}%</text>
+              <text x="70" y="86" className="donut__label">giocate</text>
+            </svg>
+            <ul className="legend">{distribution.map(state => <li key={state.id}><i style={{ background: state.color }} />{state.label}<b>{state.count}</b></li>)}</ul>
+          </div>}
       </div>
-      {fixtures === 0
-        ? <p className="tenant-analytics__empty">Aggiungi le prime partite per visualizzare l'andamento del torneo.</p>
-        : <div className="tenant-analytics__bars">{distribution.map(state => {
-          const percentage = fixtures > 0 ? Math.round(state.count / fixtures * 100) : 0;
-          return <div className="tenant-analytics__barrow" key={state.id}>
-            <span className="tenant-analytics__barlabel">{state.label}</span>
-            <div className="tenant-analytics__track" role="meter" aria-label={state.label}
-              aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentage}>
-              <div className="tenant-analytics__fill" style={{ width: percentage + '%', background: state.color }} />
-            </div>
-            <b>{state.count}</b>
-          </div>;
-        })}</div>}
+      <div className="chart-card glass">
+        <div className="chart-card__head"><h2>Partite per settimana</h2><span>ultime 10 · prossime 2</span></div>
+        {fixtures === 0 ? <p className="chart-card__empty">Il calendario apparirà qui.</p> :
+          <div className="weekly" role="img" aria-label={'Partite per settimana: ' + weekly.map(w => w.label + ' ' + w.count).join(', ')}>
+            {weekly.map((w, i) => <div key={i} className={'weekly__col' + (w.future ? ' is-future' : '')}>
+              <motion.i initial={reduce ? false : { scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ delay: .1 + i * .03, duration: .6, ease: [.16, 1, .3, 1] }}
+                style={{ height: Math.max(4, w.count / peak * 100) + '%' }} />
+              <span>{i % 2 === 0 ? w.label : ''}</span>
+            </div>)}
+          </div>}
+      </div>
     </div>
   </section>;
 }
