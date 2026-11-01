@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Link as RouterLink, useLocation, useParams, useSearchParams } from 'react-router-dom';
-import { Alert, Box, Button, Chip, CircularProgress, Container, Stack, Typography } from '@mui/material';
+import { Alert, Button, Chip, CircularProgress, Container, Typography } from '@mui/material';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded';
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
@@ -8,6 +8,7 @@ import EmojiEventsRoundedIcon from '@mui/icons-material/EmojiEventsRounded';
 import SportsSoccerRoundedIcon from '@mui/icons-material/SportsSoccerRounded';
 import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded';
 import { client, configured, friendlyError } from '../lib/supabase';
+import { AnimatedTabs } from '../components/AnimatedTabs';
 import type { FeatureCode, Row, Tenant, TenantFeature } from '../lib/types';
 
 type Data = Record<string, Row[]>;
@@ -170,10 +171,12 @@ export function Tournament() {
               {events.length > 0 && <div className="public-detail-list"><Typography variant="h5">Cronaca della partita</Typography>{events.map(event => <div key={event.id}><b>{String(event.minute ?? '–')}'</b><span>{String(event.event_type).replaceAll('_',' ')} · {String(playerMap.get(String(event.player_id))?.first_name ?? '')} {String(playerMap.get(String(event.player_id))?.last_name ?? '')}</span></div>)}</div>}
               {galleries.map(g => <Button key={g.id} href={src(g.url)} target="_blank" rel="noopener noreferrer" endIcon={<ArrowOutwardRoundedIcon />}>{String(g.label)} · Foto gallery</Button>)}
             </>;
-          })() : <><CompetitionSelect competitions={competitions} selected={selected} onSelect={id => setQuery(id ? { competizione: id } : {})} /><MatchList matches={filteredMatches} data={data} slug={slug ?? ''} /></>}
+          })() : <><CompetitionSelect competitions={competitions} selected={selected} onSelect={id => setQuery(id ? { competizione: id } : {})} /><div id="itf-competition-panel" role={competitions.length > 1 ? 'tabpanel' : undefined} aria-labelledby={competitions.length > 1 ? 'itf-competition-tab-' + selected : undefined}><MatchList matches={filteredMatches} data={data} slug={slug ?? ''} /></div></>}
         </section>}
         {page === 'classifiche' && <section className="public-section"><Typography variant="h3">Classifiche</Typography><CompetitionSelect competitions={competitions} selected={selected} onSelect={id => setQuery({ competizione: id })} />
-          {ranking.length ? <div className="standings-scroll"><table className="standings-full"><thead><tr><th>#</th><th>Squadra</th><th>PG</th><th>V</th><th>N</th><th>P</th><th>GF</th><th>GS</th><th>DR</th><th>Pt</th></tr></thead><tbody>{ranking.map((row,i) => <tr key={row.team.id}><td>{i+1}</td><td><RouterLink to={base + '/squadre/' + row.team.id}><BrandImage url={row.team.logo_url} name={nameOf(row.team)} size={27} />{nameOf(row.team)}</RouterLink></td><td>{row.played}</td><td>{row.wins}</td><td>{row.draws}</td><td>{row.losses}</td><td>{row.gf}</td><td>{row.ga}</td><td>{row.gf - row.ga}</td><td><b>{row.points}</b></td></tr>)}</tbody></table></div> : <Empty title="La classifica sarà disponibile dopo le iscrizioni." />}
+          <div id="itf-competition-panel" role={competitions.length > 1 ? 'tabpanel' : undefined} aria-labelledby={competitions.length > 1 ? 'itf-competition-tab-' + selected : undefined}>
+          {ranking.length ? <div className="standings-scroll"><table className="standings-full"><caption className="sr-only">Classifica della competizione selezionata</caption><thead><tr><th>#</th><th>Squadra</th><th>PG</th><th>V</th><th>N</th><th>P</th><th>GF</th><th>GS</th><th>DR</th><th>Pt</th></tr></thead><tbody>{ranking.map((row,i) => <tr key={row.team.id}><td>{i+1}</td><td><RouterLink to={base + '/squadre/' + row.team.id}><BrandImage url={row.team.logo_url} name={nameOf(row.team)} size={27} />{nameOf(row.team)}</RouterLink></td><td>{row.played}</td><td>{row.wins}</td><td>{row.draws}</td><td>{row.losses}</td><td>{row.gf}</td><td>{row.ga}</td><td>{row.gf - row.ga}</td><td><b>{row.points}</b></td></tr>)}</tbody></table></div> : <Empty title="La classifica sarà disponibile dopo le iscrizioni." />}
+          </div>
         </section>}
         {page === 'squadre' && <section className="public-section"><Typography variant="h3">{detail ? 'Scheda squadra' : 'Le squadre'}</Typography>{detail ? (() => {
           const team = byId('teams', detail); if (!team) return <Empty title="Squadra non trovata." />;
@@ -208,6 +211,17 @@ export function Tournament() {
   </div>;
 }
 function CompetitionSelect({ competitions, selected, onSelect }: { competitions: Row[]; selected: string; onSelect: (id: string) => void }) {
-  if (competitions.length <= 1) return <Box mb={3} />;
-  return <Stack direction="row" sx={{ overflowX: 'auto', pb: 2, mb: 2 }} gap={1}>{competitions.map(comp => <Chip key={comp.id} clickable onClick={() => onSelect(comp.id)} label={String(comp.name)} color={selected === comp.id ? 'primary' : 'default'} variant={selected === comp.id ? 'filled' : 'outlined'} />)}</Stack>;
+  if (competitions.length <= 1) return null;
+  return <div className="public-competition-switch">
+    <span className="public-competition-switch__label">Competizione</span>
+    <AnimatedTabs
+      tabs={competitions.map(comp => ({ id: String(comp.id), label: String(comp.name) }))}
+      activeTab={selected}
+      onChange={onSelect}
+      variant="pill"
+      layoutId="itf-competition-tab"
+      ariaLabel="Seleziona competizione"
+      panelId="itf-competition-panel"
+    />
+  </div>;
 }

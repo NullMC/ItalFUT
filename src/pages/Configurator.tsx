@@ -5,6 +5,7 @@ import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import { BASE_MONTHLY, CORE, estimate, EXTRA, formatEuro, MODULES, TERMS } from '../lib/catalog';
 import type { FeatureCode } from '../lib/types';
+import { AnimatedAmount } from '../components/AnimatedAmount';
 
 export function Configurator() {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ export function Configurator() {
       {quote.discount > 0 && <div className="quote-row quote-discount"><span>Sconto durata</span><strong>−{Math.round(quote.discount * 100)}%</strong></div>}
       <Divider sx={{ my: 2 }} />
       <div className="quote-total-label">Totale stimato</div>
-      <div className="quote-total">{formatEuro(quote.total)}<span> / {months} {months === 1 ? 'mese' : 'mesi'}</span></div>
+      <div className="quote-total"><AnimatedAmount amount={quote.total} /><span> / {months} {months === 1 ? 'mese' : 'mesi'}</span></div>
       <Typography variant="caption" sx={{ display: 'block', mt: 2, color: '#c8d9cf', lineHeight: 1.6 }}>Prezzi indicativi. Il preventivo è verificato sul server; nessun pagamento è attivo in questa fase.</Typography>
       <Button color="secondary" variant="contained" size="large" fullWidth sx={{ mt: 3 }} onClick={proceed} endIcon={<ArrowForwardRoundedIcon />}>Continua</Button>
     </aside></div>
