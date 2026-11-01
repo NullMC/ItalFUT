@@ -6,11 +6,11 @@ const interfaceFont = '"DM Sans", sans-serif';
 export const theme = createTheme({
   palette: {
     mode: 'light',
-    primary: { main: '#173d32', dark: '#102b24', light: '#42695b', contrastText: '#ffffff' },
+    primary: { main: '#0f7058', dark: '#104c3e', light: '#36866e', contrastText: '#ffffff' },
     secondary: { main: '#c6e978', dark: '#add65c', contrastText: '#102820' },
-    background: { default: '#f5f6f1', paper: '#ffffff' },
-    text: { primary: '#142b24', secondary: '#52665d' },
-    divider: '#dfe5dc',
+    background: { default: '#f4efe4', paper: '#fffdfa' },
+    text: { primary: '#193329', secondary: '#536359' },
+    divider: '#d2cbbb',
     success: { main: '#23694b' },
   },
   typography: {
@@ -36,7 +36,7 @@ export const theme = createTheme({
     },
     MuiPaper: { styleOverrides: { root: { backgroundImage: 'none' } } },
     MuiTextField: { defaultProps: { size: 'medium', fullWidth: true } },
-    MuiOutlinedInput: { styleOverrides: { root: { borderRadius: 10, backgroundColor: '#ffffff' } } },
+    MuiOutlinedInput: { styleOverrides: { root: { borderRadius: 10, backgroundColor: '#fffdfa' } } },
     MuiChip: { styleOverrides: { root: { fontWeight: 650, borderRadius: 7 } } },
     MuiDialog: { styleOverrides: { paper: { borderRadius: 18 } } },
     MuiIconButton: { styleOverrides: { root: { borderRadius: 9 } } },

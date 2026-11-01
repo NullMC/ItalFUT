@@ -11,3 +11,20 @@ Do not imitate a videogame or an esports overlay. Marketing persuades; admin scr
 - Accessibility: semantic sections, skip link, keyboard focus, aria-pressed for duration selection, 44px controls, legible contrast, reduced motion, horizontally scrollable data tables and navigation. Mobile is not a scaled-down desktop.
 - Responsive: 1200+ spacious editorial split hero, 900px single-column work surfaces, 640px compact mobile scoreboard and linear content flow.
 - No fake commerce: draft tenants are clearly draft, pricing illustrative until payments are connected. Source of entitlement truth remains Supabase.
+
+## 21st.dev integration / 2026-11-01
+Visual foundations: adapted from **Green Notes** by massimobuonfrate01
+https://21st.dev/community/themes/green-notes-1783614187319
+- Warm parchment #e9e4d8, creamy work surface #f4efe4, border #d2cbbb, evergreen #0f7058.
+- ItalFUT retains pitch-lime #c6e978 for primary football CTA and pine hero. Tokens are surfaced as --if-* and Tailwind --color-*.
+- `src/styles.community.css` is the source of the final-stage color and interaction overrides.
+
+Component patterns adapted from the actual catalog code:
+- **Animated Tabs**, educalvolpz, https://21st.dev/@educalvolpz/components/animated-tabs — `src/components/AnimatedTabs.tsx`, React 19 and Motion shared layout, accessible keyboard navigation. Used in interactive illustrative scoreboards and actual public competition filters.
+- **Accordion 01**, designali-in, https://21st.dev/@designali-in/components/accordion-01-1 — `src/components/FeatureAccordion.tsx`, translated from Radix into the existing MUI stack. Used to progressively disclose optional modules without decorative cards.
+- Motion (motion/react): one relevant active-state shared-element movement; 120–300ms transitions, reduced-motion paths. No autoplay or animated content that prevents use.
+
+Impeccable composition constraints:
+- Persuade (marketing): prominent claim + functional preview; capability section is editorial anchored lead plus lean list; addons use one useful disclosure list; steps communicate ordered action.
+- Operate (admin): no nonessential page-load movement. State transitions only, preserved focus and touch sizes.
+- Read (public competition): football results, standings, and competition selection take priority; no invented stats or simulated live content.
