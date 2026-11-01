@@ -1,19 +1,22 @@
 <!doctype html>
-<html lang="it">
+<html lang="it" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#102b24" />
-    <meta name="description" content="ItalFUT: la piattaforma per gestire competizioni, squadre, calendari, risultati e classifiche. Ogni torneo ha il suo spazio." />
-    <title>ItalFUT — Il tuo torneo, tutto in campo.</title>
-  <script>
-      try {
-        const value = localStorage.getItem('italfut-appearance');
-        document.documentElement.dataset.theme = value === 'dark' || value === 'light'
-          ? value
-          : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      } catch { document.documentElement.dataset.theme = 'light'; }
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#050a08" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="description" content="ItalFUT: la piattaforma per organizzare tornei di calcio. Competizioni, squadre, calendari, risultati e classifiche in un unico spazio, con un sito pubblico per ogni torneo." />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta property="og:title" content="ItalFUT — Il tuo torneo, tutto in campo" />
+    <meta property="og:description" content="Organizza il tuo torneo di calcio e fallo seguire a tutti." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>ItalFUT — Il tuo torneo, tutto in campo</title>
+    <script src="/theme-init.js"></script>
   </head>
-  <body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body>
+  <body>
+    <noscript>ItalFUT richiede JavaScript per funzionare.</noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
