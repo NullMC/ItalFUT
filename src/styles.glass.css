@@ -1,0 +1,335 @@
+/*
+ * ItalFUT — liquid-glass design layer
+ * Inspired by 21st.dev Modernize Free React MUI Dashboard template,
+ * Liquid Glass / Glass Card / Glassmorphism Navigation component patterns.
+ * CSS material implementation authored for the existing MUI/React application.
+ */
+:root,html[data-theme="light"]{
+  --if-ink:#162f27;--if-forest:#102b24;--if-forest-2:#0f7058;
+  --if-paper:#f4f5f1;--if-card:#fffdfa;--if-muted:#53665c;--if-line:#d8e2d9;
+  --if-lime:#c6e978;--if-accent-soft:#e8f0df;
+  --itf-surface:#fffdfa;--itf-raised:#f9faf6;--itf-soft:#edf2e9;
+  --itf-subtle:#56675d;--itf-text:#162f27;--itf-border:#d8e2d9;
+  --itf-input:#fffdfa;--itf-primary:#0f7058;--itf-primary-hover:#0b5d48;
+  --itf-header:rgba(250,253,247,.78);--itf-glass:rgba(255,255,255,.66);
+  --itf-glass-heavy:rgba(255,255,255,.84);--itf-glass-edge:rgba(255,255,255,.91);
+  --itf-shadow:0 16px 45px rgba(15,49,36,.09);
+  --itf-hero:#102820;--itf-hero-fg:#f5f9f2;
+  --itf-floating:#dcebdd;--itf-field:#dfe9df;
+  --stat-done:#36a47a;--stat-live:#c29a48;--stat-planned:#7898a2;
+  color-scheme:light;
+}
+html[data-theme="dark"]{
+  --if-ink:#ecf5ef;--if-forest:#091b18;--if-forest-2:#90deba;
+  --if-paper:#0e1717;--if-card:#192623;--if-muted:#bed0c6;--if-line:#344840;
+  --if-lime:#c6e978;--if-accent-soft:#263d32;
+  --itf-surface:#192623;--itf-raised:#1d302a;--itf-soft:#22372e;
+  --itf-subtle:#b7ccc1;--itf-text:#ecf5ef;--itf-border:#344840;
+  --itf-input:#1c302a;--itf-primary:#90deba;--itf-primary-hover:#b0eacb;
+  --itf-header:rgba(15,28,25,.83);--itf-glass:rgba(30,53,45,.55);
+  --itf-glass-heavy:rgba(25,43,36,.84);--itf-glass-edge:rgba(170,224,191,.2);
+  --itf-shadow:0 16px 48px rgba(0,0,0,.3);
+  --itf-hero:#081711;--itf-hero-fg:#f5f9f2;
+  --itf-floating:#233f34;--itf-field:#304a40;
+  --stat-done:#8ce0b4;--stat-live:#e4ba6c;--stat-planned:#8eb9c8;
+  color-scheme:dark;
+}
+html,body,#root,.app-root{background:var(--if-paper);color:var(--itf-text)}
+body{overflow-x:hidden}
+:where(button,a,input,textarea,[role="tab"]):focus-visible{outline:3px solid var(--itf-primary)!important;outline-offset:3px}
+::selection{background:#b8e980;color:#102820}
+::-webkit-scrollbar-track{background:var(--if-paper)}
+::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--itf-subtle) 60%,transparent);border-color:var(--if-paper)}
+/* Material shell: refractive edge + specular highlight, preserve readable foreground. */
+.liquid-glass{position:relative;isolation:isolate;background:var(--itf-glass);border:1px solid var(--itf-glass-edge);
+  box-shadow:var(--itf-shadow);-webkit-backdrop-filter:blur(15px) saturate(1.25);
+  backdrop-filter:blur(15px) saturate(1.25)}
+.liquid-glass::before{content:'';pointer-events:none;position:absolute;inset:0;border-radius:inherit;z-index:-1;
+  background:linear-gradient(140deg,rgba(255,255,255,.21),transparent 41%,rgba(151,214,184,.08) 92%);}
+.liquid-glass:hover{border-color:color-mix(in srgb,var(--itf-primary) 35%,var(--itf-glass-edge));}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .liquid-glass{background:var(--itf-surface)}
+}
+/* Stable navigation glass with no sticky stacking on popovers. */
+.topbar,.topbar-home{position:sticky;top:0;z-index:80;background:var(--itf-header);border-color:var(--itf-border);
+  -webkit-backdrop-filter:blur(18px) saturate(1.3);backdrop-filter:blur(18px) saturate(1.3);}
+.topbar-inner{min-width:0;gap:16px}
+.desktop-links{gap:clamp(15px,2vw,32px);margin-right:0}
+.desktop-links button{color:var(--itf-text);transition:color .18s ease}
+.desktop-links button:hover{color:var(--itf-primary)}
+.brand{color:var(--itf-text)}
+.brand-strong{color:var(--itf-primary)}
+.brand-emblem{box-shadow:inset 0 1px 0 rgba(255,255,255,.17)}
+.brand-dot{color:#8cc258}
+.brand-light{color:#fff}
+.brand-light .brand-strong{color:#c6e978}
+.itf-theme-toggle{color:var(--itf-text)!important;background:var(--itf-glass)!important;
+  border:1px solid var(--itf-glass-edge)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.14);
+  transition:background-color .2s ease,transform .2s ease,border-color .2s ease!important}
+.itf-theme-toggle:hover{background:var(--itf-soft)!important;transform:rotate(8deg)}
+.workspace-top-actions,.tournament-head-actions{display:flex;align-items:center;gap:10px;min-width:0}
+.tournament-backlink{color:var(--itf-primary);white-space:nowrap}
+.site-footer,.tournament-footer{background:var(--if-forest)}
+/* Project-wide backgrounds, glass compositing and controls */
+.config-page,.access-page,.console-home,.workspace,.tournament-app,.workspace-content,.main-area{
+  color:var(--itf-text);background-color:var(--if-paper)
+}
+.config-page,.console-home,.access-page,.workspace,.tournament-app{
+  background-image:radial-gradient(ellipse 42% 34% at 3% 8%,rgba(101,174,127,.08),transparent 100%),
+    radial-gradient(ellipse 38% 28% at 97% 62%,rgba(151,188,143,.075),transparent 100%);
+}
+.access-page{background:radial-gradient(circle at 10% 15%,rgba(48,152,112,.12),transparent 45%),
+  radial-gradient(circle at 95% 86%,rgba(194,233,137,.09),transparent 36%),var(--if-paper)}
+.tenant-card,.console-empty,.workspace-overview-strip,.workspace-identity,.quote-panel,
+.access-card,.editor-list,.grant-grid,.public-card,.public-team-card,.public-match,.stat-block,
+.market-team,.player-card,.standing-table,.match-detail-box,.public-detail-list,.article-detail,
+.public-empty,.team-profile,.player-profile{border-radius:14px}
+.tenant-card,.workspace-overview-strip,.quick-grid button,.console-empty,.editor-list,.grant-grid,.public-card,
+.public-team-card,.public-match,.stat-block,.market-team,.player-card,.standing-table,.match-detail-box,
+.public-detail-list,.article-detail,.public-empty,.team-profile,.player-profile{
+  background:var(--itf-glass-heavy);border-color:var(--itf-border);color:var(--itf-text)
+}
+.tenant-card.liquid-glass,.public-match.liquid-glass,.public-card.liquid-glass,.access-card.liquid-glass,
+.quote-panel.liquid-glass,.grant-grid.liquid-glass,.workspace-overview-strip.liquid-glass{
+  background:var(--itf-glass-heavy);border-color:var(--itf-glass-edge)
+}
+.tenant-card:hover,.public-card:hover,.public-team-card:hover,.public-match:hover,
+.quick-grid button:hover{box-shadow:0 10px 32px rgba(17,69,46,.12);
+  border-color:color-mix(in srgb,var(--itf-primary) 42%,var(--itf-border));
+  transform:translateY(-2px);}
+html[data-theme="dark"] .tenant-card:hover,html[data-theme="dark"] .public-card:hover,
+html[data-theme="dark"] .public-match:hover{background:#254036}
+.tenant-card:focus-visible,.public-card:focus-visible,.public-match:focus-visible{outline-offset:4px}
+.console-welcome p,.console-empty p,.workspace-intro p,.crud-header p,.settings-panel>p,
+.modules-admin>p,.config-block-head p,.config-heading>p,.hint-text,.capability-item p,.modules-intro>p,
+.section-heading p,.steps-section p,.public-section>p,.article-summary,.article-body,
+.public-match>small,.player-profile p,.market-team p,.public-empty p{color:var(--itf-subtle)}
+.tenant-card strong,.tenant-card small,.tenant-card-status,.tenant-card-arrow,
+.editor-row-details strong,.editor-row-details small,.grant-row small,.public-card p,.public-card small,
+.public-team-card small,.standing-row>span,.stat-block p,.stat-block a,.match-meta,
+.match-detail-box p{color:inherit}
+.tenant-card small,.editor-row-details small,.grant-row small,.public-card p,.public-card small,.public-team-card small,
+.match-meta,.match-detail-box p{color:var(--itf-subtle)}
+.workspace-sidebar{background:linear-gradient(180deg,#112e25 0%,#081e1a 100%);border-right:1px solid #2a4438}
+.workspace-nav button:not(.active):hover{background:rgba(198,233,120,.1)}
+.workspace-nav button.active{background:#c6e978;color:#173422}
+.workspace-top,.tournament-header,.tournament-nav{background:var(--itf-header);border-color:var(--itf-border);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.tournament-header-inner,.workspace-top{min-width:0}
+.workspace-overview-strip{background:var(--itf-glass-heavy)}
+.quick-grid button{transition:transform .22s cubic-bezier(.16,1,.3,1),box-shadow .22s ease,border-color .2s}
+.workspace-summary,.upgrade-panel{background:var(--itf-soft);color:var(--itf-text)}
+.workspace-overview-strip strong,.tenant-analytics__metric strong{color:var(--itf-text)}
+.status-dot,.dot-active{background:#7dcb92}
+.standings-scroll{border-color:var(--itf-border);background:var(--itf-surface)}
+.standings-full{background:var(--itf-surface);color:var(--itf-text)}
+.standings-full th{background:var(--itf-soft);color:var(--itf-text)}
+.standings-full td,.standings-full tr,.standing-row,.editor-row,.grant-row,
+.public-detail-list>div,.stat-block a{border-color:var(--itf-border)}
+.standings-full tbody tr:hover{background:var(--itf-soft)}
+.standings-full td:last-child,.stat-block a strong{color:var(--itf-primary)}
+.standing-table,.standings-full,.public-metric-grid,.match-detail-teams{font-variant-numeric:tabular-nums}
+.public-card-photo{background:var(--itf-soft)}
+.public-empty{color:var(--itf-subtle)}
+.public-empty h5{color:var(--itf-text)}
+.public-metric-grid{border-color:var(--itf-border)}
+.public-metric-grid>div{border-color:var(--itf-border)}
+.public-metric-grid strong,.public-metric-grid span{color:var(--itf-text)}
+.public-metric-grid span{opacity:.76}
+.public-section>h3,.workspace-intro h3{color:var(--itf-text)}
+.tournament-brand{color:var(--itf-text)}
+.tournament-nav-scroll>a{color:var(--itf-subtle)}
+.tournament-nav-scroll>a.active{color:var(--itf-primary)}
+.public-competition-switch__label{color:var(--itf-subtle)}
+.itf-tabs--pill{background:var(--itf-soft);border-color:var(--itf-border)}
+.itf-tabs--pill .itf-tab__indicator{background:var(--itf-surface);border-color:var(--itf-border)}
+.itf-tabs--pill .itf-tab[aria-selected="true"],.itf-tab[aria-selected="true"],.itf-tab{color:var(--itf-text)}
+.itf-tab:hover{color:var(--itf-primary)}
+.itf-tabs--underline{border-color:var(--itf-border)}
+.itf-tabs--underline .itf-tab__indicator{background:var(--itf-primary)}
+/* MUI form and dialog surfaces: accessible contrast for both modes. */
+.MuiPaper-root,.MuiPopover-paper,.MuiDialog-paper,.MuiDrawer-paper,.MuiMenu-paper,
+.MuiAutocomplete-paper{background:var(--itf-surface);color:var(--itf-text);border-color:var(--itf-border)}
+.MuiDialog-paper{box-shadow:var(--itf-shadow);border:1px solid var(--itf-border)}
+.MuiOutlinedInput-root,.MuiInputBase-root:not(.MuiInputBase-multiline){
+  color:var(--itf-text);background-color:var(--itf-input)
+}
+.MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline{border-color:var(--itf-border)}
+.MuiInputLabel-root,.MuiFormLabel-root,.MuiFormHelperText-root{color:var(--itf-subtle)}
+.MuiInputLabel-root.Mui-focused{color:var(--itf-primary)}
+.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline{border-color:var(--itf-primary)}
+.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline{border-color:color-mix(in srgb,var(--itf-primary) 68%,var(--itf-border))}
+.MuiButton-containedPrimary{color:var(--itf-surface);background:var(--itf-primary)}
+.MuiButton-containedPrimary:hover{background:var(--itf-primary-hover)}
+html[data-theme="dark"] .MuiButton-containedPrimary{color:#10251b}
+.MuiButton-outlinedPrimary,.MuiButton-textPrimary{color:var(--itf-primary);border-color:var(--itf-primary)}
+.MuiButton-outlinedPrimary:hover{background:var(--itf-soft);border-color:var(--itf-primary-hover)}
+.MuiCheckbox-root,.MuiRadio-root{color:var(--itf-primary)}
+.MuiDivider-root{border-color:var(--itf-border)}
+.MuiAlert-root{color:inherit}
+.MuiTooltip-tooltip{background:var(--itf-soft);color:var(--itf-text);border:1px solid var(--itf-border)}
+.MuiChip-root{color:var(--itf-text);background-color:var(--itf-soft)}
+.MuiChip-outlined{border-color:var(--itf-border)}
+.MuiChip-colorSuccess{background-color:var(--itf-soft);color:var(--itf-primary)}
+.MuiSwitch-track{background-color:var(--itf-subtle)}
+.MuiInputBase-input::placeholder{color:var(--itf-subtle);opacity:.9}
+.MuiFormControlLabel-label{color:var(--itf-text)}
+/* Configurator */
+.term-option,.extra-option,.core-grid>div{color:var(--itf-text);background:var(--itf-glass-heavy);border-color:var(--itf-border)}
+.term-option b,.extra-option b{color:var(--itf-text)}
+.term-option small,.term-option span,.extra-option small,.extra-option>span,.extra-option>span small{color:var(--itf-subtle)}
+.term-option.selected,.extra-option.selected{background:var(--itf-soft);border-color:var(--itf-primary)}
+.term-option.selected small,.term-option.selected span{color:var(--itf-primary)}
+.core-grid>div{background:var(--itf-soft)}
+.core-grid svg{color:var(--itf-primary)}
+.glass-form-section{transition:border-color .22s ease}
+.config-block,.config-block-head,.config-grid{min-width:0}
+.quote-panel,.quote-panel.liquid-glass{background:linear-gradient(148deg,rgba(17,54,43,.91),rgba(15,73,54,.84));border-color:rgba(185,236,198,.3);color:#fff}
+.quote-panel h4,.quote-row strong{color:#fff}
+.quote-panel .quote-row,.quote-total-label,.quote-total span{color:#d9eadd}
+.quote-total{color:#fff}
+.access-card{background:var(--itf-glass-heavy);border-color:var(--itf-glass-edge)}
+.access-switch{color:var(--itf-subtle)}
+.access-switch a{color:var(--itf-primary)}
+/* Stadium marketing: animated gradient fields sit behind useful content. */
+.hero.hero-dynamic{position:relative;overflow:hidden;background:var(--itf-hero);color:var(--itf-hero-fg)}
+.hero.hero-dynamic::before{
+  content:'';position:absolute;z-index:0;inset:-25%;pointer-events:none;opacity:.8;
+  background:
+    radial-gradient(ellipse 33% 40% at 75% 40%,rgba(100,208,136,.31),transparent 78%),
+    radial-gradient(ellipse 28% 38% at 25% 85%,rgba(31,114,95,.32),transparent 80%),
+    radial-gradient(ellipse 45% 40% at 48% 5%,rgba(157,220,100,.11),transparent 75%);
+  animation:itf-gradient-drift 22s ease-in-out infinite alternate;
+}
+.hero.hero-dynamic::after{content:'';position:absolute;inset:0;opacity:.12;pointer-events:none;background:
+  linear-gradient(90deg,transparent 48%,rgba(235,255,235,.36) 48.1%,transparent 48.2%),
+  radial-gradient(circle at 50% 50%,transparent 18%,rgba(235,255,235,.32) 18.1%,transparent 18.25%);
+  mask-image:linear-gradient(90deg,transparent 20%,#000 100%);}
+@keyframes itf-gradient-drift{from{transform:translate3d(-1%,0,0) scale(1)}to{transform:translate3d(2%,1%,0) scale(1.07)}}
+.hero-title,.hero-description,.hero-actions,.hero-footnote{position:relative;z-index:1}
+.match-visual.liquid-glass{background:linear-gradient(135deg,rgba(33,89,65,.61),rgba(14,44,37,.78));
+  border:1px solid rgba(209,254,215,.28);box-shadow:0 30px 75px rgba(0,0,0,.24);color:#fff}
+.match-visual-top{color:#edf8e9}
+.match-visual-board{background:rgba(250,255,247,.91);color:#112c22;box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.match-visual-board .itf-tabs--underline .itf-tab{color:#214635}
+.match-visual-board .match-visual-section,.match-visual-board .scoreboard-note{color:#3e5a49}
+.match-visual-board .match-visual-score,.match-visual-board .match-visual-standing{color:#173322}
+.bottom-cta.bottom-cta-dynamic{position:relative;isolation:isolate;overflow:hidden;
+  background:linear-gradient(125deg,#173b2f,#0e372d 50%,#1d543e);color:#fff}
+.bottom-cta.bottom-cta-dynamic::before{content:'';position:absolute;inset:-20%;z-index:-1;opacity:.7;
+  background:radial-gradient(circle at 70% 30%,rgba(190,235,115,.15),transparent 45%);
+  animation:itf-gradient-drift 25s ease-in-out infinite alternate}
+.feature-section,.steps-section{background:var(--itf-surface)}
+.modules-section{background:var(--itf-soft)}
+.feature-stage-lead p,.modules-intro>p,.capability-item p{color:var(--itf-subtle)}
+.feature-stage,.modules-composition{min-width:0}
+.capability-item{position:relative;min-height:165px;border-color:var(--itf-border);padding:25px 18px 26px;border-radius:13px;
+  background:var(--itf-glass);transition:transform .23s cubic-bezier(.16,1,.3,1),border-color .23s ease,box-shadow .23s ease}
+.capability-item:hover{transform:translateY(-4px);border-color:var(--itf-primary);box-shadow:0 12px 30px rgba(14,62,36,.11)}
+.capability-icon{background:var(--itf-soft);color:var(--itf-primary)}
+.capability-item h3,.module-line strong,.steps-grid h3{color:var(--itf-text)}
+.capability-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-content:start}
+.capability-item:last-child{border-bottom-color:var(--itf-border)}
+.if-feature-accordion{border-color:var(--itf-border)}
+.if-feature-accordion .MuiAccordion-root{background:transparent;border-color:var(--itf-border)}
+.if-feature-accordion__heading{color:var(--itf-text)}
+.if-feature-accordion__cost,.if-feature-accordion .MuiAccordionDetails-root p,.if-feature-accordion .MuiAccordionDetails-root small{color:var(--itf-subtle)}
+.if-feature-accordion .MuiAccordionSummary-expandIconWrapper{color:var(--itf-text)}
+.steps-grid>li{border-color:var(--itf-border)}
+.steps-grid>li::before{color:var(--itf-primary)}
+/* Dashboard: data from tenant database, no fake traffic or revenue. */
+.tenant-analytics{display:grid;gap:16px;margin-bottom:19px;min-width:0}
+.tenant-analytics__stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;min-width:0}
+.tenant-analytics__metric{background:var(--itf-glass-heavy);border-color:var(--itf-border);
+  padding:19px 20px 20px;border-radius:13px;min-width:0}
+.tenant-analytics__metric-head{display:flex;align-items:center;gap:8px;color:var(--itf-subtle);font-size:12px;font-weight:650}
+.tenant-analytics__metric-head svg{font-size:18px;color:var(--itf-primary)}
+.tenant-analytics__metric strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:43px;line-height:1.05;margin-top:17px}
+.tenant-analytics__distribution{padding:25px 28px;background:var(--itf-glass-heavy);border-radius:13px;border-color:var(--itf-border)}
+.tenant-analytics__header{display:flex;align-items:baseline;justify-content:space-between;gap:18px;margin-bottom:20px}
+.tenant-analytics__header h4{font-size:17px;font-weight:750;margin:0;color:var(--itf-text)}
+.tenant-analytics__header span{font-size:12px;color:var(--itf-subtle)}
+.tenant-analytics__empty{font-size:13px;color:var(--itf-subtle);margin:8px 0 4px}
+.tenant-analytics__bars{display:grid;gap:15px}
+.tenant-analytics__barrow{display:grid;grid-template-columns:105px minmax(0,1fr) 28px;align-items:center;gap:16px}
+.tenant-analytics__barlabel{font-size:13px;color:var(--itf-subtle)}
+.tenant-analytics__barrow>b{text-align:right;font-variant-numeric:tabular-nums;font-size:13px}
+.tenant-analytics__track{width:100%;height:12px;overflow:hidden;border-radius:8px;background:var(--itf-soft)}
+.tenant-analytics__fill{height:100%;border-radius:8px;transition:width .35s ease}
+.analytics-loading{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:20px}
+.analytics-loading .MuiSkeleton-root{background:var(--itf-soft)}
+/* Responsive grids from 21st Condition Grid / Feature Grid patterns. */
+@media(min-width:1100px){
+ .capability-item:first-child{grid-row:span 2;align-content:end;min-height:345px;
+   background:linear-gradient(145deg,var(--itf-glass-heavy),var(--itf-soft))}
+ .feature-stage{grid-template-columns:minmax(0,.62fr) minmax(0,1fr);gap:clamp(24px,4vw,75px)}
+}
+@media(max-width:1200px){
+ .tenant-analytics__stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .tenant-analytics__metric{padding:18px}
+ .hero-title{font-size:clamp(4rem,6.9vw,6.4rem)!important}
+}
+@media(max-width:900px){
+ .topbar{position:sticky}
+ .feature-stage{grid-template-columns:1fr;gap:28px}
+ .feature-stage-lead{position:static}
+ .capability-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .workspace-top-actions{gap:6px}
+ .tournament-head-actions{gap:10px}
+ .tournament-head-actions .itf-theme-toggle{width:38px;height:38px}
+ .hero.hero-dynamic::before{opacity:.58}
+ .tenant-analytics__distribution{padding:21px}
+}
+@media(max-width:640px){
+ .topbar-inner{gap:7px}
+ .topbar-inner .itf-theme-toggle{height:38px;width:38px}
+ .itf-mobile-drawer{background:var(--itf-surface);color:var(--itf-text);min-width:0}
+ .tournament-header-inner{gap:10px}
+ .tournament-brand{min-width:0;overflow:hidden;text-overflow:ellipsis}
+ .tournament-brand>b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .tournament-head-actions .tournament-backlink{font-size:0;gap:0}
+ .tournament-head-actions .tournament-backlink svg{font-size:17px}
+ .workspace-top{gap:10px}
+ .workspace-top>span{font-size:11px}
+ .workspace-top-actions .MuiButton-root{min-width:0;padding:6px 8px;font-size:11px}
+ .workspace-top-actions .MuiButton-endIcon{display:none}
+ .workspace-top-actions .itf-theme-toggle{height:37px;width:37px}
+ .tenant-analytics__stats{gap:9px}
+ .tenant-analytics__metric{padding:15px}
+ .tenant-analytics__metric-head{font-size:11px;align-items:flex-start}
+ .tenant-analytics__metric strong{font-size:35px;margin-top:12px}
+ .tenant-analytics__header{flex-direction:column;align-items:start;gap:6px}
+ .tenant-analytics__barrow{grid-template-columns:80px minmax(0,1fr) 24px;gap:9px}
+ .tenant-analytics__barlabel{font-size:11px}
+ .tenant-analytics__distribution{padding:18px 15px}
+ .analytics-loading{grid-template-columns:1fr 1fr}
+ .capability-list{grid-template-columns:1fr;gap:10px}
+ .capability-item{min-height:0;padding:18px 16px 21px}
+ .hero.hero-dynamic::after{display:none}
+ .match-visual{width:100%}
+ .config-grid{gap:15px}
+ .term-grid{gap:7px}
+ .term-option{min-height:78px;padding:12px}
+ .quote-total{font-size:42px}
+ .access-card{padding:25px 20px}
+ .settings-panel,.modules-admin,.crud-header{min-width:0}
+ .grant-row{grid-template-columns:minmax(0,1fr) auto}
+ .standings-scroll{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+ .public-card-grid{grid-template-columns:1fr}
+ .public-metric-grid strong{font-size:25px}
+}
+@media(max-width:380px){
+ .brand{font-size:20px}
+ .hero-title{font-size:3.6rem!important}
+ .tenant-analytics__metric-head svg{display:none}
+ .tournament-header-inner .tournament-logo{width:33px!important;height:33px!important}
+ .tournament-brand{font-size:16px}
+ .tournament-head-actions{gap:5px}
+}
+@media(prefers-reduced-motion:reduce){
+ .hero.hero-dynamic::before,.bottom-cta.bottom-cta-dynamic::before{animation:none!important}
+ .liquid-glass,.itf-theme-toggle,.tenant-card,.public-card,.public-match,.capability-item,.quick-grid button,
+ .tenant-analytics__fill{transition:none!important}
+ .capability-item:hover,.tenant-card:hover,.public-card:hover,.public-match:hover,.quick-grid button:hover{transform:none}
+ .itf-theme-toggle:hover{transform:none}
+}
