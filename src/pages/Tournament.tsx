@@ -11,6 +11,7 @@ import { client, configured, friendlyError } from '../lib/supabase';
 import { AnimatedTabs } from '../components/AnimatedTabs';
 import type { FeatureCode, Row, Tenant, TenantFeature } from '../lib/types';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { useCookiePreferences } from '../components/CookieNotice';
 
 type Data = Record<string, Row[]>;
 const tables = ['competitions', 'teams', 'competition_teams', 'players', 'matches', 'match_events', 'staff_members', 'awards', 'sponsors', 'articles', 'market_slots', 'galleries'];
@@ -87,6 +88,7 @@ function MatchList({ matches, data, slug }: { matches: Row[]; data: Data; slug: 
 }
 
 export function Tournament() {
+  const { openPreferences } = useCookiePreferences();
   const { slug } = useParams();
   const location = useLocation();
   const [query, setQuery] = useSearchParams();
@@ -216,7 +218,16 @@ export function Tournament() {
         {page === 'sponsor' && <section className="public-section"><Typography variant="h3">Sponsor e partner</Typography><div className="public-card-grid">{(data.sponsors ?? []).sort((a,b)=>Number(a.sort_order??0)-Number(b.sort_order??0)).map(s => <a key={s.id} className="public-card sponsor-card" href={src(s.website_url) || undefined} target="_blank" rel="noopener noreferrer">{src(s.image_url) && <div className="public-card-photo"><img src={src(s.image_url)} alt={String(s.image_alt || "Immagine dello sponsor " + s.name)} loading="lazy" referrerPolicy="no-referrer" /></div>}<BrandImage url={s.logo_url} name={nameOf(s)} size={45} /><b>{String(s.name)}</b><p>{String(s.description ?? '')}</p><ArrowOutwardRoundedIcon /></a>)}</div>{!(data.sponsors ?? []).length && <Empty />}</section>}
         {page === 'gallery' && <section className="public-section"><Typography variant="h3">Foto gallery</Typography><div className="public-card-grid">{(data.galleries ?? []).map(g => <a className="public-card gallery-card" key={g.id} href={src(g.url) || undefined} target="_blank" rel="noopener noreferrer"><Typography variant="h6">{String(g.label)}</Typography><small>Apri la galleria esterna</small><ArrowOutwardRoundedIcon /></a>)}</div>{!(data.galleries ?? []).length && <Empty />}</section>}
       </Container></main>}
-    <footer className="tournament-footer"><Container maxWidth="lg"><b>{tenant.name}</b><span>Un torneo costruito con <RouterLink to="/">italFUT.</RouterLink></span></Container></footer>
+    <footer className="tournament-footer"><Container maxWidth="lg">
+      <b>{tenant.name}</b><span>Un torneo costruito con <RouterLink to="/">italFUT.</RouterLink></span>
+      <nav aria-label="Documenti legali" className="tournament-legal-links">
+        <RouterLink to="/privacy-policy">Privacy</RouterLink>
+        <RouterLink to="/terms-of-service">Termini</RouterLink>
+        <RouterLink to="/cookie-policy">Cookie</RouterLink>
+        <button type="button" onClick={openPreferences}>Preferenze cookie</button>
+        <RouterLink to="/business">Operatore</RouterLink>
+      </nav>
+    </Container></footer>
   </div>;
 }
 function CompetitionSelect({ competitions, selected, onSelect }: { competitions: Row[]; selected: string; onSelect: (id: string) => void }) {

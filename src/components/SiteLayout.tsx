@@ -103,7 +103,7 @@ export function SiteLayout() {
         <Stack spacing={1}>{links.map(link => <Button key={link.label} fullWidth sx={{ justifyContent: 'flex-start' }} onClick={() => go(link.href)}>{link.label}</Button>)}
           <Button onClick={() => go(session ? '/console' : '/accesso')}>{session ? 'Console' : 'Accedi'}</Button>
           <Button variant="contained" onClick={() => go('/configura')}>Crea un torneo</Button>
-          {session && <Button component={RouterLink} to="/account" onClick={() => setOpen(false)}>Account e dati</Button>
+          {session && <Button component={RouterLink} to="/account" onClick={() => setOpen(false)}>Account e dati</Button>}
           <Button component={RouterLink} to="/privacy-policy" onClick={() => setOpen(false)}>Privacy e documenti</Button>
         </Stack>
       </Box>
