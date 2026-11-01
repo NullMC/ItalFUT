@@ -86,10 +86,11 @@ begin
   ) as t(table_name, column_name)
   loop
     if not exists (select 1 from pg_constraint where conname = entry.table_name || '_' || entry.column_name || '_https') then
+      -- The pattern is passed as a literal (%L) so no manual quote escaping is needed.
       execute format(
-        'alter table public.%I add constraint %I check (%I is null or (%I ~* ''^https://[^[:space:]<>"'']+$'' and char_length(%I) <= 2048)) not valid',
+        'alter table public.%I add constraint %I check (%I is null or (%I ~* %L and char_length(%I) <= 2048)) not valid',
         entry.table_name, entry.table_name || '_' || entry.column_name || '_https',
-        entry.column_name, entry.column_name, entry.column_name);
+        entry.column_name, entry.column_name, '^https://[^[:space:]<>"'']+$', entry.column_name);
     end if;
   end loop;
 end;

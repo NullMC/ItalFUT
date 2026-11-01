@@ -13,6 +13,9 @@ alter table public.players
   add column if not exists guardian_confirmed_at timestamptz,
   add column if not exists guardian_confirmed_by uuid references auth.users(id) on delete set null;
 
+-- Re-runnable: drop and recreate the constraints if a previous run created them.
+alter table public.players drop constraint if exists players_minor_publication_check;
+alter table public.players drop constraint if exists players_minor_photo_check;
 alter table public.players
   add constraint players_minor_publication_check
     check (age_category is distinct from 'minor' or guardian_authorization_confirmed),
