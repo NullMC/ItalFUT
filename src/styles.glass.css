@@ -374,6 +374,7 @@ html[data-theme="dark"] .MuiButton-containedPrimary{color:#10251b}
   background:
     linear-gradient(90deg,rgba(5,22,18,.86) 0%,rgba(5,22,18,.64) 48%,rgba(5,22,18,.26) 100%),
     url("https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Well_lit_soccer_stadium_%28Unsplash%29.jpg/1280px-Well_lit_soccer_stadium_%28Unsplash%29.jpg") center 56% / cover no-repeat;
+  background-color:#102a23; /* solid fallback if the remote photo cannot load */
   opacity:1;
   transform:none;
   animation:none;
