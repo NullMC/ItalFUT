@@ -8,4 +8,4 @@ Primary users are tournament organizers, sports associations, amateur teams and 
 
 Commercial entitlements are always verified on the server. At initial release, prices are illustrative and Stripe does not charge customers. New organizations start in draft status; base modules are available to their owners for editing, with paid extra features pending administrative approval. Multiple users and tenants are isolated through Postgres RLS and composite foreign keys.
 
-First release scope is a functional product foundation, not a production-paid SaaS until Stripe billing, privacy and legal pages, global admin, load testing and security review are completed.
+First release scope is a functional product foundation, not a production-paid SaaS until Stripe billing, legal review of the drafted policies, global admin and load testing are completed. Legal pages, consent, data export and self-service deletion are implemented; operator data is pending (docs/MANUAL_INFO_CHECKLIST.md).

@@ -1,6 +1,6 @@
 # ItalFUT
 
-ItalFUT è una piattaforma SaaS multi-tenant per la gestione dei tornei di calcio, sviluppata con React 19, TypeScript, React Router 7, Material UI 7, Tailwind CSS 4 e Supabase.
+ItalFUT è una piattaforma SaaS multi-tenant per la gestione dei tornei di calcio, sviluppata con React 19, TypeScript, React Router 7, Material UI 7, Motion, shader WebGL (Paper) e Supabase.
 
 **Stato:** fondazione applicativa pre-pagamenti. Non è collegata automaticamente a un progetto Supabase live; Stripe non è ancora operativo. Ogni nuovo spazio nasce in bozza, con i moduli base per la preparazione dei contenuti.
 
@@ -8,7 +8,8 @@ ItalFUT è una piattaforma SaaS multi-tenant per la gestione dei tornei di calci
 
 - Landing page ItalFUT responsive, sezioni prodotto, CTA e demo visiva esplicitamente illustrativa.
 - Configuratore durata + moduli aggiuntivi, stima indicativa e preventivo server-side.
-- Registrazione con email e password, accesso anche con username e password tramite Edge Function.
+- Registrazione con username, email (solo per conferma e recupero) e password robusta; accesso con **username e password** tramite Edge Function con throttling, recupero password via email.
+- Pagine legali (privacy, termini, rimborsi, cookie, operatore), consenso cookie senza dark pattern, esportazione JSON dei dati e cancellazione self-service di tornei e account.
 - Console organizzatori con più piattaforme indipendenti e gestione identità visiva.
 - Backoffice con CRUD per competizioni, iscrizioni squadre, giocatori, partite, eventi, staff, premi, sponsor, articoli, mercato e gallery.
 - Vetrine pubbliche separate per tenant, calendario risultati, classifiche calcolate, squadre e giocatori.
@@ -19,10 +20,10 @@ ItalFUT è una piattaforma SaaS multi-tenant per la gestione dei tornei di calci
 Prerequisiti: Node.js 22+, npm, un NUOVO progetto Supabase. Non usare il database Street League come destinazione della migrazione perché lo schema è incompatibile.
 
 1. Esegui npm install.
-2. Copia .env.example in .env e configura VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY. Sono valori pubblici, mai una chiave service_role.
-3. Applica la migrazione supabase/migrations/202610310001_initial.sql al nuovo progetto tramite SQL Editor o Supabase CLI.
+2. Copia .env.example in .env.local e configura VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY. Sono valori pubblici, mai una chiave service_role.
+3. Applica in ordine tutte le migrazioni in supabase/migrations/ (initial, privacy_deletion, image_alt_text, security_hardening) tramite SQL Editor o `supabase db push`.
 4. Abilita il provider Email + Password in Supabase Auth e configura email di verifica, URL sito e URL redirect.
-5. Installa Supabase CLI e distribuisci la Edge Function con: supabase functions deploy auth-username --no-verify-jwt.
+5. Installa Supabase CLI e distribuisci le Edge Function: `supabase functions deploy auth-username --no-verify-jwt` e `supabase functions deploy delete-account`.
 6. Nelle variabili server-side della Edge Function configura ITALFUT_ALLOWED_ORIGINS come elenco di origini complete separate da virgola (esempio: https://italfut.it,https://www.italfut.it). SUPABASE_URL, SUPABASE_ANON_KEY e SUPABASE_SERVICE_ROLE_KEY restano esclusivamente nell'ambiente Edge.
 7. Esegui npm run dev per sviluppare e npm run build per verificare la build.
 
@@ -63,7 +64,7 @@ Il backend dovrà creare una Checkout Session solo dopo aver ricalcolato sul ser
 
 ## Deploy
 
-Su Cloudflare Pages: comando build npm run build; directory output dist. La configurazione public/_redirects gestisce le route SPA. Configura le variabili pubbliche in Cloudflare e l'elenco origini autorizzate in Supabase. Il progetto è distribuito separatamente da StreetLeagueWebsite.
+Su Cloudflare Pages: comando build npm run build; directory output dist. public/_redirects gestisce le route SPA e public/_headers applica CSP, HSTS e le altre intestazioni di sicurezza. Configura le variabili pubbliche in Cloudflare e l'elenco origini autorizzate in Supabase. Il progetto è distribuito separatamente da StreetLeagueWebsite.
 
 ## Checklist obbligatoria prima della produzione
 
@@ -78,3 +79,12 @@ Su Cloudflare Pages: comando build npm run build; directory output dist. La conf
 ## Limiti attuali
 
 È una prima release strutturale, non il SaaS commerciale completo. Restano da sviluppare: Stripe Checkout/webhook, backoffice globale, inviti e ruoli avanzati, generatore automatico di calendari, esportazioni, editor rich text, upload con Supabase Storage, custom domains, dirette, statistiche avanzate come clean sheets e premi aggregati tra gironi, oltre a test end-to-end sul progetto Supabase reale. Lato pubblico le query hanno attualmente un limite di 500 righe per tabella: servirà paginazione server per i tornei più grandi.
+
+## Sicurezza (revisione 2 novembre 2026)
+
+- RLS su tutte le tabelle, isolamento per tenant con chiavi composite, funzioni SECURITY DEFINER con search_path bloccato.
+- Gli utenti anonimi leggono solo le colonne pubbliche di `tenants` e `players` (niente owner_id o dati di audit sui minori).
+- Vincoli `https://` e lunghezze massime sui campi URL/testo (NOT VALID: non toccano i dati esistenti).
+- Login con username: lookup dell'email solo lato server, risposta a tempo costante, throttling per username e per IP.
+- Frontend: nessun `dangerouslySetInnerHTML`, URL validati (`safeUrl`), testo normalizzato (`cleanText`), redirect post-login solo interni, CSP senza script inline, nessuna source map in produzione, `console.*` rimossi in build.
+- Elenco di ciò che va configurato a mano: **docs/MANUAL_INFO_CHECKLIST.md**.

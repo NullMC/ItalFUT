@@ -1,46 +1,38 @@
-# ItalFUT — Third-party SDK, network and storage audit (2026-11-01)
+# ItalFUT — Third-party SDK, network & storage audit (2 Nov 2026)
 
-This is a **code-level** inventory, not a network-level production certification.
+Code-level inventory. Re-check with DevTools → Network on the deployed site after every release.
 
-## Runtime dependencies (package.json)
+## Runtime dependencies
 
-| Package / family | Purpose | Tracking? | Action |
+| Package | Purpose | Tracking | Notes |
 | --- | --- | --- | --- |
-| React / react-dom / react-router-dom | UI and navigation | None built in | Keep and patch |
-| Material UI / Emotion | Accessible components and styles | None built in | Keep and patch |
-| Motion | Interaction animations | None built in | Keep reduced-motion branch |
-| @supabase/supabase-js | Database API and auth sessions | Authentication and technical session state | Document provider, DPA, retention, regions |
-| Tailwind | Build-time CSS | No runtime tracking | Keep |
-| Vite / TypeScript | Toolchain | Not a production tracker | Build only |
+| react, react-dom, react-router-dom | UI and routing | None | — |
+| @mui/material, @emotion/* | Accessible form controls, dialogs | None | Icons tree-shaken per import |
+| motion | Animations (honours reduced motion) | None | — |
+| @supabase/supabase-js | Database, auth, edge functions | Session storage only | DPA + region to confirm |
+| @paper-design/shaders-react | WebGL backgrounds (same engine as 21st.dev shader heroes) | None, no network | Lazy-loaded chunk |
+| @fontsource-variable/geist, @fontsource/instrument-serif, @fontsource-variable/big-shoulders-display | Self-hosted fonts (OFL) | None | Served from our own domain — no Google Fonts request |
 
-**Not present in application runtime:** Google Analytics, Meta Pixel, Hotjar, Sentry, Stripe JS, Facebook Login, social analytics, ad SDKs or marketing pixels. Future additions require a new audit and, where necessary, prior opt-in.
+Removed in this revision: `tailwindcss`, `@tailwindcss/vite` (one utility class used), legacy `CinematicShader`, `FeatureAccordion`, seven overlapping stylesheets.
 
-### Removed in this revision
+**Not present:** Google Analytics, Meta Pixel, Hotjar, Sentry, Stripe.js, social login SDKs, ad networks.
 
-- `index.html` previously connected to `fonts.googleapis.com` and `fonts.gstatic.com`. This request is removed to avoid contacting Google Fonts before any user choice. Styles now fall back to installed/system typefaces; supply properly licensed self-hosted fonts later if brand fidelity requires it.
-- No Google/third-party font Javascript has been added.
-- The old remote Wikimedia stadium photograph in the landing hero had already been removed in favor of a local WebGL shader.
+## Browser storage
 
-### Device storage and purposes
+| Key | Type | Purpose | Category |
+| --- | --- | --- | --- |
+| `sb-<ref>-auth-token` | localStorage | Supabase session | Necessary |
+| `italfut-appearance` | localStorage | Theme choice | Functional/technical |
+| `italfut_consent_v2` | localStorage | Cookie choices + date (expires after 6 months) | Necessary |
+| `italfut_configuration` | sessionStorage | Configurator draft | Necessary |
 
-- `sb-...-auth-token`: browser persistence used by Supabase Auth while signed in (technical/essential to persistent authentication).
-- `italfut-appearance`: theme preference, localStorage.
-- `italfut_configuration`: provisional requested modules and duration, sessionStorage.
-- `italfut_cookie_notice_v1`: technical acknowledgement of the information banner, localStorage. It is **not** consent to tracking.
+## Network calls on first load
 
-The cookie banner is informational only while no nonessential SDKs are installed. Do not add optional script loads without designing a genuine opt-in CMP and blocking them until granted.
+Only the site's own origin. Supabase is contacted when a page reads data or a user signs in.
+Tournament pages may load images from URLs entered by organisers (https only, `referrerpolicy="no-referrer"`).
 
-### Remaining non-SDK external calls requiring operator review
+## Adding a new SDK
 
-- Supabase REST/Auth/Edge Functions calls, accessible to logged-in users as required. Verify provider agreements, EU data region, backups and log retention.
-- Organizers can input external URLs for player/team/sponsor images, cover backgrounds, article media and external galleries. Loading remote images exposes IP/network metadata to those **independent providers**. Referrer Policy `no-referrer` is applied to `<img>` elements, but it does not hide the user's IP from the server supplying the image.
-- External galleries and sponsor websites are user-provided links, subject to external operators. Recommend hosted media under a vetted domain or an image proxy, documented source owners, and opt-in where legally required.
-- The actual production web host, DNS/CDN, observability logs and any server-added scripts are **not identifiable in this repository**. They must be audited against DevTools Network, the hosting control panel, and the deployed HTML.
-
-### When introducing payment/analytics/support SDKs
-
-1. Record product, version, exact purposes, DPA, storage region, retention and transfer mechanism.
-2. Update `src/pages/Legal.tsx`, `src/config/legal.ts` and the legal documents.
-3. Block optional SDK initialization until explicit, revocable opt-in; provide same prominence for rejection.
-4. Add CSP / referrer-policy and isolate API secrets from frontend bundles.
-5. Test first-load network requests without consent and browser session/anonymous state.
+1. Document vendor, purpose, data, region, retention and DPA here and in `src/pages/Legal.tsx`.
+2. Add it to `OPTIONAL_SERVICES` in `src/components/CookieNotice.tsx` and load it only when `allows('analytics')` is true.
+3. Extend the CSP in `public/_headers`.

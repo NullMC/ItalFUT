@@ -1,75 +1,25 @@
-# ItalFUT — visual system (football editorial)
-The design language is European football editorial + a disciplined competition operations desk.
-Do not imitate a videogame or an esports overlay. Marketing persuades; admin screens prioritize speed and clarity.
+# ItalFUT — Design system “Floodlight”
 
-- Colors: stadium pine #102b24 / evergreen #173d32, warm off-white #f5f6f1, white #fff, ink #142b24, muted #52665d, pitch-lime #c6e978 reserved for meaningful CTAs, selections and match emphasis.
-- Type: Barlow Condensed 600–800 for large editorial headings and score displays; DM Sans for UI, body, field labels and dense admin data. Never use compressed display face for small controls.
-- Above-the-fold marketing: one concise proposition, primary action, and a genuinely useful representative match/standings snapshot marked as illustrative. No eyebrow, fake social proof, decorative counters, orbit, floating pseudo-cards or gradients on lettering.
-- Information architecture: capability rows, simple optional-modules catalog, short setup explanation. Each section has one purpose.
-- App surfaces: clear route titles, line-separated lists and neutral work areas; status, module grants, actions and error states are visible without repeating prose. Dense data over decorative metrics.
-- Public tenant sites: their name and identity lead; compact fixture rows, visible scores and readable rankings. Only show real published data and real navigation.
-- Accessibility: semantic sections, skip link, keyboard focus, aria-pressed for duration selection, 44px controls, legible contrast, reduced motion, horizontally scrollable data tables and navigation. Mobile is not a scaled-down desktop.
-- Responsive: 1200+ spacious editorial split hero, 900px single-column work surfaces, 640px compact mobile scoreboard and linear content flow.
-- No fake commerce: draft tenants are clearly draft, pricing illustrative until payments are connected. Source of entitlement truth remains Supabase.
+Stadium at night (dark) / matchday paper (light). Minimal surfaces, one luminous accent, cinematic depth only where it earns attention.
 
-## 21st.dev integration / 2026-11-01
-Visual foundations: adapted from **Green Notes** by massimobuonfrate01
-https://21st.dev/community/themes/green-notes-1783614187319
-- Warm parchment #e9e4d8, creamy work surface #f4efe4, border #d2cbbb, evergreen #0f7058.
-- ItalFUT retains pitch-lime #c6e978 for primary football CTA and pine hero. Tokens are surfaced as --if-* and Tailwind --color-*.
-- `src/styles.community.css` is the source of the final-stage color and interaction overrides.
+## Foundations
+- **Tokens:** `src/styles/tokens.css` — every colour, radius, glass and shadow value, defined for both themes. Components never hard-code theme colours.
+- **Type pairing:** Geist (UI, headings, body) · Instrument Serif *italic* for one emotional accent per heading · Big Shoulders Display for scores, numbers and the `FUT` of the wordmark. All self-hosted via Fontsource.
+- **Accent:** pitch lime `#c6f36a` (dark) / pine `#0f6b4a` (light). Primary buttons: lime on dark, ink on light.
+- **Logo:** the wordmark *ital*FUT is the logo — no pictogram.
+- **No filler:** no eyebrows, fake social proof, decorative counters or invented data. Illustrations use clearly-labelled demo data.
 
-Component patterns adapted from the actual catalog code:
-- **Animated Tabs**, educalvolpz, https://21st.dev/@educalvolpz/components/animated-tabs — `src/components/AnimatedTabs.tsx`, React 19 and Motion shared layout, accessible keyboard navigation. Used in interactive illustrative scoreboards and actual public competition filters.
-- **Accordion 01**, designali-in, https://21st.dev/@designali-in/components/accordion-01-1 — `src/components/FeatureAccordion.tsx`, translated from Radix into the existing MUI stack. Used to progressively disclose optional modules without decorative cards.
-- Motion (motion/react): one relevant active-state shared-element movement; 120–300ms transitions, reduced-motion paths. No autoplay or animated content that prevents use.
+## Materials & motion
+- **Liquid glass** (`.glass`): backdrop blur + saturation, gradient rim via mask, specular inset light. Used for the floating navbar, cards, panels, dialogs, cookie banner. Falls back to solid surfaces with `prefers-reduced-transparency`.
+- **Shaders:** `src/components/fx/` — Paper `MeshGradient` + `GodRays` (the engine behind 21st.dev shader heroes), lazy-loaded, paused offscreen, frozen for reduced motion/Save-Data, CSS gradient fallback without WebGL. Glowing light points (`GlowField`) and film grain on top.
+- **3D:** CSS-3D tilted phone (interactive demo, straightens on hover/focus), real-time WebGL football (`Football3D`, draggable), CSS-3D pitch in “Come funziona” with a scroll-driven ball.
+- **Motion:** word-by-word blur reveal for headlines, blur-up section reveals, spotlight hover on cards, shared-layout pills (nav, durations, tabs), circular View-Transition theme switch. Everything collapses under `prefers-reduced-motion`.
 
-Impeccable composition constraints:
-- Persuade (marketing): prominent claim + functional preview; capability section is editorial anchored lead plus lean list; addons use one useful disclosure list; steps communicate ordered action.
-- Operate (admin): no nonessential page-load movement. State transitions only, preserved focus and touch sizes.
-- Read (public competition): football results, standings, and competition selection take priority; no invented stats or simulated live content.
+## Composition (impeccable.style principles)
+One idea per section · strong editorial headline + one supporting line · a single focal object per viewport · generous negative space · dense, calm work surfaces in the console.
 
-## Responsive Glass + Dual Theme (2026-11-01)
+## 21st.dev references adapted
+Shader Hero / Mesh drift / Aurora (backgrounds), Glassmorphism Navigation & Floating Nav (navbar), Spotlight Card & Feature Grid (bento), Animated Tabs (pills), Theme Switch, Text Effect blur-in, admin/analytics dashboard templates (sidebar + KPI + chart cards), split authentication templates. Code is original or adapted to this stack (React 19 + MUI 7 + Motion), not copied wholesale.
 
-Template selected via 21st.dev: **Modernize Free React MUI Dashboard** (AdminMart, MIT, React/Vite/MUI). Source:
-https://21st.dev/community/templates/modernize-free-react-mui-dashboard
-https://github.com/adminmart/modernize-react-lite
-The template was **adapted in composition and behavior** to ItalFUT; no Next.js rewrite, no premium purchase and no wholesale template source copied.
-
-21st component references and scope of adaptation:
-- Glass Card — https://21st.dev/@educalvolpz/components/glass-card (material inspiration, CSS-only refractive edge, glass fallback)
-- Glassmorphism Navigation — https://21st.dev/@akashsingh890901-crypto/components/glassmorphism-navigation (navbar material, sticky glass)
-- Theme Switch — https://21st.dev/@zweiundeins/components/theme-switch (persistent dark/light mode; custom MUI switch)
-- Advanced Stats — https://21st.dev/@uilayout.contact/components/advanced-stats (real tenant analytics composition)
-- Charts & KPI Cards — https://21st.dev/@uvain/components/revenue-charts-kpi (readable metric/header scale; no fabricated revenue)
-- Feature Grid — https://21st.dev/@lavikatiyar/components/feature-grid (responsive hover grid)
-- Floating Label — https://21st.dev/@ddoemonn/components/floating-label (focused form field rhythm; native MUI text fields)
-- Existing source-adapted Animated Tabs and Accordion 01 remain implemented directly in the app.
-
-Theme architecture:
-- `src/components/AppearanceProvider.tsx` creates the MUI theme and writes `data-theme` to `html`.
-- Local preference stored under `italfut-appearance`, starts with system setting if missing.
-- `src/styles.glass.css` owns light/dark tokens and overrides for landing, pricing, auth, console, dialog, editor, public tournament pages and responsive states.
-- Every route uses a visible `ThemeToggle` in the main header or dedicated tournament header.
-- `src/components/TenantAnalytics.tsx` queries the tenant's own records; counts and progress bars represent actual statuses.
-- Dynamic backgrounds are lightweight CSS gradients, not expensive looping shader canvases; blur is reduced on mobile and removed when user prefers reduced transparency.
-- Validate at 320, 375, 768, 1024 and 1440px. Mobile nav overflow is horizontal only where content genuinely needs it. Accessibility: focus ring, native form labels, visible selected states, no automatic audio and reduced-motion variant.
-
-
-## Touchline Cinema — cinematic shaders and functional motion
-- 21st.dev sources inspected: Aurora Shader - Green (guranshbir2012), Silk Aurora (componentry), WebGL Liquid (componentry), Horizon Hero (lovesickfromthe6ix), Scroll Reveal (cnippet-dev), Sticky Scroll Reveal (manuarora700), Floating Nav (ruixen.ui), Ruixen Gradient Footer (ruixen.ui), Split Sign In Form (diarmuradi), Auth Section 2 (solaceui).
-- The free 21st.dev code retrieval quota was exhausted. This work is original React, GLSL and CSS informed by catalog metadata/previews, not a source-level copy.
-- Landing/auth/CTA now use the lightweight WebGL1 pitch-green aurora and light points without any 3D football. Landing's dominant 3D object is an iPhone-style CSS device, with a keyboard-accessible, explicitly illustrative ItalFUT tournament UI shown directly on its screen.
-- Shader runs only while visible, pauses in hidden tabs, caps resolution to 1100/750 logical pixels and 30fps; reduced-motion and Save-Data show a static frame. On unsupported WebGL, use CSS photo/gradient fallbacks; no content depends on canvas.
-- Marketing: motion-aware headline entrance, small scroll reveals, scroll-linked feature rail, shared-layout navigation and gradient footer. Keep admin and forms free of excessive transitions.
-- Typography: Barlow Condensed for football display, Space Grotesk for editorial narratives and auth, DM Sans for body, controls and data.
-- Responsive CSS override: src/styles.cinematic.css; test 320, 375, 700, 900, 1280, 1440 desktop/mobile, no-WebGL, dark/light themes, reduced motion.
-- Split login retains Supabase authentication only; no mock SSO or invented testimonials.
-
-## Landing iPhone hero / 2026-11-01
-- The older stadium photo background has been entirely removed (including both desktop and mobile URL declarations) to prevent interference with the shader and foreground device.
-- Reference concepts: 21st.dev Phone Scroll Hero (ruixen.ui), Phone Mockups 1 (solaceui), Tilt (ibelick). Implementation is original React/Motion/CSS 3D, not a copied template source.
-- The shader `touchline.frag` now renders aurora only; no soccer ball geometry. The actual 3D focal point is a CSS-perspective iPhone-style device with metal rim, physical buttons, dynamic-island silhouette, moving reflections and light halo.
-- The screen displays an explicitly labeled fictional tournament with example fixtures and standings, switching using accessible keyboard tabs. It does not claim live user data or invent an actual hosted tenant.
-- Hero layout splits into editorial copy left and product device right above 820px, then becomes vertically stacked below 820px; at <=420px the device scales down and all CTAs stay usable.
-- The bottom gradient still derives from `--itf-surface` in light and dark modes. Phone screen variables have corresponding light/dark palettes; phone pointer tilt and float respect reduced motion.
+## Responsive & accessibility
+Breakpoints 1020 / 900 / 640 / 560 px; tested at 390 and 1440. Mobile nav becomes a glass sheet, console sidebar becomes a chip bar, sticky scroll scenes become linear. WCAG 2.1 AA: axe-core clean on all main routes in both themes, visible focus rings, skip link, labelled controls, ≥44px targets, keyboard-operable demo phone and tabs.
