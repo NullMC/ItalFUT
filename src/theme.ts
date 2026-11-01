@@ -3,14 +3,18 @@ import { createTheme } from '@mui/material/styles';
 const display = '"Barlow Condensed", "Arial Narrow", sans-serif';
 const interfaceFont = '"DM Sans", sans-serif';
 
-export const theme = createTheme({
+export type AppearanceMode = 'light' | 'dark';
+
+export function createItalFutTheme(mode: AppearanceMode) {
+  const dark = mode === 'dark';
+  return createTheme({
   palette: {
-    mode: 'light',
-    primary: { main: '#0f7058', dark: '#104c3e', light: '#36866e', contrastText: '#ffffff' },
+    mode,
+    primary: { main: dark ? '#8ce0bb' : '#0f7058', dark: dark ? '#53ba8d' : '#104c3e', light: dark ? '#a7ebc9' : '#36866e', contrastText: dark ? '#10251d' : '#ffffff' },
     secondary: { main: '#c6e978', dark: '#add65c', contrastText: '#102820' },
-    background: { default: '#f4efe4', paper: '#fffdfa' },
-    text: { primary: '#193329', secondary: '#536359' },
-    divider: '#d2cbbb',
+    background: { default: dark ? '#0e1717' : '#f4efe4', paper: dark ? '#192623' : '#fffdfa' },
+    text: { primary: dark ? '#ecf5ef' : '#193329', secondary: dark ? '#bed0c6' : '#536359' },
+    divider: dark ? '#344840' : '#d2cbbb',
     success: { main: '#23694b' },
   },
   typography: {
@@ -36,10 +40,14 @@ export const theme = createTheme({
     },
     MuiPaper: { styleOverrides: { root: { backgroundImage: 'none' } } },
     MuiTextField: { defaultProps: { size: 'medium', fullWidth: true } },
-    MuiOutlinedInput: { styleOverrides: { root: { borderRadius: 10, backgroundColor: '#fffdfa' } } },
+    MuiOutlinedInput: { styleOverrides: { root: { borderRadius: 10, backgroundColor: dark ? '#192623' : '#fffdfa' } } },
     MuiChip: { styleOverrides: { root: { fontWeight: 650, borderRadius: 7 } } },
     MuiDialog: { styleOverrides: { paper: { borderRadius: 18 } } },
     MuiIconButton: { styleOverrides: { root: { borderRadius: 9 } } },
     MuiLink: { styleOverrides: { root: { textUnderlineOffset: '3px' } } },
   },
-});
+  });
+}
+
+// Default export retained for compatibility with existing theme-aware utilities.
+export const theme = createItalFutTheme('light');
