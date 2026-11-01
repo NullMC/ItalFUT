@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
-import { Alert, Button, CircularProgress, Container, IconButton, InputAdornment, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Button, Checkbox, CircularProgress, Container, FormControlLabel, IconButton, InputAdornment, Stack, TextField, Typography } from '@mui/material';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
@@ -16,13 +16,20 @@ export function Access({ register = false }: { register?: boolean }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [confirmAdult, setConfirmAdult] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const from = (location.state as { from?: string } | null)?.from ?? '/console';
   useEffect(() => { if (session) navigate(from, { replace: true }); }, [session, navigate, from]);
   const submit = async (event: FormEvent) => {
-    event.preventDefault(); setError(''); setMessage(''); setBusy(true);
+    event.preventDefault(); setError(''); setMessage('');
+    if (register && (!acceptTerms || !confirmAdult)) {
+      setError('Per creare un account devi accettare i termini e confermare di essere maggiorenne.');
+      return;
+    }
+    setBusy(true);
     try {
       if (register) {
         const confirm = await signUp(identifier, username, password);
@@ -60,7 +67,14 @@ export function Access({ register = false }: { register?: boolean }) {
             {showPassword ? <VisibilityOffRoundedIcon fontSize="small" /> : <VisibilityRoundedIcon fontSize="small" />}
           </IconButton>
         </InputAdornment> }} />
-      <Button variant="contained" size="large" type="submit" disabled={busy || !configured} endIcon={busy ? <CircularProgress size={17} color="inherit" /> : <ArrowForwardRoundedIcon />}>{register ? 'Crea account' : 'Accedi'}</Button>
+      {register && <div className="registration-consents">
+        <FormControlLabel control={<Checkbox checked={acceptTerms} onChange={(_, checked) => setAcceptTerms(checked)} required />}
+          label={<span>Ho letto i <RouterLink to="/terms-of-service" target="_blank" rel="noopener noreferrer">termini di servizio</RouterLink> e accetto le condizioni applicabili. Ho consultato l’<RouterLink to="/privacy-policy" target="_blank" rel="noopener noreferrer">informativa privacy</RouterLink>.</span>} />
+        <FormControlLabel control={<Checkbox checked={confirmAdult} onChange={(_, checked) => setConfirmAdult(checked)} required />}
+          label="Dichiaro di avere almeno 18 anni e di poter gestire un account organizzatore." />
+        <Typography variant="caption" color="text.secondary">Non chiediamo la tua data di nascita. I minori non possono creare un account organizzatore: per i dati di atleti minori è prevista una verifica separata a cura dell’organizzatore.</Typography>
+      </div>}
+      <Button variant="contained" size="large" type="submit" disabled={busy || !configured || (register && (!acceptTerms || !confirmAdult))} endIcon={busy ? <CircularProgress size={17} color="inherit" /> : <ArrowForwardRoundedIcon />}>{register ? 'Crea account' : 'Accedi'}</Button>
     </Stack></form>
     <p className="access-switch">{register ? 'Hai già un account?' : 'Non hai un account?'}{' '}<RouterLink to={register ? '/accesso' : '/registrati'}>{register ? 'Accedi' : 'Registrati'}</RouterLink></p>
     </div></Container></div>;

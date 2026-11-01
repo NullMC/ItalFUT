@@ -1,8 +1,22 @@
-import { useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Switch, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 
 const KEY = 'italfut_cookie_notice_v1';
+const CookieContext = createContext<{ openPreferences: () => void } | null>(null);
+export function useCookiePreferences() {
+  const context = useContext(CookieContext);
+  if (!context) throw new Error('CookieSettingsProvider mancante');
+  return context;
+}
+export function CookieSettingsProvider({ children }: { children: ReactNode }) {
+  const [openPreferences, setOpenPreferences] = useState(false);
+  const value = useMemo(() => ({ openPreferences: () => setOpenPreferences(true) }), []);
+  return <CookieContext.Provider value={value}>
+    {children}
+    <CookieNotice openPreferences={openPreferences} onPreferencesOpen={setOpenPreferences} />
+  </CookieContext.Provider>;
+}
 const technicalOnly = {
   auth: 'Sessione Supabase Auth: necessaria per effettuare e mantenere l’accesso.',
   theme: 'Preferenza chiaro/scuro: conservata nel browser per la tua comodità.',

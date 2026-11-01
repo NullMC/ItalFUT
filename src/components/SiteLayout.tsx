@@ -5,19 +5,20 @@ import { Box, Button, Container, Drawer, IconButton, Stack, Typography } from '@
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
-import SportsSoccerRoundedIcon from '@mui/icons-material/SportsSoccerRounded';
 import { useAuth } from '../auth/AuthProvider';
 import { ThemeToggle } from './ThemeToggle';
+import { useCookiePreferences } from './CookieNotice';
+import { legalConfig, legalNeedsReview } from '../config/legal';
 
 export function Brand({ inverted = false }: { inverted?: boolean }) {
   return <RouterLink to="/" aria-label="ItalFUT, torna alla home" className={'brand ' + (inverted ? 'brand-light' : '')}>
-    <span className="brand-emblem"><SportsSoccerRoundedIcon sx={{ fontSize: 20 }} /></span>
     <span>ital<span className="brand-strong">FUT</span><span className="brand-dot">.</span></span>
   </RouterLink>;
 }
 
 export function SiteLayout() {
   const { session } = useAuth();
+  const { openPreferences } = useCookiePreferences();
   const reducedMotion = useReducedMotion();
   const [open, setOpen] = useState(false);
   const [activeNav, setActiveNav] = useState<string | null>(null);
@@ -52,7 +53,7 @@ export function SiteLayout() {
   };
   return <div className="app-root min-h-screen">
     <a href="#main-content" className="skip-link">Vai al contenuto</a>
-    <header className={'topbar ' + (home ? 'topbar-home' : '')}>
+    <header className={'topbar topbar-glass ' + (home ? 'topbar-home' : '')}>
       <Container maxWidth="xl" className="topbar-inner">
         <Brand />
         <nav className="desktop-links" aria-label="Navigazione principale">
@@ -78,8 +79,22 @@ export function SiteLayout() {
     <footer className="site-footer site-footer-cinematic">
       <Container maxWidth="xl" className="footer-grid">
         <div><Brand inverted /><Typography variant="body2" sx={{ mt: 1.5, color: '#c8d7cc', maxWidth: 320 }}>Il tuo torneo, tutto in campo.</Typography></div>
-        <div className="footer-links"><RouterLink to="/configura">Configura un torneo</RouterLink><RouterLink to={session ? '/console' : '/accesso'}>Area organizzatori</RouterLink></div>
-        <Typography variant="caption" sx={{ color: '#c8d7cc' }}>© {new Date().getFullYear()} ItalFUT · Versione in sviluppo</Typography>
+        <nav className="footer-links" aria-label="Collegamenti footer">
+          <RouterLink to="/configura">Configura un torneo</RouterLink>
+          <RouterLink to={session ? '/console' : '/accesso'}>Area organizzatori</RouterLink>
+          {session && <RouterLink to="/account">Account e dati</RouterLink>}
+          <RouterLink to="/privacy-policy">Privacy policy</RouterLink>
+          <RouterLink to="/terms-of-service">Termini di servizio</RouterLink>
+          <RouterLink to="/refund-policy">Rimborsi e recesso</RouterLink>
+          <RouterLink to="/cookie-policy">Cookie policy</RouterLink>
+          <RouterLink to="/business">Informazioni operatore</RouterLink>
+          <button className="footer-privacy-button" type="button" onClick={openPreferences}>Preferenze cookie</button>
+        </nav>
+        <div className="footer-business">
+          <Typography variant="caption" sx={{ color: '#c8d7cc' }}>© {new Date().getFullYear()} ItalFUT · {legalNeedsReview ? 'Informazioni legali in revisione' : legalConfig.operatorName}</Typography>
+          {legalConfig.vatNumber && <Typography variant="caption" sx={{ color: '#c8d7cc' }}>P. IVA {legalConfig.vatNumber}</Typography>}
+          {legalConfig.registeredOffice && <Typography variant="caption" sx={{ color: '#c8d7cc' }}>{legalConfig.registeredOffice}</Typography>}
+        </div>
         <div className="footer-wordmark" aria-hidden="true">ITALFUT</div>
       </Container>
     </footer>
@@ -88,6 +103,8 @@ export function SiteLayout() {
         <Stack spacing={1}>{links.map(link => <Button key={link.label} fullWidth sx={{ justifyContent: 'flex-start' }} onClick={() => go(link.href)}>{link.label}</Button>)}
           <Button onClick={() => go(session ? '/console' : '/accesso')}>{session ? 'Console' : 'Accedi'}</Button>
           <Button variant="contained" onClick={() => go('/configura')}>Crea un torneo</Button>
+          {session && <Button component={RouterLink} to="/account" onClick={() => setOpen(false)}>Account e dati</Button>
+          <Button component={RouterLink} to="/privacy-policy" onClick={() => setOpen(false)}>Privacy e documenti</Button>
         </Stack>
       </Box>
     </Drawer>
