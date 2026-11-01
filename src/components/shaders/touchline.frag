@@ -6,10 +6,6 @@ uniform float u_time;
 uniform float u_variant;
 uniform float u_dark;
 
-float hash21(vec2 p) {
-  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
-}
-
 float glow(vec2 uv, vec2 center, vec2 radius) {
   vec2 p = (uv - center) / radius;
   return exp(-dot(p, p) * 2.0);
@@ -53,8 +49,6 @@ void main() {
   c += vec3(.06, .18, .11) * footGlow * .22;
   c += vec3(.05, .12, .075) * lightLine;
 
-  float grain = hash21(floor(p * (u_resolution.y * .18)) + floor(u_time * 6.0)) - .5;
-  c += grain * .008;
   float vignette = 1.0 - .24 * smoothstep(.12, 1.1, length(p));
   gl_FragColor = vec4(clamp(c * vignette * darkBias, 0.0, 1.0), 1.0);
 }

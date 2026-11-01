@@ -11,7 +11,8 @@ const variants: Record<ShaderVariant, number> = { ribbons: 1, auth: 2 };
 
 /**
  * Custom zero-dependency WebGL shader, informed by 21st.dev Aurora Shader - Green,
- * Silk Aurora and Horizon Hero. The 3D football has been replaced by an\n * interactive CSS 3D iPhone showcase; this shader draws only ambient light.
+ * Silk Aurora and Horizon Hero. The 3D football is replaced by an
+ * interactive CSS 3D iPhone showcase; this shader renders only ambient light.
  *
  * Performance: bounded resolution and framerate, intersection/visibility pauses, no WebGL
  * requirement for content, static reduced-motion/data-saver mode and CSS fallback.
@@ -101,10 +102,14 @@ export function CinematicShader({
     const resize = () => {
       const bounds = canvas.getBoundingClientRect();
       if (!bounds.width || !bounds.height) return;
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
-      // Limit fragment work especially on mobile and high-DPI screens.
-      const maxWidth = variant === 'ribbons' ? 1050 : 750;
-      const scale = Math.min(dpr, maxWidth / bounds.width);
+      // No upscaled 1050px canvas on a large desktop: keep the native CSS
+      // resolution at minimum, and supersample only as much as the GPU budget allows.
+      const mobile = window.innerWidth <= 700;
+      const dpr = Math.min(window.devicePixelRatio || 1, mobile ? 1.6 : 1.8);
+      const maxPixels = mobile ? 1_350_000 : 2_900_000;
+      const maxWidth = variant === 'ribbons' ? 2280 : 1600;
+      const pixelBudgetScale = Math.sqrt(maxPixels / (bounds.width * bounds.height));
+      const scale = Math.min(dpr, maxWidth / bounds.width, pixelBudgetScale);
       const width = Math.max(1, Math.round(bounds.width * scale));
       const height = Math.max(1, Math.round(bounds.height * scale));
       if (width !== canvas.width || height !== canvas.height) {

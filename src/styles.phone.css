@@ -93,28 +93,6 @@
   transform-style: preserve-3d;
   touch-action: pan-y;
 }
-.itf-phone-orbit {
-  position: absolute;
-  z-index: -2;
-  top: 50%;
-  left: 50%;
-  width: min(110%, 590px);
-  aspect-ratio: 1 / 1;
-  border-radius: 50%;
-  border: 1px solid rgba(192, 237, 179, .14);
-  transform: translate(-50%, -50%) rotateX(61deg) rotateZ(-18deg);
-  box-shadow: 0 0 100px rgba(65, 202, 112, .10), inset 0 0 45px rgba(137, 228, 138, .04);
-  pointer-events: none;
-}
-.itf-phone-orbit::before,
-.itf-phone-orbit::after {
-  content: '';
-  position: absolute;
-  inset: 15%;
-  border-radius: inherit;
-  border: 1px solid rgba(208, 255, 206, .14);
-}
-.itf-phone-orbit::after { inset: -14%; border-color: rgba(192, 237, 179, .06) }
 .itf-phone-ambient-light {
   position: absolute;
   z-index: -1;
@@ -485,7 +463,7 @@ html[data-theme="dark"] .itf-phone-stage {
   .hero.hero-dynamic.hero-cinematic .hero-device-grid .hero-footnote{max-width:390px;font-size:12px}
   .itf-phone-stage {min-height:565px;margin-top:2px}
   .itf-phone-frame{width:242px}
-  .itf-phone-orbit{width:430px}
+
   .hero.hero-dynamic.hero-cinematic::after{height:230px}
 }
 @media (max-width:420px) {
