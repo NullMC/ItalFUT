@@ -14,7 +14,6 @@ import { MODULES, CORE, EXTRA, estimate, formatEuro } from '../lib/catalog';
 import { client, friendlyError } from '../lib/supabase';
 import type { FeatureCode, MemberRole, Tenant, TenantFeature } from '../lib/types';
 import { CrudEditor, EDITORS } from '../components/CrudEditor';
-import { ThemeToggle } from '../components/ThemeToggle';
 import { TenantAnalytics } from '../components/TenantAnalytics';
 
 type Owned = { role: MemberRole; tenants: Tenant | null };
@@ -178,7 +177,7 @@ export function TenantConsole() {
       </nav><div className="workspace-side-bottom"><Button onClick={() => void signOut()} startIcon={<LogoutRoundedIcon />} color="inherit" size="small">Esci</Button></div>
     </aside>
     <div className="workspace-content">
-      <div className="workspace-top"><span><span className={tenant.status === 'active' ? 'dot-active' : 'dot-wait'} /> {tenant.status === 'active' ? 'Piattaforma online' : tenant.status === 'draft' ? 'Bozza privata' : 'Sospesa'}</span><div className="workspace-top-actions"><ThemeToggle /><Button component={RouterLink} to={'/t/' + tenant.slug} target="_blank" rel="noopener noreferrer" endIcon={<ArrowOutwardRoundedIcon />}>Anteprima sito</Button></div></div>
+      <div className="workspace-top"><span><span className={tenant.status === 'active' ? 'dot-active' : 'dot-wait'} /> {tenant.status === 'active' ? 'Piattaforma online' : tenant.status === 'draft' ? 'Bozza privata' : 'Sospesa'}</span><div className="workspace-top-actions"><Button component={RouterLink} to={'/t/' + tenant.slug} target="_blank" rel="noopener noreferrer" endIcon={<ArrowOutwardRoundedIcon />}>Anteprima sito</Button></div></div>
       <div className="workspace-inner">
         {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
         {section === 'overview' && <>
