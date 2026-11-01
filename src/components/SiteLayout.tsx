@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { motion } from 'motion/react';
 import { Outlet, Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { Box, Button, Container, Drawer, IconButton, Stack, Typography } from '@mui/material';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
@@ -18,9 +19,23 @@ export function Brand({ inverted = false }: { inverted?: boolean }) {
 export function SiteLayout() {
   const { session } = useAuth();
   const [open, setOpen] = useState(false);
+  const [activeNav, setActiveNav] = useState<string | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
   const home = location.pathname === '/';
+  useEffect(() => {
+    if (location.pathname !== '/') {
+      setActiveNav(location.pathname === '/configura' ? '/configura' : null);
+      return;
+    }
+    const ids = ['funzionalita', 'come-funziona'];
+    const observer = new IntersectionObserver(entries => {
+      const seen = entries.find(entry => entry.isIntersecting);
+      if (seen) setActiveNav('/#' + seen.target.id);
+    }, { rootMargin: '-22% 0px -64% 0px' });
+    ids.forEach(id => { const element = document.getElementById(id); if (element) observer.observe(element); });
+    return () => observer.disconnect();
+  }, [location.pathname]);
   const links = [
     { label: 'Funzionalità', href: '/#funzionalita' },
     { label: 'Come funziona', href: '/#come-funziona' },
@@ -40,7 +55,14 @@ export function SiteLayout() {
       <Container maxWidth="xl" className="topbar-inner">
         <Brand />
         <nav className="desktop-links" aria-label="Navigazione principale">
-          {links.map(link => <button key={link.label} onClick={() => go(link.href)}>{link.label}</button>)}
+          {links.map(link => <button key={link.label} type="button"
+            className={'desktop-nav-link' + (activeNav === link.href ? ' is-active' : '')}
+            aria-current={activeNav === link.href ? 'page' : undefined}
+            onClick={() => { setActiveNav(link.href); go(link.href); }}>
+            {link.label}
+            {activeNav === link.href && <motion.span layoutId="itf-nav-track" className="desktop-nav-track"
+              transition={{ type: 'spring', duration: .28, bounce: 0 }} aria-hidden="true" />}
+          </button>)}
         </nav>
         <Stack direction="row" spacing={1} alignItems="center"><ThemeToggle />
           <Button onClick={() => navigate(session ? '/console' : '/accesso')} variant="text" color="inherit" className="desktop-login">
@@ -52,11 +74,12 @@ export function SiteLayout() {
       </Container>
     </header>
     <main id="main-content" className="main-area"><Outlet /></main>
-    <footer className="site-footer">
+    <footer className="site-footer site-footer-cinematic">
       <Container maxWidth="xl" className="footer-grid">
         <div><Brand inverted /><Typography variant="body2" sx={{ mt: 1.5, color: '#c8d7cc', maxWidth: 320 }}>Il tuo torneo, tutto in campo.</Typography></div>
         <div className="footer-links"><RouterLink to="/configura">Configura un torneo</RouterLink><RouterLink to={session ? '/console' : '/accesso'}>Area organizzatori</RouterLink></div>
         <Typography variant="caption" sx={{ color: '#c8d7cc' }}>© {new Date().getFullYear()} ItalFUT · Versione in sviluppo</Typography>
+        <div className="footer-wordmark" aria-hidden="true">ITALFUT</div>
       </Container>
     </footer>
     <Drawer anchor="right" open={open} onClose={() => setOpen(false)}>
