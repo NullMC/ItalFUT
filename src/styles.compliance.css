@@ -1,0 +1,248 @@
+
+/* ItalFUT privacy-ready interface — accessible contrast, responsive legal routes,
+ * technical-cookie notice, self-service account actions and navbar glass.
+ */
+:root{
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+html{scroll-padding-top:105px}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{scroll-behavior:auto!important}
+}
+body,.MuiTypography-root,.MuiButton-root,.MuiInputBase-root{
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif
+}
+.brand{
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  font-weight:850;
+  letter-spacing:-.055em;
+  gap:0;
+}
+.hero-title,.access-showcase-message h2,.footer-wordmark,.itf-phone-competition-title strong{
+  font-family:"Arial Narrow",Impact,"Helvetica Neue Condensed",Arial,sans-serif!important
+}
+.feature-stage-lead h2,.modules-intro h2,.steps-section h2,.access-card h1{
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important
+}
+html[data-theme=light] .MuiInputLabel-root,
+html[data-theme=light] .MuiFormHelperText-root{color:#475b4d}
+html[data-theme=dark] .MuiInputLabel-root,
+html[data-theme=dark] .MuiFormHelperText-root{color:#bed8c8}
+html[data-theme=light] .MuiButton-outlinedError{color:#9c2222;border-color:#b73535}
+html[data-theme=dark] .MuiButton-outlinedError{color:#ffaaa5;border-color:#e79089}
+html[data-theme=dark] .MuiButton-containedError{color:#130c0b}
+html[data-theme=light] .MuiChip-colorSuccess{color:#16583c}
+.MuiDialog-paper{color:var(--itf-text);background:var(--itf-surface)}
+:where(a,button,input,textarea,select,[tabindex]):focus-visible{
+  outline:3px solid color-mix(in srgb,var(--itf-primary) 73%,#8acd75)!important;
+  outline-offset:3px;
+}
+.skip-link:focus-visible{position:fixed;z-index:10000;top:12px;left:12px}
+.topbar.topbar-glass{
+  position:sticky;
+  top:0;
+  z-index:100;
+  overflow:visible;
+  isolation:isolate;
+  background:color-mix(in srgb,var(--itf-header) 90%,transparent);
+  border-bottom:1px solid color-mix(in srgb,var(--itf-glass-edge) 85%,transparent);
+  box-shadow:0 9px 34px rgba(6,35,25,.065),inset 0 1px 0 rgba(255,255,255,.2);
+  -webkit-backdrop-filter:blur(22px) saturate(1.45);
+  backdrop-filter:blur(22px) saturate(1.45);
+}
+.topbar.topbar-glass::before{
+  content:'';
+  position:absolute;
+  pointer-events:none;
+  inset:0;
+  z-index:-1;
+  background:linear-gradient(to bottom,rgba(255,255,255,.08),transparent 76%);
+}
+html[data-theme=dark] .topbar.topbar-glass{
+  border-bottom-color:rgba(170,224,191,.23);
+  box-shadow:0 10px 40px rgba(0,0,0,.2),inset 0 1px 0 rgba(190,240,208,.07)
+}
+.topbar.topbar-glass .brand{font-size:clamp(23px,2.2vw,29px);color:var(--itf-text)}
+.topbar.topbar-glass .brand-strong{color:var(--itf-primary)}
+.footer-grid .brand{font-size:30px}
+.footer-privacy-button{
+  display:inline-flex;align-items:center;justify-content:flex-start;text-align:left;
+  width:fit-content;min-height:30px;padding:2px 0;margin:0;
+  border:0;border-bottom:1px solid transparent;border-radius:0;
+  color:#d1e9d9;background:transparent;font-size:13px;
+  cursor:pointer;
+}
+.footer-privacy-button:hover,.footer-privacy-button:focus-visible{
+  color:#c6e978;border-bottom-color:#c6e978
+}
+.footer-business{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:9px;
+  max-width:300px;
+  color:#dfeddf;
+  line-height:1.6;
+}
+.footer-business .MuiTypography-root{font-size:12px;line-height:1.6}
+.tournament-legal-links{
+  display:flex;flex-wrap:wrap;
+  align-items:center;
+  gap:9px 18px;
+  font:600 12px/1.4 ui-sans-serif,system-ui,sans-serif;
+}
+.tournament-legal-links a,
+.tournament-legal-links button{
+  min-height:32px;
+  padding:6px 0;
+  background:transparent;
+  border:0;
+  color:#d5ead9;
+  font:inherit;
+  cursor:pointer;
+}
+.tournament-legal-links a:hover,.tournament-legal-links button:hover{
+  color:#c6e978;text-decoration:underline;text-underline-offset:4px
+}
+.legal-page,.account-page{min-height:70svh;padding:clamp(46px,7vw,95px) 0 110px;color:var(--itf-text)}
+.legal-page h1,.account-page h1{
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-weight:800;
+  line-height:1.07;
+  font-size:clamp(2.6rem,5.2vw,4.9rem);
+  letter-spacing:-.055em;
+  margin-bottom:12px;
+}
+.legal-breadcrumb{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:30px;font-size:13px;color:var(--itf-subtle)
+}
+.legal-breadcrumb a{color:var(--itf-primary);text-decoration:underline;text-underline-offset:4px}
+.legal-version{font-size:12px;color:var(--itf-subtle);margin:0 0 24px}
+.legal-page .MuiAlert-root,.account-page .MuiAlert-root{border:1px solid var(--itf-border);border-radius:12px}
+.legal-section{padding:clamp(25px,3vw,38px) 0;border-top:1px solid var(--itf-border)}
+.legal-section h2{
+  font-family:ui-sans-serif,system-ui,"Segoe UI",sans-serif;
+  font-weight:750;font-size:clamp(1.45rem,2.3vw,2.0rem);line-height:1.2;
+  letter-spacing:-.035em;
+  margin:0 0 16px;
+  color:var(--itf-text)
+}
+.legal-section p,.account-panel p{
+  font-size:15px;line-height:1.77;
+  margin:11px 0;color:var(--itf-subtle)
+}
+.legal-section a,.account-panel a{
+  color:var(--itf-primary);text-decoration:underline;text-underline-offset:4px
+}
+.legal-missing{
+  font-weight:700;
+  color:var(--itf-text);
+  padding:2px 7px;
+  border:1px dashed color-mix(in srgb,var(--itf-subtle) 65%,transparent);
+  border-radius:5px
+}
+.legal-business-details{
+  display:grid;
+  grid-template-columns:1fr;
+  margin:0 0 45px;
+}
+.legal-business-details>div{
+  display:grid;
+  grid-template-columns:minmax(140px,.65fr) minmax(0,1.35fr);
+  gap:12px 25px;
+  padding:15px 0;
+  border-bottom:1px solid var(--itf-border)
+}
+.legal-business-details dt{font-size:13px;color:var(--itf-subtle);font-weight:650}
+.legal-business-details dd{font-size:14px;margin:0;overflow-wrap:anywhere}
+.legal-related{display:flex;flex-wrap:wrap;gap:10px;margin-top:35px}
+.legal-related a{
+  display:inline-flex;align-items:center;min-height:44px;padding:9px 15px;
+  border-radius:9px;background:var(--itf-surface);border:1px solid var(--itf-border);
+  color:var(--itf-primary);font-size:13px;font-weight:700
+}
+.legal-related a:hover{background:var(--itf-soft)}
+.cookie-notice{
+  position:fixed!important;
+  z-index:1400;
+  inset:auto 22px 22px;
+  width:min(100% - 44px,880px);
+  margin-inline:auto;
+  padding:23px 25px;
+  display:flex;align-items:center;gap:30px;justify-content:space-between;
+  background:var(--itf-surface)!important;
+  color:var(--itf-text);
+  border:1px solid var(--itf-border);
+  border-radius:17px;
+  box-shadow:0 18px 65px rgba(0,0,0,.2);
+}
+.cookie-notice strong{font-size:17px;font-weight:800}
+.cookie-notice p{font-size:13px;line-height:1.6;max-width:570px;margin:9px 0;color:var(--itf-subtle)}
+.cookie-notice a{font-size:13px;color:var(--itf-primary);text-decoration:underline;text-underline-offset:3px}
+.cookie-notice-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;flex:0 0 auto}
+.cookie-notice-actions .MuiButton-root{min-height:44px}
+.cookie-tech-list{padding-left:25px;margin:20px 0;color:var(--itf-subtle);font-size:13px;line-height:1.7}
+.cookie-tech-list li{margin:7px 0}
+.registration-consents{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:5px;
+  padding:18px;
+  border:1px solid var(--itf-border);
+  border-radius:11px;
+  background:var(--itf-soft);
+}
+.registration-consents .MuiFormControlLabel-root{margin:0;align-items:flex-start}
+.registration-consents .MuiFormControlLabel-label{font-size:13px;line-height:1.6;margin-top:5px}
+.registration-consents a{color:var(--itf-primary);text-decoration:underline;text-underline-offset:3px}
+.account-page-heading{display:flex;align-items:start;gap:18px;margin-bottom:34px}
+.account-page-heading>svg{font-size:36px;color:var(--itf-primary);margin-top:6px}
+.account-page-heading p{font-size:15px;line-height:1.55;color:var(--itf-subtle)}
+.account-panel{
+  border-radius:15px;
+  border:1px solid var(--itf-border);
+  background:var(--itf-surface);
+  padding:clamp(20px,3.5vw,32px);
+  margin:20px 0;
+}
+.account-panel h2{font:800 clamp(1.2rem,2.2vw,1.65rem)/1.25 ui-sans-serif,system-ui,sans-serif;color:var(--itf-text)}
+.account-details{margin:20px 0}
+.account-details>div{display:flex;align-items:start;flex-wrap:wrap;gap:10px 25px;padding:12px 0;border-bottom:1px solid var(--itf-border)}
+.account-details dt{flex:0 0 125px;color:var(--itf-subtle);font-size:13px;font-weight:700}
+.account-details dd{margin:0;min-width:0;font-size:13px;overflow-wrap:anywhere}
+.account-id{font-family:ui-monospace,Consolas,monospace;font-size:11px!important}
+.account-tenant-list{margin-top:18px;border-top:1px solid var(--itf-border)}
+.account-tenant-row{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:16px 0;border-bottom:1px solid var(--itf-border)}
+.account-tenant-row>div{display:flex;flex-direction:column;gap:5px;min-width:0}
+.account-tenant-row strong{font-size:15px}
+.account-tenant-row small{font-size:12px;color:var(--itf-subtle)}
+.account-tenant-row .MuiButton-root{flex:0 0 auto}
+.account-danger-panel{border-color:color-mix(in srgb,#ae4646 35%,var(--itf-border))}
+.account-help{color:var(--itf-subtle);font-size:13px!important}
+@media(max-width:1050px){
+  .cookie-notice{gap:20px}
+  .footer-grid .footer-links{gap:10px}
+}
+@media(max-width:740px){
+  .cookie-notice{flex-direction:column;align-items:stretch}
+  .cookie-notice-actions{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .legal-section{padding:25px 0}
+  .legal-business-details>div{grid-template-columns:1fr;gap:5px}
+  .footer-grid .footer-links{gap:11px}
+  .account-page-heading>svg{font-size:28px}
+}
+@media(max-width:420px){
+  .cookie-notice{inset:auto 10px 10px;width:calc(100% - 20px);padding:16px}
+  .cookie-notice-actions{grid-template-columns:1fr}
+  .legal-page,.account-page{padding:45px 0 75px}
+  .legal-page h1,.account-page h1{font-size:2.55rem}
+  .account-page-heading{gap:10px}
+  .account-tenant-row{flex-direction:column;align-items:stretch}
+  .account-tenant-row .MuiButton-root{align-self:flex-start}
+}
+@media(prefers-reduced-transparency:reduce){
+  .topbar.topbar-glass{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:var(--itf-surface)}
+}

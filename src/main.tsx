@@ -12,6 +12,7 @@ import './styles.community.css';
 import './styles.glass.css';
 import './styles.cinematic.css';
 import './styles.phone.css';
+import './styles.compliance.css';
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
