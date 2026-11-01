@@ -6,6 +6,7 @@ import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
 import { useAuth } from '../auth/AuthProvider';
 import { configured, friendlyError } from '../lib/supabase';
+import { CinematicShader } from '../components/CinematicShader';
 
 export function Access({ register = false }: { register?: boolean }) {
   const navigate = useNavigate();
@@ -34,7 +35,16 @@ export function Access({ register = false }: { register?: boolean }) {
     } catch (cause) { setError(friendlyError(cause)); }
     finally { setBusy(false); }
   };
-  return <div className="access-page"><Container maxWidth="sm"><div className="access-card liquid-glass">
+  return <div className="access-page access-cinematic"><Container maxWidth="lg" className="access-shell">
+    <aside className="access-showcase" aria-label="La piattaforma ItalFUT">
+      <CinematicShader variant="auth" className="access-showcase-shader" />
+      <div className="access-showcase-lines" aria-hidden="true" />
+      <div className="access-showcase-message">
+        <Typography variant="h2">Il calcio si vive.<br /><span>Il torneo si guida.</span></Typography>
+        <p>Un unico spazio per organizzare squadre, incontri e classifiche. Ovunque tu sia.</p>
+      </div>
+    </aside>
+    <div className="access-card liquid-glass">
     <Typography variant="h3">{register ? 'Crea un account' : 'Accedi a ItalFUT'}</Typography>
     <Typography color="text.secondary" sx={{ mt: 1, mb: 4 }}>{register ? 'Organizza il tuo primo torneo.' : 'Ritrova i tuoi tornei e continua a gestirli.'}</Typography>
     {!configured && <Alert severity="warning" sx={{ mb: 2 }}>Il collegamento a Supabase non è configurato per questa installazione.</Alert>}
@@ -53,5 +63,5 @@ export function Access({ register = false }: { register?: boolean }) {
       <Button variant="contained" size="large" type="submit" disabled={busy || !configured} endIcon={busy ? <CircularProgress size={17} color="inherit" /> : <ArrowForwardRoundedIcon />}>{register ? 'Crea account' : 'Accedi'}</Button>
     </Stack></form>
     <p className="access-switch">{register ? 'Hai già un account?' : 'Non hai un account?'}{' '}<RouterLink to={register ? '/accesso' : '/registrati'}>{register ? 'Accedi' : 'Registrati'}</RouterLink></p>
-  </div></Container></div>;
+    </div></Container></div>;
 }
