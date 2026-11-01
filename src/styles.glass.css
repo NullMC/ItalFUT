@@ -333,3 +333,18 @@ html[data-theme="dark"] .MuiButton-containedPrimary{color:#10251b}
  .capability-item:hover,.tenant-card:hover,.public-card:hover,.public-match:hover,.quick-grid button:hover{transform:none}
  .itf-theme-toggle:hover{transform:none}
 }
+
+/* Form interaction and accessible touch controls — 21st.dev Floating Label / Input Group Glass. */
+.access-card .MuiOutlinedInput-root{min-height:54px;border-radius:12px;transition:box-shadow .18s ease}
+.access-card .MuiOutlinedInput-root.Mui-focused{box-shadow:0 0 0 3px color-mix(in srgb,var(--itf-primary) 15%,transparent)}
+.access-card .MuiInputAdornment-root .MuiIconButton-root{color:var(--itf-subtle)}
+.access-card .MuiInputAdornment-root .MuiIconButton-root:hover{color:var(--itf-primary)}
+.settings-panel .MuiOutlinedInput-root,.modules-admin .MuiOutlinedInput-root{border-radius:11px}
+@media(max-width:640px){.access-card .MuiButton-containedPrimary{min-height:49px}.MuiInputLabel-root{font-size:14px}}
+@media(prefers-reduced-transparency:reduce){
+  .liquid-glass{background:var(--itf-surface)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  .topbar,.tournament-header,.tournament-nav{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:var(--itf-surface)}
+}
+@media(max-width:640px){
+  .liquid-glass{backdrop-filter:blur(7px) saturate(1.1);-webkit-backdrop-filter:blur(7px) saturate(1.1)}
+}

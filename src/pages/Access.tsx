@@ -1,7 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
-import { Alert, Button, CircularProgress, Container, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Button, CircularProgress, Container, IconButton, InputAdornment, Stack, TextField, Typography } from '@mui/material';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
+import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
+import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
 import { useAuth } from '../auth/AuthProvider';
 import { configured, friendlyError } from '../lib/supabase';
 
@@ -13,6 +15,7 @@ export function Access({ register = false }: { register?: boolean }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const from = (location.state as { from?: string } | null)?.from ?? '/console';
@@ -40,7 +43,13 @@ export function Access({ register = false }: { register?: boolean }) {
     <form onSubmit={submit}><Stack spacing={2.5}>
       <TextField label={register ? 'Email' : 'Username o email'} autoComplete={register ? 'email' : 'username'} value={identifier} onChange={event => setIdentifier(event.target.value)} required />
       {register && <TextField label="Username" autoComplete="username" helperText="Da 3 a 30 caratteri: lettere, numeri e trattino basso." value={username} onChange={event => setUsername(event.target.value)} inputProps={{ pattern: '[a-zA-Z0-9_]{3,30}' }} required />}
-      <TextField label="Password" type="password" autoComplete={register ? 'new-password' : 'current-password'} value={password} onChange={event => setPassword(event.target.value)} inputProps={{ minLength: 8 }} required />
+      <TextField label="Password" type={showPassword ? 'text' : 'password'} autoComplete={register ? 'new-password' : 'current-password'} value={password} onChange={event => setPassword(event.target.value)} inputProps={{ minLength: 8 }} required
+        InputProps={{ endAdornment: <InputAdornment position="end">
+          <IconButton type="button" aria-label={showPassword ? 'Nascondi password' : 'Mostra password'} aria-pressed={showPassword}
+            onClick={() => setShowPassword(x => !x)} edge="end">
+            {showPassword ? <VisibilityOffRoundedIcon fontSize="small" /> : <VisibilityRoundedIcon fontSize="small" />}
+          </IconButton>
+        </InputAdornment> }} />
       <Button variant="contained" size="large" type="submit" disabled={busy || !configured} endIcon={busy ? <CircularProgress size={17} color="inherit" /> : <ArrowForwardRoundedIcon />}>{register ? 'Crea account' : 'Accedi'}</Button>
     </Stack></form>
     <p className="access-switch">{register ? 'Hai già un account?' : 'Non hai un account?'}{' '}<RouterLink to={register ? '/accesso' : '/registrati'}>{register ? 'Accedi' : 'Registrati'}</RouterLink></p>
