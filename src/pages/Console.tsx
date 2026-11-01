@@ -81,7 +81,7 @@ export function ConsoleHome() {
     finally { setBusy(false); }
   };
   return <div className="console-home"><Container maxWidth="lg">
-    <div className="console-welcome"><div><Typography variant="h3">I tuoi tornei</Typography><p>Gestisci le tue competizioni o creane una nuova.</p></div><Stack direction="row" gap={1}><Button variant="outlined" onClick={() => void signOut()} startIcon={<LogoutRoundedIcon />}>Esci</Button><Button variant="contained" startIcon={<AddRoundedIcon />} onClick={() => setCreating(true)}>Nuova piattaforma</Button></Stack></div>
+    <div className="console-welcome"><div><Typography variant="h3">I tuoi tornei</Typography><p>Gestisci le tue competizioni o creane una nuova.</p></div><Stack direction="row" gap={1} flexWrap="wrap"><Button component={RouterLink} to="/account" variant="text">Account e dati</Button><Button variant="outlined" onClick={() => void signOut()} startIcon={<LogoutRoundedIcon />}>Esci</Button><Button variant="contained" startIcon={<AddRoundedIcon />} onClick={() => setCreating(true)}>Nuova piattaforma</Button></Stack></div>
     {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
     {loading ? <div className="center-min"><CircularProgress /></div> : owned.some(item => item.tenants) ? <div className="tenant-cards">
       {owned.filter(item => item.tenants).map(({ tenants: tenant, role }) => tenant && <button key={tenant.id} className="tenant-card liquid-glass" onClick={() => navigate('/console/' + tenant.slug)}>
@@ -92,7 +92,7 @@ export function ConsoleHome() {
     <Dialog open={creating} onClose={() => !busy && setCreating(false)} fullWidth maxWidth="sm"><form onSubmit={create}>
       <DialogTitle fontWeight={800}>Diamo un nome al tuo torneo</DialogTitle><DialogContent><Stack spacing={2.5} sx={{ pt: 1 }}>
         <TextField label="Nome della piattaforma" value={name} onChange={e => { setName(e.target.value); if (!slugEdited) setSlug(formatSlug(e.target.value)); }} required />
-        <TextField label="Indirizzo pubblico" value={slug} onChange={e => { setSlugEdited(true); setSlug(formatSlug(e.target.value)); }} helperText={'italfut.it/t/' + (slug || 'nome-torneo')} required />
+        <TextField label="Indirizzo pubblico" value={slug} onChange={e => { setSlugEdited(true); setSlug(formatSlug(e.target.value)); }} helperText={window.location.origin + '/t/' + (slug || 'nome-torneo')} required />
         <Alert severity="info">Configurazione: {plan.months} {plan.months === 1 ? 'mese' : 'mesi'}, {plan.modules.length} moduli opzionali. Preventivo illustrativo: {formatEuro(quote.total)}. Nessun addebito.</Alert>
         {error && <Alert severity="error">{error}</Alert>}
       </Stack></DialogContent><DialogActions sx={{ p: 3 }}><Button onClick={() => setCreating(false)}>Annulla</Button><Button variant="contained" type="submit" disabled={busy}>{busy ? 'Creazione…' : 'Crea piattaforma'}</Button></DialogActions>
@@ -174,7 +174,10 @@ export function TenantConsole() {
         {EDITORS.map(item => <button key={item.key} aria-current={section === item.key ? 'page' : undefined} className={section === item.key ? 'active' : ''} onClick={() => navigate('/console/' + slug + '/' + item.key)}><span className="workspace-nav-dot" />{item.label}{!enabled(item.feature) && <LockOutlinedIcon sx={{ fontSize: 15, ml: 'auto' }} />}</button>)}
         <div className="workspace-nav-title">Funzionalità</div>
         <button aria-current={section === 'modules' ? 'page' : undefined} className={section === 'modules' ? 'active' : ''} onClick={() => navigate('/console/' + slug + '/modules')}><AddRoundedIcon fontSize="small" />Moduli e upgrade</button>
-      </nav><div className="workspace-side-bottom"><Button onClick={() => void signOut()} startIcon={<LogoutRoundedIcon />} color="inherit" size="small">Esci</Button></div>
+      </nav><div className="workspace-side-bottom">
+        <Button component={RouterLink} to="/account" color="inherit" size="small">Account e dati</Button>
+        <Button onClick={() => void signOut()} startIcon={<LogoutRoundedIcon />} color="inherit" size="small">Esci</Button>
+      </div>
     </aside>
     <div className="workspace-content">
       <div className="workspace-top"><span><span className={tenant.status === 'active' ? 'dot-active' : 'dot-wait'} /> {tenant.status === 'active' ? 'Piattaforma online' : tenant.status === 'draft' ? 'Bozza privata' : 'Sospesa'}</span><div className="workspace-top-actions"><Button component={RouterLink} to={'/t/' + tenant.slug} target="_blank" rel="noopener noreferrer" endIcon={<ArrowOutwardRoundedIcon />}>Anteprima sito</Button></div></div>

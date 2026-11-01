@@ -912,9 +912,10 @@ html[data-theme="dark"] .itf-phone-stage {
   .itf-demo-standing{gap:4px;padding:6px 5px}
 }
 @media (pointer:coarse){
-  /* On touch devices the screen stays truly front-facing, and its native
-     touch-scroll events never compete with a decorative perspective tilt. */
-  .itf-phone-tilt{transform:none!important}
+  /* A gentler fixed cinematic angle on touch, front-facing when controls
+     receive keyboard focus; no hover-dependent behavior on phones. */
+  .itf-phone-tilt{transform:rotateX(-2deg) rotateY(-6deg) rotateZ(2deg)!important}
+  .itf-phone-tilt:focus-within{transform:none!important}
 }
 @media(prefers-reduced-motion:reduce){
   .itf-phone-tilt{transform:none!important}
