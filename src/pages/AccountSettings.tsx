@@ -36,8 +36,8 @@ export function AccountSettings() {
   useEffect(() => {
     let alive = true;
     setLoading(true);
-    void client().from('tenants').select('id,name,slug,status')
-      .eq('owner_id', session?.user.id ?? '').order('created_at', { ascending: false })
+    void Promise.resolve(client().from('tenants').select('id,name,slug,status')
+      .eq('owner_id', session?.user.id ?? '').order('created_at', { ascending: false }))
       .then(({ data, error: issue }) => {
         if (!alive) return;
         if (issue) setError(issue.message);
