@@ -21,23 +21,23 @@ export function Configurator() {
   return <div className="config-page"><Container maxWidth="lg">
     <div className="config-heading"><Typography variant="h1">Costruisci il tuo torneo.</Typography><p>Imposta la durata, scegli le funzionalità e consulta il preventivo. Nessuna funzione superflua.</p></div>
     <div className="config-grid"><div>
-      <section className="config-block" aria-labelledby="duration-title"><div className="config-block-head"><div><Typography id="duration-title" variant="h5">Durata</Typography><p>Per quanto tempo vuoi utilizzare la piattaforma?</p></div></div>
+      <section className="config-block glass-form-section" aria-labelledby="duration-title"><div className="config-block-head"><div><Typography id="duration-title" variant="h5">Durata</Typography><p>Per quanto tempo vuoi utilizzare la piattaforma?</p></div></div>
         <div className="term-grid" role="group" aria-label="Durata della piattaforma">{TERMS.map(term => <button type="button" aria-pressed={term.months === months} className={'term-option ' + (term.months === months ? 'selected' : '')} onClick={() => setMonths(term.months)} key={term.months}>
           <b>{term.label}</b>{term.discount ? <span>Risparmi {Math.round(term.discount * 100)}%</span> : <small>Tariffa base</small>}
         </button>)}</div>
       </section>
-      <section className="config-block" aria-labelledby="core-title"><div className="config-block-head"><div><Typography id="core-title" variant="h5">Sempre inclusi</Typography><p>Le funzioni essenziali per organizzare un torneo.</p></div></div>
+      <section className="config-block glass-form-section" aria-labelledby="core-title"><div className="config-block-head"><div><Typography id="core-title" variant="h5">Sempre inclusi</Typography><p>Le funzioni essenziali per organizzare un torneo.</p></div></div>
         <div className="core-grid">{MODULES.filter(m => CORE.includes(m.code)).map(m => <div key={m.code}><CheckRoundedIcon fontSize="small" />{m.name}</div>)}</div>
         <p className="hint-text">Base da {formatEuro(BASE_MONTHLY)}/mese, prima degli sconti sulla durata.</p>
       </section>
-      <section className="config-block" aria-labelledby="extras-title"><div className="config-block-head"><div><Typography id="extras-title" variant="h5">Moduli aggiuntivi</Typography><p>Attiva quelli utili alla tua competizione.</p></div></div>
+      <section className="config-block glass-form-section" aria-labelledby="extras-title"><div className="config-block-head"><div><Typography id="extras-title" variant="h5">Moduli aggiuntivi</Typography><p>Attiva quelli utili alla tua competizione.</p></div></div>
         <div className="extra-grid">{EXTRA.map(module => <div key={module.code} className={'extra-option ' + (selected.includes(module.code) ? 'selected' : '')}>
           <FormControlLabel control={<Checkbox checked={selected.includes(module.code)} onChange={() => toggle(module.code)} />} label={<><b>{module.name}</b><small>{module.description}</small></>} />
           <span>{formatEuro(module.monthly)}<small>/mese</small></span>
         </div>)}</div>
       </section>
     </div>
-    <aside className="quote-panel" aria-label="Riepilogo preventivo"><Typography variant="h4">Riepilogo</Typography>
+    <aside className="quote-panel liquid-glass" aria-label="Riepilogo preventivo"><Typography variant="h4">Riepilogo</Typography>
       <div className="quote-row"><span>Piattaforma base</span><strong>{formatEuro(BASE_MONTHLY)}/mese</strong></div>
       {chosen.map(module => <div className="quote-row" key={module.code}><span>{module.name}</span><strong>+ {formatEuro(module.monthly)}/mese</strong></div>)}
       <Divider sx={{ my: 2 }} />

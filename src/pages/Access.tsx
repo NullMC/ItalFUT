@@ -31,7 +31,7 @@ export function Access({ register = false }: { register?: boolean }) {
     } catch (cause) { setError(friendlyError(cause)); }
     finally { setBusy(false); }
   };
-  return <div className="access-page"><Container maxWidth="sm"><div className="access-card">
+  return <div className="access-page"><Container maxWidth="sm"><div className="access-card liquid-glass">
     <Typography variant="h3">{register ? 'Crea un account' : 'Accedi a ItalFUT'}</Typography>
     <Typography color="text.secondary" sx={{ mt: 1, mb: 4 }}>{register ? 'Organizza il tuo primo torneo.' : 'Ritrova i tuoi tornei e continua a gestirli.'}</Typography>
     {!configured && <Alert severity="warning" sx={{ mb: 2 }}>Il collegamento a Supabase non è configurato per questa installazione.</Alert>}

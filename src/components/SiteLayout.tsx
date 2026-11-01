@@ -6,6 +6,7 @@ import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import SportsSoccerRoundedIcon from '@mui/icons-material/SportsSoccerRounded';
 import { useAuth } from '../auth/AuthProvider';
+import { ThemeToggle } from './ThemeToggle';
 
 export function Brand({ inverted = false }: { inverted?: boolean }) {
   return <RouterLink to="/" aria-label="ItalFUT, torna alla home" className={'brand ' + (inverted ? 'brand-light' : '')}>
@@ -41,7 +42,7 @@ export function SiteLayout() {
         <nav className="desktop-links" aria-label="Navigazione principale">
           {links.map(link => <button key={link.label} onClick={() => go(link.href)}>{link.label}</button>)}
         </nav>
-        <Stack direction="row" spacing={1} alignItems="center">
+        <Stack direction="row" spacing={1} alignItems="center"><ThemeToggle />
           <Button onClick={() => navigate(session ? '/console' : '/accesso')} variant="text" color="inherit" className="desktop-login">
             {session ? 'Console' : 'Accedi'}
           </Button>
@@ -59,7 +60,7 @@ export function SiteLayout() {
       </Container>
     </footer>
     <Drawer anchor="right" open={open} onClose={() => setOpen(false)}>
-      <Box sx={{ width: 300, p: 3 }}><Stack direction="row" justifyContent="space-between" alignItems="center" mb={4}><Brand /><IconButton aria-label="Chiudi menu" onClick={() => setOpen(false)}><CloseRoundedIcon /></IconButton></Stack>
+      <Box className="itf-mobile-drawer" sx={{ width: { xs: 'min(88vw, 360px)', sm: 340 }, p: 3 }}><Stack direction="row" justifyContent="space-between" alignItems="center" mb={4}><Brand /><IconButton aria-label="Chiudi menu" onClick={() => setOpen(false)}><CloseRoundedIcon /></IconButton></Stack>
         <Stack spacing={1}>{links.map(link => <Button key={link.label} fullWidth sx={{ justifyContent: 'flex-start' }} onClick={() => go(link.href)}>{link.label}</Button>)}
           <Button onClick={() => go(session ? '/console' : '/accesso')}>{session ? 'Console' : 'Accedi'}</Button>
           <Button variant="contained" onClick={() => go('/configura')}>Crea un torneo</Button>

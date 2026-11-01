@@ -24,7 +24,7 @@ export function DemoScoreboard() {
   const [active, setActive] = useState('risultati');
   const reduceMotion = useReducedMotion();
 
-  return <div className="match-visual" aria-label="Anteprima interattiva di un torneo dimostrativo">
+  return <div className="match-visual liquid-glass" aria-label="Anteprima interattiva di un torneo dimostrativo">
     <div className="match-visual-top">
       <span><SportsSoccerRoundedIcon fontSize="small" /> Street Cup</span>
       <small>Anteprima · dati di esempio</small>

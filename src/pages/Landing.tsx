@@ -19,7 +19,7 @@ const capabilities = [
 export function Landing() {
   const navigate = useNavigate();
   return <>
-    <section className="hero">
+    <section className="hero hero-dynamic">
       <Container maxWidth="xl" className="hero-grid">
         <div className="hero-copy">
           <Typography variant="h1" className="hero-title">Ogni torneo<br />merita <span>un grande</span><br />palcoscenico.</Typography>
@@ -41,7 +41,7 @@ export function Landing() {
             <div><Typography variant="h2">Dal primo sorteggio<br />all'ultimo fischio.</Typography><p>Tutto ciò che serve agli organizzatori, semplice da usare per chi segue il calcio.</p></div>
           </div>
           <div className="capability-list">
-          {capabilities.map(capability => <article className="capability-item" key={capability.title}>
+          {capabilities.map(capability => <article className="capability-item liquid-glass" key={capability.title}>
             <span className="capability-icon" aria-hidden="true">{capability.icon}</span>
             <div><h3>{capability.title}</h3><p>{capability.text}</p></div>
           </article>)}
@@ -72,6 +72,6 @@ export function Landing() {
       </Container>
     </section>
 
-    <section className="bottom-cta"><Container maxWidth="lg"><div><Typography variant="h2">Il prossimo torneo<br />inizia qui.</Typography><p>La tua competizione. La tua piattaforma.</p></div><Button variant="contained" color="secondary" size="large" onClick={() => navigate('/configura')} endIcon={<ArrowForwardRoundedIcon />}>Configura ItalFUT</Button></Container></section>
+    <section className="bottom-cta bottom-cta-dynamic"><Container maxWidth="lg"><div><Typography variant="h2">Il prossimo torneo<br />inizia qui.</Typography><p>La tua competizione. La tua piattaforma.</p></div><Button variant="contained" color="secondary" size="large" onClick={() => navigate('/configura')} endIcon={<ArrowForwardRoundedIcon />}>Configura ItalFUT</Button></Container></section>
   </>;
 }

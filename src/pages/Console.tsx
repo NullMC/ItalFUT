@@ -14,6 +14,8 @@ import { MODULES, CORE, EXTRA, estimate, formatEuro } from '../lib/catalog';
 import { client, friendlyError } from '../lib/supabase';
 import type { FeatureCode, MemberRole, Tenant, TenantFeature } from '../lib/types';
 import { CrudEditor, EDITORS } from '../components/CrudEditor';
+import { ThemeToggle } from '../components/ThemeToggle';
+import { TenantAnalytics } from '../components/TenantAnalytics';
 
 type Owned = { role: MemberRole; tenants: Tenant | null };
 type PlanDraft = { months: number; modules: FeatureCode[] };
@@ -83,11 +85,11 @@ export function ConsoleHome() {
     <div className="console-welcome"><div><Typography variant="h3">I tuoi tornei</Typography><p>Gestisci le tue competizioni o creane una nuova.</p></div><Stack direction="row" gap={1}><Button variant="outlined" onClick={() => void signOut()} startIcon={<LogoutRoundedIcon />}>Esci</Button><Button variant="contained" startIcon={<AddRoundedIcon />} onClick={() => setCreating(true)}>Nuova piattaforma</Button></Stack></div>
     {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
     {loading ? <div className="center-min"><CircularProgress /></div> : owned.some(item => item.tenants) ? <div className="tenant-cards">
-      {owned.filter(item => item.tenants).map(({ tenants: tenant, role }) => tenant && <button key={tenant.id} className="tenant-card" onClick={() => navigate('/console/' + tenant.slug)}>
+      {owned.filter(item => item.tenants).map(({ tenants: tenant, role }) => tenant && <button key={tenant.id} className="tenant-card liquid-glass" onClick={() => navigate('/console/' + tenant.slug)}>
         <span className="tenant-card-status"><span className={tenant.status === 'active' ? 'dot-active' : 'dot-wait'} />{tenant.status === 'active' ? 'Online' : tenant.status === 'draft' ? 'Bozza' : 'Sospesa'}</span>
         <strong>{tenant.name}</strong><small>/t/{tenant.slug} · {role}</small><span className="tenant-card-arrow"><ArrowForwardRoundedIcon /></span>
       </button>)}
-    </div> : <div className="console-empty"><Typography variant="h5">Ancora nessun torneo</Typography><p>Crea il tuo primo spazio per gestire squadre, incontri e risultati.</p><Button variant="contained" onClick={() => setCreating(true)} startIcon={<AddRoundedIcon />}>Crea un torneo</Button></div>}
+    </div> : <div className="console-empty liquid-glass"><Typography variant="h5">Ancora nessun torneo</Typography><p>Crea il tuo primo spazio per gestire squadre, incontri e risultati.</p><Button variant="contained" onClick={() => setCreating(true)} startIcon={<AddRoundedIcon />}>Crea un torneo</Button></div>}
     <Dialog open={creating} onClose={() => !busy && setCreating(false)} fullWidth maxWidth="sm"><form onSubmit={create}>
       <DialogTitle fontWeight={800}>Diamo un nome al tuo torneo</DialogTitle><DialogContent><Stack spacing={2.5} sx={{ pt: 1 }}>
         <TextField label="Nome della piattaforma" value={name} onChange={e => { setName(e.target.value); if (!slugEdited) setSlug(formatSlug(e.target.value)); }} required />
@@ -176,12 +178,13 @@ export function TenantConsole() {
       </nav><div className="workspace-side-bottom"><Button onClick={() => void signOut()} startIcon={<LogoutRoundedIcon />} color="inherit" size="small">Esci</Button></div>
     </aside>
     <div className="workspace-content">
-      <div className="workspace-top"><span><span className={tenant.status === 'active' ? 'dot-active' : 'dot-wait'} /> {tenant.status === 'active' ? 'Piattaforma online' : tenant.status === 'draft' ? 'Bozza privata' : 'Sospesa'}</span><Button component={RouterLink} to={'/t/' + tenant.slug} target="_blank" rel="noopener noreferrer" endIcon={<ArrowOutwardRoundedIcon />}>Anteprima sito</Button></div>
+      <div className="workspace-top"><span><span className={tenant.status === 'active' ? 'dot-active' : 'dot-wait'} /> {tenant.status === 'active' ? 'Piattaforma online' : tenant.status === 'draft' ? 'Bozza privata' : 'Sospesa'}</span><div className="workspace-top-actions"><ThemeToggle /><Button component={RouterLink} to={'/t/' + tenant.slug} target="_blank" rel="noopener noreferrer" endIcon={<ArrowOutwardRoundedIcon />}>Anteprima sito</Button></div></div>
       <div className="workspace-inner">
         {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
         {section === 'overview' && <>
           <div className="workspace-intro"><Typography variant="h3">Dashboard</Typography><p>{tenant.name} · Gestisci i contenuti del torneo.</p></div>
-          <div className="workspace-overview-strip">
+          <TenantAnalytics tenantId={tenant.id} />
+          <div className="workspace-overview-strip liquid-glass">
             <div><strong>{tenant.name}</strong><span>Torneo</span></div>
             <div><strong>{features.filter(f => enabled(f.code)).length}</strong><span>Moduli attivi</span></div>
             <Button variant="outlined" onClick={() => navigate('/console/' + slug + '/settings')} endIcon={<ArrowForwardRoundedIcon />}>Impostazioni</Button>
@@ -217,7 +220,7 @@ export function TenantConsole() {
           </Stack></form>
         </div>}
         {section === 'modules' && <div className="modules-admin"><Typography variant="h4">Moduli e funzionalità</Typography><p>Le funzioni base sono incluse. Puoi richiedere lo sblocco dei moduli aggiuntivi.</p>
-          <div className="grant-grid">{MODULES.map(module => {
+          <div className="grant-grid liquid-glass">{MODULES.map(module => {
             const active = enabled(module.code);
             return <div className={'grant-row ' + (active ? 'grant-active' : '')} key={module.code}>
               <div><b>{module.name}</b><small>{module.description}</small></div><div>{active ? <Chip color="success" size="small" icon={<CheckRoundedIcon />} label="Attivo" /> : <Chip variant="outlined" label={formatEuro(module.monthly) + '/mese'} size="small" />}</div>
