@@ -10,6 +10,7 @@ import './styles.css';
 import './styles.refined.css';
 import './styles.community.css';
 import './styles.glass.css';
+import './styles.cinematic.css';
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

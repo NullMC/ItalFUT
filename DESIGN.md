@@ -61,3 +61,13 @@ Theme architecture:
 - Photo uses a remote Wikimedia 1280px rendition, with a dark gradient behind white copy.
 - The lower fade derives directly from `--itf-surface` (the following feature-section background), automatically matching dark and light themes; the photo overlay remains separate from the fade.
 - Full-width single-column on every breakpoint; copy is max-width constrained and always readable; no illustrative data are mounted.
+
+## Touchline Cinema — cinematic shaders and functional motion
+- 21st.dev sources inspected: Aurora Shader - Green (guranshbir2012), Silk Aurora (componentry), WebGL Liquid (componentry), Horizon Hero (lovesickfromthe6ix), Scroll Reveal (cnippet-dev), Sticky Scroll Reveal (manuarora700), Floating Nav (ruixen.ui), Ruixen Gradient Footer (ruixen.ui), Split Sign In Form (diarmuradi), Auth Section 2 (solaceui).
+- The free 21st.dev code retrieval quota was exhausted. This work is original React, GLSL and CSS informed by catalog metadata/previews, not a source-level copy.
+- Stadium and auth: bespoke zero-dependency WebGL1 shader, volumetric rotating 3D football with pentagonal panels, pointer-reactive pitch-green aurora and light points. CTA: same shader without a football. Football visual is illustrative only, no invented team stats.
+- Shader runs only while visible, pauses in hidden tabs, caps resolution to 1100/750 logical pixels and 30fps; reduced-motion and Save-Data show a static frame. On unsupported WebGL, use CSS photo/gradient fallbacks; no content depends on canvas.
+- Marketing: motion-aware headline entrance, small scroll reveals, scroll-linked feature rail, shared-layout navigation and gradient footer. Keep admin and forms free of excessive transitions.
+- Typography: Barlow Condensed for football display, Space Grotesk for editorial narratives and auth, DM Sans for body, controls and data.
+- Responsive CSS override: src/styles.cinematic.css; test 320, 375, 700, 900, 1280, 1440 desktop/mobile, no-WebGL, dark/light themes, reduced motion.
+- Split login retains Supabase authentication only; no mock SSO or invented testimonials.
