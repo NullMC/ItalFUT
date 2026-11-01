@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { Alert, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Button, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -25,6 +26,7 @@ export const EDITORS: EditorDefinition[] = [
   ] },
   { key: 'players', feature: 'players', label: 'Giocatori', table: 'players', summary: 'Rose, numeri di maglia, ruoli e immagini profilo.', fields: [
     { key: 'team_id', label: 'Squadra', ref: 'teams', required: true },
+    { key: 'age_category', label: 'Fascia di età del giocatore', type: 'select', values: ['adult', 'minor'], required: true },
     { key: 'first_name', label: 'Nome', required: true }, { key: 'last_name', label: 'Cognome', required: true },
     { key: 'shirt_number', label: 'Numero maglia', type: 'number' },
     { key: 'position', label: 'Ruolo', type: 'select', values: ['P', 'D', 'C', 'A'] },
@@ -64,6 +66,7 @@ export const EDITORS: EditorDefinition[] = [
     { key: 'name', label: 'Nome sponsor', required: true },
     { key: 'description', label: 'Descrizione', type: 'textarea' },
     { key: 'logo_url', label: 'URL logo' }, { key: 'image_url', label: 'URL immagine attività' },
+    { key: 'image_alt', label: 'Descrizione accessibile immagine' },
     { key: 'website_url', label: 'Sito web' }, { key: 'sort_order', label: 'Ordine', type: 'number' },
   ] },
   { key: 'articles', feature: 'articles', label: 'Articoli', table: 'articles', summary: 'Notizie, comunicati e contenuti in evidenza.', fields: [
@@ -71,6 +74,7 @@ export const EDITORS: EditorDefinition[] = [
     { key: 'summary', label: 'Introduzione', type: 'textarea' },
     { key: 'body', label: 'Testo articolo', type: 'textarea' },
     { key: 'image_url', label: 'URL immagine' },
+    { key: 'image_alt', label: 'Descrizione accessibile immagine' },
     { key: 'sort_order', label: 'Ordine di visualizzazione', type: 'number' },
   ] },
   { key: 'market', feature: 'market', label: 'Calciomercato', table: 'market_slots', summary: 'Fino a sei inserimenti mercato per squadra.', fields: [
@@ -112,6 +116,8 @@ export function CrudEditor({ tenantId, config, editable }: { tenantId: string; c
   const [dialog, setDialog] = useState(false);
   const [editing, setEditing] = useState<Row | null>(null);
   const [values, setValues] = useState<Record<string, string>>({});
+  const [guardianDeclaration, setGuardianDeclaration] = useState(false);
+  const [minorPhotoDeclaration, setMinorPhotoDeclaration] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -150,13 +156,26 @@ export function CrudEditor({ tenantId, config, editable }: { tenantId: string; c
 
   const open = (row?: Row) => {
     setEditing(row ?? null); setError('');
-    setValues(Object.fromEntries(config.fields.map(field => [field.key, row?.[field.key] == null ? (field.values && (field.required || field.key === 'status') ? field.values[0] : '') : field.type === 'datetime-local' ? datetimeLocal(row[field.key]) : String(row[field.key])])));
+    setGuardianDeclaration(Boolean(row?.guardian_authorization_confirmed));
+    setMinorPhotoDeclaration(Boolean(row?.minor_photo_authorized));
+    setValues(Object.fromEntries(config.fields.map(field => [field.key, row?.[field.key] == null
+      ? (field.key === 'age_category' ? '' : field.values && (field.required || field.key === 'status') ? field.values[0] : '')
+      : field.type === 'datetime-local' ? datetimeLocal(row[field.key]) : String(row[field.key])])));
+
     setDialog(true);
   };
   const save = async (event: FormEvent) => {
     event.preventDefault(); setSaving(true); setError('');
     try {
-      const payload: Record<string, string | number | null> = {};
+      const payload: Record<string, string | number | boolean | null> = {};
+      if (config.key === 'players') {
+        if (!['adult', 'minor'].includes(values.age_category)) throw new Error('Seleziona la fascia di età del giocatore.');
+        const minor = values.age_category === 'minor';
+        if (minor && !guardianDeclaration) throw new Error('Prima di pubblicare dati del minore devi verificare l’autorizzazione del genitore o tutore.');
+        if (minor && (values.profile_image_url ?? '').trim() && !minorPhotoDeclaration) throw new Error('Per la foto del minore serve un’autorizzazione specifica.');
+        payload.guardian_authorization_confirmed = minor && guardianDeclaration;
+        payload.minor_photo_authorized = minor && minorPhotoDeclaration;
+      }
       for (const field of config.fields) {
         const input = (values[field.key] ?? '').trim();
         if (!input && !editing) continue;
@@ -197,10 +216,21 @@ export function CrudEditor({ tenantId, config, editable }: { tenantId: string; c
         <DialogContent><Stack spacing={2.5} sx={{ pt: 1 }}>
           {error && <Alert severity="error">{error}</Alert>}
           {config.fields.map(field => field.ref || field.values ? <TextField key={field.key} label={field.label} select required={field.required} value={values[field.key] ?? ''} onChange={e => setValues(old => ({ ...old, [field.key]: e.target.value }))}>
+            {field.key === 'age_category' && <MenuItem value="" disabled>Seleziona la fascia di età</MenuItem>}
             {!field.required && <MenuItem value="">Non assegnato</MenuItem>}
-            {(field.values ? field.values.map(id => ({ id, name: id })) : references[field.ref ?? ''] ?? []).map(option => <MenuItem value={option.id} key={option.id}>{option.name}</MenuItem>)}
+            {(field.values ? field.values.map(id => ({ id, name: field.key === 'age_category' ? (id === 'adult' ? 'Maggiorenne' : 'Minorenne') : id })) : references[field.ref ?? ''] ?? []).map(option => <MenuItem value={option.id} key={option.id}>{option.name}</MenuItem>)}
           </TextField> : <TextField key={field.key} label={field.label} type={field.type === 'number' || field.type === 'date' || field.type === 'datetime-local' ? field.type : 'text'} multiline={field.type === 'textarea'} minRows={field.type === 'textarea' ? 3 : undefined} required={field.required}
             value={values[field.key] ?? ''} onChange={e => setValues(old => ({ ...old, [field.key]: e.target.value }))} slotProps={field.type === 'datetime-local' ? { inputLabel: { shrink: true } } : undefined} />)}
+          {config.key === 'players' && <>
+            <Alert severity="info">Inserisci soltanto i dati necessari. Per i minorenni, verifica autorizzazione e base giuridica prima della pubblicazione: la dichiarazione non sostituisce la documentazione da custodire.</Alert>
+            {values.age_category === 'minor' && <>
+              <FormControlLabel control={<Checkbox checked={guardianDeclaration} onChange={(_, checked) => setGuardianDeclaration(checked)} required />}
+                label="Dichiaro di avere verificato l’autorizzazione del genitore o tutore alla pubblicazione dei dati del minore." />
+              {(values.profile_image_url ?? '').trim() && <FormControlLabel control={<Checkbox checked={minorPhotoDeclaration} onChange={(_, checked) => setMinorPhotoDeclaration(checked)} required />}
+                label="Dichiaro che anche la pubblicazione della foto del minore è stata autorizzata specificamente." />}
+              <Typography variant="caption" color="text.secondary">La dichiarazione è associata al tuo account e alla data. Non è una verifica diretta del consenso parentale. Consulta la <RouterLink to="/privacy-policy" target="_blank" rel="noopener noreferrer">privacy policy</RouterLink>.</Typography>
+            </>}
+          </>}
         </Stack></DialogContent>
         <DialogActions sx={{ p: 2.5 }}><Button onClick={() => setDialog(false)} disabled={saving}>Annulla</Button><Button type="submit" variant="contained" disabled={saving}>{saving ? 'Salvataggio…' : 'Salva'}</Button></DialogActions>
       </form>
