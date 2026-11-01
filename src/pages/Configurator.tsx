@@ -9,8 +9,8 @@ import { AnimatedAmount } from '../components/AnimatedAmount';
 
 export function Configurator() {
   const navigate = useNavigate();
-  const [months, setMonths] = useState(3);
-  const [selected, setSelected] = useState<FeatureCode[]>(['statistics', 'sponsors']);
+  const [months, setMonths] = useState(1);
+  const [selected, setSelected] = useState<FeatureCode[]>([]);
   const quote = estimate(months, selected);
   const chosen = MODULES.filter(m => selected.includes(m.code) && !m.core);
   const toggle = (code: FeatureCode) => setSelected(old => old.includes(code) ? old.filter(x => x !== code) : [...old, code]);
@@ -46,7 +46,7 @@ export function Configurator() {
       <Divider sx={{ my: 2 }} />
       <div className="quote-total-label">Totale stimato</div>
       <div className="quote-total"><AnimatedAmount amount={quote.total} /><span> / {months} {months === 1 ? 'mese' : 'mesi'}</span></div>
-      <Typography variant="caption" sx={{ display: 'block', mt: 2, color: '#c8d9cf', lineHeight: 1.6 }}>Prezzi indicativi. Il preventivo è verificato sul server; nessun pagamento è attivo in questa fase.</Typography>
+      <Typography variant="caption" sx={{ display: 'block', mt: 2, color: '#c8d9cf', lineHeight: 1.6 }}>Prezzi indicativi, moduli facoltativi selezionati solo da te. Imposte e condizioni finali saranno specificate prima di qualsiasi acquisto. Oggi non sono attivi pagamenti né addebiti.</Typography>
       <Button color="secondary" variant="contained" size="large" fullWidth sx={{ mt: 3 }} onClick={proceed} endIcon={<ArrowForwardRoundedIcon />}>Continua</Button>
     </aside></div>
     <Box sx={{ pb: 9 }} />

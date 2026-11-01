@@ -81,8 +81,8 @@ export function HeroPhonePreview() {
   const [interacting, setInteracting] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
-  const rotateX = useSpring(0, { stiffness: 115, damping: 26 });
-  const rotateY = useSpring(0, { stiffness: 115, damping: 26 });
+  const rotateX = useSpring(-4, { stiffness: 115, damping: 26 });
+  const rotateY = useSpring(-11, { stiffness: 115, damping: 26 });
 
   const navigate = (next: Route) => {
     setHistory(old => [...old, route]);
@@ -122,6 +122,7 @@ export function HeroPhonePreview() {
     rotateX.set(-((event.clientY - bounds.top) / bounds.height - .5) * 5);
   };
   const straighten = () => { rotateX.set(0); rotateY.set(0); };
+  const restoreTilt = () => { rotateX.set(-4); rotateY.set(-11); };
   const isMain = navigation.some(item => item.id === route.page);
   const title = route.page === 'home' ? 'Street Cup'
     : route.page === 'matches' ? 'Calendario'
@@ -291,7 +292,7 @@ export function HeroPhonePreview() {
 
   return <div className="itf-phone-stage"
     aria-label="Demo interattiva ItalFUT dentro uno smartphone tridimensionale"
-    onPointerMove={handlePointerMove} onPointerLeave={straighten}>
+    onPointerMove={handlePointerMove} onPointerLeave={restoreTilt}>
     <div className="itf-phone-ambient-light" aria-hidden="true" />
     <motion.div className="itf-phone-arrival"
       initial={reducedMotion ? false : { opacity: .7, y: 20 }}
@@ -300,12 +301,12 @@ export function HeroPhonePreview() {
       <motion.div className="itf-phone-float"
         animate={reducedMotion || interacting ? { y: 0 } : { y: [0, -5, 0] }}
         transition={{ duration: reducedMotion || interacting ? .2 : 8, repeat: reducedMotion || interacting ? 0 : Infinity, ease: 'easeInOut' }}>
-        <motion.div className="itf-phone-tilt" style={{ rotateX, rotateY }}>
+        <motion.div className="itf-phone-tilt" style={{ rotateX, rotateY, rotateZ: interacting ? 0 : 3 }}>
           <div className="itf-phone-frame" onPointerEnter={() => { straighten(); setInteracting(true); }}
-            onPointerLeave={() => setInteracting(false)}
+            onPointerLeave={() => { setInteracting(false); restoreTilt(); }}
             onFocusCapture={() => { straighten(); setInteracting(true); }}
             onBlurCapture={event => {
-              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setInteracting(false);
+              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) { setInteracting(false); restoreTilt(); }
             }}>
             <span className="itf-phone-button itf-phone-button--volume" aria-hidden="true" />
             <span className="itf-phone-button itf-phone-button--action" aria-hidden="true" />
@@ -320,7 +321,6 @@ export function HeroPhonePreview() {
               <div className="itf-phone-appbar">
                 <button type="button" className="itf-phone-appbrand itf-demo-brand-button"
                   onClick={() => goTo('home')} aria-label="Torna alla home della demo ItalFUT">
-                  <span className="itf-phone-appmark"><SportsSoccerRoundedIcon sx={{ fontSize: 14 }} /></span>
                   <span>ital<b>FUT</b><em>.</em></span>
                 </button>
                 <button type="button" className="itf-demo-menu-trigger"

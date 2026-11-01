@@ -47,8 +47,8 @@ export function SiteLayout() {
     setOpen(false);
     if (href.includes('#')) {
       const id = href.split('#')[1];
-      if (location.pathname === '/') document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-      else { navigate('/'); window.setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }), 70); }
+      if (location.pathname === '/') document.getElementById(id)?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' });
+      else { navigate('/'); window.setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' }), 70); }
     } else navigate(href);
   };
   return <div className="app-root min-h-screen">

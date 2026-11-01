@@ -106,7 +106,7 @@ export function LegalPage({ page }: { page: LegalPageId }) {
     <Typography component="h1" variant="h2">{titleMap[page]}</Typography>
     <p className="legal-version">Versione: {LEGAL_VERSION}</p>
     {legalNeedsReview && <Alert severity="warning" sx={{ mb: 4 }}>
-      **Documento in bozza:** i dati identificativi dell’operatore, le condizioni contrattuali e i periodi di conservazione devono essere completati e approvati prima della pubblicazione commerciale. Le sezioni non costituiscono consulenza legale.
+      Documento in bozza: i dati identificativi dell’operatore, le condizioni contrattuali e i periodi di conservazione devono essere completati e approvati prima della pubblicazione commerciale. Le sezioni non costituiscono consulenza legale.
     </Alert>}
     {page === 'business' ? <section className="legal-section">
       <Typography component="h2" variant="h5">Dati dell’operatore</Typography>
