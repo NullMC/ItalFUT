@@ -7,7 +7,7 @@ import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import EmojiEventsRoundedIcon from '@mui/icons-material/EmojiEventsRounded';
 import SportsSoccerRoundedIcon from '@mui/icons-material/SportsSoccerRounded';
 import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded';
-import { client, configured, friendlyError } from '../lib/supabase';
+import { client, configured, friendlyError, notConfiguredMessage } from '../lib/supabase';
 import { AnimatedTabs } from '../components/AnimatedTabs';
 import type { FeatureCode, Row, Tenant, TenantFeature } from '../lib/types';
 import { ThemeToggle } from '../components/ThemeToggle';
@@ -161,7 +161,7 @@ export function Tournament() {
   const containerStyle = tenant ? ({ '--tenant-accent': /^#[0-9a-f]{6}$/i.test(tenant.brand_color) ? tenant.brand_color : '#174638' } as CSSProperties) : undefined;
 
   if (loading) return <div className="center-screen"><CircularProgress /></div>;
-  if (!configured) return <ErrorView code="503" detail="Il database non è configurato per questa installazione." />;
+  if (!configured) return <ErrorView code="503" detail={notConfiguredMessage} />;
   if (error) return <ErrorView code={navigator.onLine ? '503' : 'offline'} retry={() => window.location.reload()} detail="Non è stato possibile caricare il torneo." />;
   if (!tenant) return <ErrorView code="404" detail="Questo torneo non esiste oppure non è ancora pubblico." />;
   const pageFeature = navigation.find(nav => nav.slug === page)?.feature;

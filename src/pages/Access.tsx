@@ -6,7 +6,7 @@ import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import { useAuth } from '../auth/AuthProvider';
-import { configured, friendlyError } from '../lib/supabase';
+import { configured, friendlyError, notConfiguredMessage } from '../lib/supabase';
 import { checkPassword, normalizeUsername, PASSWORD_MAX, RECOVERY_CODE_PATTERN, USERNAME_PATTERN } from '../lib/validation';
 import { Backdrop } from '../components/fx/Backdrop';
 import { Football3D } from '../components/fx/Football3D';
@@ -140,7 +140,7 @@ export function Access({ register = false }: { register?: boolean }) {
           <h1 className="auth__title">{titles[mode][0]}</h1>
           <p className="auth__subtitle">{titles[mode][1]}</p>
           {routeState?.reason === 'auth' && mode === 'login' && !error && <Alert severity="info" role="status">Accedi per continuare: la pagina che hai richiesto è riservata agli organizzatori.</Alert>}
-          {!configured && <Alert severity="warning">Il collegamento al database non è configurato per questa installazione.</Alert>}
+          {!configured && <Alert severity="warning">{notConfiguredMessage}</Alert>}
           {error && <Alert severity="error" role="alert">{error}</Alert>}
           {message && <Alert severity="success" role="status">{message}</Alert>}
           {cooldown > 0 && <Alert severity="info" role="status">Troppi tentativi: riprova tra {cooldown} secondi.</Alert>}

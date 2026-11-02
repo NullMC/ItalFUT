@@ -3,7 +3,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import { Alert, Button, MenuItem, TextField } from '@mui/material';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import { useAuth } from '../auth/AuthProvider';
-import { client, configured, friendlyError } from '../lib/supabase';
+import { client, configured, friendlyError, notConfiguredMessage } from '../lib/supabase';
 import { cleanText } from '../lib/validation';
 import { Reveal } from '../components/MarketingMotion';
 
@@ -48,6 +48,7 @@ export function Contact() {
       <div className="contact__grid">
         <form className="panel glass stack-form" onSubmit={submit}>
           {done && <Alert severity="success" role="status">Richiesta inviata. {session ? <>Trovi stato e risposta nella pagina <RouterLink to="/account">Account e dati</RouterLink>.</> : 'Se hai lasciato un recapito, verrai ricontattato lì.'}</Alert>}
+          {!configured && <Alert severity="warning">{notConfiguredMessage}</Alert>}
           {error && <Alert severity="error" role="alert">{error}</Alert>}
           <TextField select label="Argomento" value={kind} onChange={event => setKind(event.target.value)}>
             {KINDS.map(item => <MenuItem key={item.value} value={item.value}>{item.label}</MenuItem>)}
