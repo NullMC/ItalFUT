@@ -6,7 +6,14 @@ import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import { useAuth } from '../auth/AuthProvider';
 import { ThemeToggle } from './ThemeToggle';
 import { useCookiePreferences } from './CookieNotice';
-import { businessLine } from '../config/legal';
+import { businessLine, madeBy } from '../config/legal';
+
+/** Credit to the company behind ItalFUT. */
+export function MadeBy({ className = '' }: { className?: string }) {
+  return <a className={'made-by ' + className} href={madeBy.url} target="_blank" rel="noopener">
+    made with <svg viewBox="0 0 24 24" width="14" height="14" aria-label="amore" role="img"><path fill="currentColor" d="M12 21s-7.5-4.6-9.6-9.2C1 8.6 3 5 6.6 5c2 0 3.4 1.1 4.2 2.3h2.4C14 6.1 15.4 5 17.4 5 21 5 23 8.6 21.6 11.8 19.5 16.4 12 21 12 21z"/></svg> by <b>{madeBy.label}</b>
+  </a>;
+}
 
 /** The wordmark is the logo: no pictogram, just the name. */
 export function Brand({ className = '', to = '/' }: { className?: string; to?: string }) {
@@ -116,7 +123,7 @@ export function SiteLayout() {
 
     {appRoute ? <footer className="app-footer">
       <div className="container app-footer__inner">
-        <span>© {new Date().getFullYear()} ItalFUT</span>
+        <span>© {new Date().getFullYear()} ItalFUT · <MadeBy /></span>
         <nav aria-label="Documenti legali">
           <RouterLink to="/privacy-policy">Privacy</RouterLink>
           <RouterLink to="/terms-of-service">Termini</RouterLink>
@@ -155,7 +162,7 @@ export function SiteLayout() {
       </div>
       <div className="container footer__bottom">
         <span>© {new Date().getFullYear()} ItalFUT{businessLine ? ' · ' + businessLine : ''}</span>
-        <span>Prezzi in euro. Nessun addebito automatico.</span>
+        <MadeBy />
       </div>
       <div className="footer__wordmark" aria-hidden="true"><span>ital</span>FUT</div>
     </footer>}

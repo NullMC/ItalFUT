@@ -17,6 +17,10 @@ Removed in this revision: `tailwindcss`, `@tailwindcss/vite` (one utility class 
 
 **Not present:** Google Analytics, Meta Pixel, Hotjar, Sentry, Stripe.js, social login SDKs, ad networks.
 
+## Infrastructure
+
+Only two providers: **Cloudflare** (registrar, DNS, CDN, Pages hosting) and **Supabase** (Postgres, Auth, Edge Functions, service emails). Cloudflare Web Analytics, Rocket Loader, Email Obfuscation and Zaraz must stay off. A production SMTP for auth emails is the only additional service that may be required.
+
 ## Browser storage
 
 | Key | Type | Purpose | Category |
@@ -25,6 +29,7 @@ Removed in this revision: `tailwindcss`, `@tailwindcss/vite` (one utility class 
 | `italfut-appearance` | localStorage | Theme choice | Functional/technical |
 | `italfut_consent_v2` | localStorage | Cookie choices + date (expires after 6 months) | Necessary |
 | `italfut_configuration` | sessionStorage | Configurator draft | Necessary |
+| `__cf_bm` | Cookie (Cloudflare) | Bot protection, only if enabled, 30 min | Necessary |
 
 ## Network calls on first load
 

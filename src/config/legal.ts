@@ -10,8 +10,9 @@ export const LEGAL_VERSION = 'Bozza — 1 novembre 2026';
 export const LEGAL_REVIEWED = false; // true ONLY after review by a lawyer/accountant.
 
 export const legalConfig = {
-  // Identità dell'operatore (titolare del sito e del trattamento)
-  operatorName: '',          // es. nome e cognome (ditta individuale) o ragione sociale
+  // Identità dell'operatore: la TUA azienda. ItalFUT è un progetto/marchio dell'azienda,
+  // non una società a sé: qui vanno i dati dell'azienda che lo realizza e lo gestisce.
+  operatorName: '',          // ragione sociale o nome della ditta che gestisce ItalFUT
   legalForm: '',             // es. "Ditta individuale", "S.r.l."
   vatNumber: '',             // Partita IVA (11 cifre) — obbligatoria sul sito se esercizio d'impresa
   taxCode: '',               // Codice fiscale dell'impresa / del titolare
@@ -28,7 +29,7 @@ export const legalConfig = {
   dpoContact: '',            // solo se un DPO è nominato
   // Infrastruttura e fornitori
   jurisdiction: 'Italia',
-  hostingProvider: '',       // es. "Cloudflare, Inc. (Cloudflare Pages)" — da verificare
+  hostingProvider: 'Cloudflare, Inc. (Cloudflare Pages)', // dominio, DNS, CDN e hosting
   databaseProvider: 'Supabase Inc.',
   serverRegion: 'UE — Francia (eu-west-3)', // verificare in Supabase → Project Settings → General
   // Conservazione dati
@@ -47,6 +48,9 @@ export const legalConfig = {
   officialDomain: '',          // es. "https://italfut.it"
   lastReviewedOn: '',          // data ISO dell'ultima revisione professionale
 };
+
+/** Credito nel footer: "made with ♥ by …" verso il portfolio dell'azienda. */
+export const madeBy = { label: 'franksitez.com', url: 'https://franksitez.com' };
 
 export const legalNeedsReview = !LEGAL_REVIEWED ||
   !legalConfig.operatorName || !legalConfig.registeredOffice ||

@@ -1,7 +1,7 @@
 import { Fragment, type ReactNode } from 'react';
 import { Alert } from '@mui/material';
 import { Link as RouterLink, NavLink } from 'react-router-dom';
-import { LEGAL_VERSION, legalConfig, legalNeedsReview, requiredLegalFields, vatNote } from '../config/legal';
+import { LEGAL_VERSION, legalConfig, legalNeedsReview, madeBy, requiredLegalFields, vatNote } from '../config/legal';
 import { useCookiePreferences } from '../components/CookieNotice';
 
 export type LegalPageId = 'privacy' | 'terms' | 'refund' | 'cookies' | 'business';
@@ -31,6 +31,7 @@ const storageRows = [
   ['italfut-appearance', 'ItalFUT', 'Ricorda il tema chiaro o scuro scelto', 'Fino alla cancellazione dal browser', 'Tecnico — funzionale', 'localStorage'],
   ['italfut_consent_v2', 'ItalFUT', 'Registra le tue scelte sui cookie e la data', '6 mesi, poi la scelta viene richiesta di nuovo', 'Tecnico — necessario', 'localStorage'],
   ['italfut_configuration', 'ItalFUT', 'Conserva durata e moduli scelti nel configuratore', 'Fino alla chiusura della scheda', 'Tecnico — necessario', 'sessionStorage'],
+  ['__cf_bm (solo se la protezione anti-bot è attiva)', 'Cloudflare', 'Distingue il traffico umano dai bot per proteggere il sito', '30 minuti', 'Tecnico — necessario', 'Cookie'],
 ];
 
 function sections(page: LegalPageId, openPreferences: () => void): Section[] {
@@ -38,7 +39,7 @@ function sections(page: LegalPageId, openPreferences: () => void): Section[] {
   switch (page) {
     case 'privacy': return [
       { id: 'titolare', title: '1. Titolare del trattamento', body: <>
-        <p>Titolare: {v(c.operatorName)}, sede legale {v(c.registeredOffice)}. Contatto privacy: {mail(c.privacyEmail)}{c.dpoContact ? <>. Responsabile della protezione dei dati: {c.dpoContact}</> : null}.</p>
+        <p>ItalFUT è un progetto realizzato e gestito da {v(c.operatorName)}, che è il titolare del trattamento. Sede legale: {v(c.registeredOffice)}. Contatto privacy: {mail(c.privacyEmail)}{c.dpoContact ? <>. Responsabile della protezione dei dati: {c.dpoContact}</> : null}.</p>
         <p>Per i dati di giocatori, staff e partecipanti inseriti in un torneo, l’organizzatore che li carica agisce come titolare autonomo e deve informare gli interessati. ItalFUT tratta tali dati per suo conto come fornitore della piattaforma; i rispettivi ruoli vanno formalizzati con un accordo (art. 28 GDPR).</p>
       </> },
       { id: 'dati', title: '2. Dati che trattiamo', body: <ul>
@@ -56,7 +57,7 @@ function sections(page: LegalPageId, openPreferences: () => void): Section[] {
           <tr><td>Adempimenti fiscali e contabili (quando saranno attivi i pagamenti)</td><td>Obbligo di legge (art. 6.1.c GDPR)</td></tr>
         </tbody></table></div> },
       { id: 'destinatari', title: '4. Fornitori e trasferimenti', body: <>
-        <p>Database e autenticazione: {c.databaseProvider}, regione {v(c.serverRegion)}. Hosting del sito: {v(c.hostingProvider)}. Questi fornitori agiscono come responsabili del trattamento.</p>
+        <p>Usiamo solo due fornitori, entrambi necessari al funzionamento: {c.databaseProvider} per database, autenticazione ed email di servizio (regione {v(c.serverRegion)}) e {v(c.hostingProvider)} per dominio, DNS, rete di distribuzione e hosting del sito. Agiscono come responsabili del trattamento. Nessun altro servizio esterno riceve i tuoi dati.</p>
         <p>Alcuni fornitori hanno sede negli Stati Uniti: eventuali trasferimenti avvengono sulla base delle Clausole Contrattuali Standard della Commissione europea o del Data Privacy Framework, ove applicabile. Non vendiamo dati e non usiamo strumenti pubblicitari o di profilazione.</p>
       </> },
       { id: 'conservazione', title: '5. Per quanto tempo', body: <ul>
@@ -78,7 +79,7 @@ function sections(page: LegalPageId, openPreferences: () => void): Section[] {
       { id: 'modifiche', title: '9. Modifiche', body: <p>Pubblicheremo qui ogni aggiornamento indicando la data della versione. Le modifiche sostanziali saranno comunicate agli organizzatori via email.</p> },
     ];
     case 'terms': return [
-      { id: 'oggetto', title: '1. Il servizio', body: <p>ItalFUT, fornito da {v(c.operatorName)}, è una piattaforma per organizzare competizioni calcistiche: gestione di squadre, giocatori, partite e classifiche, con un sito pubblico per ciascun torneo. Le funzioni disponibili dipendono dai moduli attivi.</p> },
+      { id: 'oggetto', title: '1. Il servizio', body: <p>ItalFUT è un progetto realizzato e gestito da {v(c.operatorName)}: una piattaforma per organizzare competizioni calcistiche: gestione di squadre, giocatori, partite e classifiche, con un sito pubblico per ciascun torneo. Le funzioni disponibili dipendono dai moduli attivi.</p> },
       { id: 'account', title: '2. Account', body: <ul>
         <li>Per creare un account devi avere almeno 18 anni e fornire dati veritieri.</li>
         <li>Sei responsabile della riservatezza di username e password e di quanto avviene con il tuo account.</li>
@@ -156,13 +157,14 @@ export function LegalPage({ page }: { page: LegalPageId }) {
           Bozza in revisione: i campi indicati come “da completare” verranno compilati con i dati reali dell’operatore prima dell’apertura commerciale del servizio.
         </Alert>}
         {page === 'business' ? <section className="legal__section">
+          <p>ItalFUT è il nome di un progetto e di una piattaforma realizzati dall’operatore indicato qui sotto: non è una società autonoma. Altri progetti dell’operatore: <a href={madeBy.url} target="_blank" rel="noopener">{madeBy.label}</a>.</p>
           <h2>Dati identificativi</h2>
           <dl className="legal__dl">{requiredLegalFields.filter(field => field.key !== 'dpoContact' || legalConfig.dpoContact).map(field => <Fragment key={field.key}>
             <dt>{field.label}</dt><dd>{field.key.toLowerCase().includes('email') ? mail(String(legalConfig[field.key] ?? '')) : v(String(legalConfig[field.key] ?? ''))}</dd>
           </Fragment>)}</dl>
           <h2>Infrastruttura</h2>
           <dl className="legal__dl">
-            <dt>Hosting del sito</dt><dd>{v(legalConfig.hostingProvider)}</dd>
+            <dt>Dominio, DNS e hosting</dt><dd>{v(legalConfig.hostingProvider)}</dd>
             <dt>Database e autenticazione</dt><dd>{legalConfig.databaseProvider} · {v(legalConfig.serverRegion)}</dd>
             <dt>Dominio ufficiale</dt><dd>{v(legalConfig.officialDomain)}</dd>
           </dl>

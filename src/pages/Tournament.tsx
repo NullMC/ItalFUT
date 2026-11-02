@@ -14,6 +14,7 @@ import { ThemeToggle } from '../components/ThemeToggle';
 import { VALUE_LABELS } from '../components/CrudEditor';
 import { GlowField } from '../components/fx/Backdrop';
 import { safeUrl } from '../lib/validation';
+import { MadeBy } from '../components/SiteLayout';
 import { useCookiePreferences } from '../components/CookieNotice';
 
 type Data = Record<string, Row[]>;
@@ -236,7 +237,7 @@ export function Tournament() {
         {page === 'gallery' && <section className="public-section"><Typography variant="h3">Foto gallery</Typography><div className="public-card-grid">{(data.galleries ?? []).map(g => <a className="public-card gallery-card" key={g.id} href={src(g.url) || undefined} target="_blank" rel="noopener noreferrer"><Typography variant="h6">{String(g.label)}</Typography><small>Apri la galleria esterna</small><ArrowOutwardRoundedIcon /></a>)}</div>{!(data.galleries ?? []).length && <Empty />}</section>}
       </Container></main>}
     <footer className="tournament-footer"><Container maxWidth="lg">
-      <b>{tenant.name}</b><span>Realizzato con <RouterLink to="/" className="brand brand--inline"><span className="brand__ital">ital</span><span className="brand__fut">FUT</span></RouterLink></span>
+      <b>{tenant.name}</b><span>Realizzato con <RouterLink to="/" className="brand brand--inline"><span className="brand__ital">ital</span><span className="brand__fut">FUT</span></RouterLink> · <MadeBy /></span>
       <nav aria-label="Documenti legali" className="tournament-legal-links">
         <RouterLink to="/privacy-policy">Privacy</RouterLink>
         <RouterLink to="/terms-of-service">Termini</RouterLink>

@@ -9,11 +9,13 @@ Finché un campo resta vuoto, le pagine legali mostrano l’etichetta “da comp
 
 ## 1. Dati dell’operatore e business details
 
+ItalFUT è un progetto della tua azienda, non una società: in questi campi vanno i dati **dell’azienda** che lo realizza e gestisce. Il credito “made with ♥ by franksitez.com” nel footer si configura in `madeBy`, nello stesso file.
+
 **File:** `src/config/legal.ts` → oggetto `legalConfig`
 
 | Campo | Cosa inserire | Obbligatorio |
 | --- | --- | --- |
-| `operatorName` | Nome e cognome (ditta individuale) o ragione sociale | Sì |
+| `operatorName` | Ragione sociale della tua azienda (o nome e cognome, se ditta individuale) | Sì |
 | `legalForm` | Es. “Ditta individuale”, “S.r.l.”, “Associazione” | Sì |
 | `vatNumber` | Partita IVA (11 cifre) — va pubblicata sul sito se c’è attività d’impresa | Sì (se P.IVA) |
 | `taxCode` | Codice fiscale dell’impresa / del titolare | Sì |
@@ -35,7 +37,7 @@ Finché un campo resta vuoto, le pagine legali mostrano l’etichetta “da comp
 
 | Campo | Cosa inserire |
 | --- | --- |
-| `hostingProvider` | Chi ospita il sito (es. “Cloudflare, Inc. — Cloudflare Pages”) |
+| `hostingProvider` | Già impostato su “Cloudflare, Inc. (Cloudflare Pages)”: cambialo solo se cambi hosting |
 | `serverRegion` | Regione reale del progetto Supabase (Dashboard → Project Settings → General). Oggi indicata “UE — Francia (eu-west-3)”: **verificare** |
 | `accountRetention` | Per quanto conservi i dati di un account dopo la chiusura |
 | `tenantRetention` | Per quanto conservi i dati di un torneo dopo la scadenza |
@@ -81,7 +83,7 @@ Firmare/accettare i **DPA** (Data Processing Agreement) di Supabase e del provid
 3. **Edge Functions → Secrets** → `ITALFUT_ALLOWED_ORIGINS` = origini di produzione separate da virgola, es. `https://italfut.it,https://www.italfut.it` (vale per `auth-username` e `delete-account`).
 4. **Authentication → Providers → Email**: lunghezza minima password **10**, conferma email attiva (già attiva); “Leaked password protection” se il piano lo consente (Pro).
 5. **Authentication → URL Configuration**: Site URL = dominio di produzione; Redirect URLs = `https://<dominio>/accesso` e `https://<dominio>/reimposta-password`.
-6. **Authentication → Email Templates / SMTP**: mittente personalizzato con un dominio tuo (SMTP proprio) prima del lancio.
+6. **Authentication → Emails**: il mittente integrato di Supabase va bene per i test ma ha un limite molto basso di email all’ora e un mittente generico. Per conferme e recuperi password in produzione serve un **SMTP**: è l’unico servizio in più davvero necessario. Puoi usare l’SMTP della casella email che la tua azienda usa già (Supabase → Authentication → Emails → SMTP Settings), senza abbonarti a nuovi servizi. Traduci in italiano i modelli “Confirm signup” e “Reset password”.
 7. **Authentication → Rate Limits**: verificare i limiti di sign-in/sign-up.
 
 ## 7. Variabili d’ambiente del frontend
@@ -93,7 +95,18 @@ VITE_SUPABASE_URL=https://abehoquivbewvumbgqrp.supabase.co
 VITE_SUPABASE_ANON_KEY=<chiave publishable del progetto>
 ```
 
-## 8. Hosting
+## 8. Cloudflare (dominio + hosting)
 
-- `public/_headers` contiene CSP e intestazioni di sicurezza per Cloudflare Pages/Netlify. Su un altro hosting vanno replicate.
-- Se aggiungi domini esterni (es. Stripe, analytics) vanno aggiunti alla CSP **e** bloccati fino al consenso (`useCookiePreferences().allows('analytics')`).
+Tutto il sito gira su Cloudflare; l’unico altro fornitore è Supabase.
+
+1. **Dominio:** acquistalo con Cloudflare Registrar. Inserisci il dominio in `officialDomain` (`src/config/legal.ts`).
+2. **Pages:** Workers & Pages → Create → Pages → collega il repo GitHub `NullMC/ItalFUT`.
+   - Build command: `npm run build` · Output directory: `dist` · Variabile `NODE_VERSION` = `22`.
+   - Variabili d’ambiente: `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` (Production e Preview).
+   - Custom domains → aggiungi `tuodominio.it` e `www.tuodominio.it`.
+3. `public/_redirects` e `public/_headers` sono già pronti: Pages applica da solo routing SPA, CSP, HSTS e cache.
+4. **Da lasciare spenti** (iniettano script che la CSP blocca o servizi non necessari): *Web Analytics / Real User Monitoring*, *Rocket Loader*, *Email Address Obfuscation*, *Zaraz*. Se un giorno attivi Web Analytics, aggiorna cookie policy, `docs/THIRD_PARTY_AUDIT.md` e la CSP.
+5. **SSL/TLS:** modalità *Full (strict)*, *Always Use HTTPS* attivo. HSTS è già inviato da `_headers`: attiva il preload solo quando sei sicuro che tutto il dominio (sottodomini inclusi) sia in HTTPS.
+6. **Email del dominio senza servizi extra:** con *Email Routing* (gratuito) crei indirizzi come `assistenza@tuodominio.it` e `privacy@tuodominio.it` che inoltrano alla tua casella attuale. Usali per `supportEmail` e `privacyEmail`.
+7. **Supabase:** aggiorna Site URL, Redirect URLs e il secret `ITALFUT_ALLOWED_ORIGINS` con il nuovo dominio (punto 6).
+8. Se la protezione anti-bot di Cloudflare è attiva può impostare il cookie tecnico `__cf_bm`: è già elencato nella cookie policy.
