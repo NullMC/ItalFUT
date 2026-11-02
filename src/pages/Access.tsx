@@ -38,7 +38,8 @@ export function Access({ register = false }: { register?: boolean }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { session, signIn, signUp, usernameAvailable, resetWithCode } = useAuth();
-  const [mode, setMode] = useState<Mode>(register ? 'register' : 'login');
+  const routeState = location.state as { from?: string; reason?: string; recover?: boolean } | null;
+  const [mode, setMode] = useState<Mode>(register ? 'register' : routeState?.recover ? 'recover' : 'login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -52,10 +53,10 @@ export function Access({ register = false }: { register?: boolean }) {
   const [error, setError] = useState('');
   const failures = useRef(0);
   const [cooldown, setCooldown] = useState(0);
-  const from = (location.state as { from?: string } | null)?.from;
+  const from = routeState?.from;
   const safeFrom = from && from.startsWith('/') && !from.startsWith('//') ? from : '/console';
 
-  useEffect(() => { setMode(register ? 'register' : 'login'); setError(''); setMessage(''); }, [register]);
+  useEffect(() => { setMode(register ? 'register' : routeState?.recover ? 'recover' : 'login'); setError(''); setMessage(''); }, [register]); // eslint-disable-line react-hooks/exhaustive-deps
   // A fresh sign-up stays on this page until the recovery code has been saved.
   useEffect(() => { if (session && mode === 'login') navigate(safeFrom, { replace: true }); }, [session, mode, navigate, safeFrom]);
   useEffect(() => {
@@ -100,10 +101,13 @@ export function Access({ register = false }: { register?: boolean }) {
         setMessage('Password aggiornata. Accedi con la nuova password, poi genera un nuovo codice di recupero dalla pagina Account.');
       }
     } catch (cause) {
-      setError(friendlyError(cause));
+      const text = friendlyError(cause);
+      // Repeated failures or a server-side rate limit lead to the dedicated error page.
+      if (/troppi tentativi/i.test(text)) { navigate('/errore/429', { state: { waitSeconds: 60 } }); return; }
+      setError(text);
       if (mode === 'login') {
         failures.current += 1;
-        if (failures.current >= 5) { setCooldown(30); failures.current = 0; }
+        if (failures.current >= 5) { failures.current = 0; navigate('/errore/429', { state: { waitSeconds: 30, detail: 'Hai inserito credenziali errate 5 volte di seguito.' } }); return; }
       }
     } finally { setBusy(false); }
   };
@@ -135,6 +139,7 @@ export function Access({ register = false }: { register?: boolean }) {
           </div>}
           <h1 className="auth__title">{titles[mode][0]}</h1>
           <p className="auth__subtitle">{titles[mode][1]}</p>
+          {routeState?.reason === 'auth' && mode === 'login' && !error && <Alert severity="info" role="status">Accedi per continuare: la pagina che hai richiesto è riservata agli organizzatori.</Alert>}
           {!configured && <Alert severity="warning">Il collegamento al database non è configurato per questa installazione.</Alert>}
           {error && <Alert severity="error" role="alert">{error}</Alert>}
           {message && <Alert severity="success" role="status">{message}</Alert>}

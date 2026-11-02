@@ -7,6 +7,7 @@ import { useAuth } from '../auth/AuthProvider';
 import { ThemeToggle } from './ThemeToggle';
 import { useCookiePreferences } from './CookieNotice';
 import { businessLine, madeBy } from '../config/legal';
+import { ErrorBoundary } from './ErrorBoundary';
 
 /** Credit to the company behind ItalFUT. */
 export function MadeBy({ className = '' }: { className?: string }) {
@@ -118,7 +119,7 @@ export function SiteLayout() {
     </header>
 
     <main id="main-content" className="main" tabIndex={-1}>
-      <Suspense fallback={<div className="center-screen" role="status"><CircularProgress aria-label="Caricamento" /></div>}><Outlet /></Suspense>
+      <ErrorBoundary resetKey={location.pathname}><Suspense fallback={<div className="center-screen" role="status"><CircularProgress aria-label="Caricamento" /></div>}><Outlet /></Suspense></ErrorBoundary>
     </main>
 
     {appRoute ? <footer className="app-footer">
@@ -150,6 +151,7 @@ export function SiteLayout() {
           <RouterLink to={accountHref}>{session ? 'Console' : 'Accedi'}</RouterLink>
           {!session && <RouterLink to="/registrati">Crea un account</RouterLink>}
           {session && <RouterLink to="/account">Account e dati</RouterLink>}
+          <RouterLink to="/contatti">Contatti e assistenza</RouterLink>
         </nav>
         <nav className="footer__col" aria-labelledby="footer-legal">
           <h2 id="footer-legal">Legale</h2>
@@ -186,6 +188,7 @@ export function SiteLayout() {
         <RouterLink to="/privacy-policy" onClick={() => setOpen(false)}>Privacy</RouterLink>
         <RouterLink to="/terms-of-service" onClick={() => setOpen(false)}>Termini</RouterLink>
         <RouterLink to="/cookie-policy" onClick={() => setOpen(false)}>Cookie</RouterLink>
+        <RouterLink to="/contatti" onClick={() => setOpen(false)}>Contatti</RouterLink>
         <ThemeToggle />
       </div>
     </Drawer>

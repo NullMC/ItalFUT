@@ -33,6 +33,7 @@ import { CrudEditor, EDITORS } from '../components/CrudEditor';
 import { TenantAnalytics } from '../components/TenantAnalytics';
 import { cleanText, HEX_COLOR, safeUrl, SLUG_PATTERN } from '../lib/validation';
 import { trackSpotlight } from '../components/MarketingMotion';
+import { ErrorView } from './ErrorPage';
 
 type Owned = { role: MemberRole; tenants: Tenant | null };
 type PlanDraft = { months: number; modules: FeatureCode[] };
@@ -237,7 +238,9 @@ export function TenantConsole() {
     finally { setUpgrading(false); }
   };
   if (loading) return <div className="center-screen"><CircularProgress aria-label="Caricamento" /></div>;
-  if (!tenant || !role) return <div className="page"><div className="container container--narrow"><Alert severity="error" sx={{ mb: 2 }}>{error || 'Torneo non trovato o accesso non autorizzato.'}</Alert><Button component={RouterLink} to="/console" startIcon={<ArrowBackRoundedIcon />}>Torna ai tuoi tornei</Button></div></div>;
+  if (error && !tenant) return <ErrorView code={navigator.onLine ? '503' : 'offline'} compact retry={() => window.location.reload()} detail="Non è stato possibile caricare il torneo." />;
+  if (!tenant) return <ErrorView code="404" compact detail="Nessun torneo con questo indirizzo tra quelli a cui hai accesso." />;
+  if (!role) return <ErrorView code="403" compact detail="Il tuo account non fa parte dello staff di questo torneo." />;
   const base = '/console/' + slug;
   const accent = HEX_COLOR.test(tenant.brand_color) ? tenant.brand_color : '#0f6b4a';
   const navItem = (to: string, label: string, icon: ReactNode, end = false, locked = false) => <NavLink key={to} to={to} end={end}

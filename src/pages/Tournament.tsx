@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Link as RouterLink, useLocation, useParams, useSearchParams } from 'react-router-dom';
-import { Alert, Button, Chip, CircularProgress, Container, Typography } from '@mui/material';
+import { Button, Chip, CircularProgress, Container, Typography } from '@mui/material';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded';
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
@@ -15,6 +15,7 @@ import { VALUE_LABELS } from '../components/CrudEditor';
 import { GlowField } from '../components/fx/Backdrop';
 import { safeUrl } from '../lib/validation';
 import { MadeBy } from '../components/SiteLayout';
+import { ErrorView } from './ErrorPage';
 import { useCookiePreferences } from '../components/CookieNotice';
 
 type Data = Record<string, Row[]>;
@@ -160,9 +161,9 @@ export function Tournament() {
   const containerStyle = tenant ? ({ '--tenant-accent': /^#[0-9a-f]{6}$/i.test(tenant.brand_color) ? tenant.brand_color : '#174638' } as CSSProperties) : undefined;
 
   if (loading) return <div className="center-screen"><CircularProgress /></div>;
-  if (!configured) return <Container sx={{ py: 12 }}><Alert severity="warning">Supabase non configurato. La vetrina pubblica diventerà accessibile dopo la connessione al database.</Alert></Container>;
-  if (error) return <Container sx={{ py: 12 }}><Alert severity="error">{error}</Alert></Container>;
-  if (!tenant) return <Container sx={{ py: 12 }}><Typography variant="h3">Torneo non disponibile</Typography><Typography color="text.secondary">Questo indirizzo non è ancora pubblico, oppure non esiste.</Typography><Button component={RouterLink} to="/">Torna a ItalFUT</Button></Container>;
+  if (!configured) return <ErrorView code="503" detail="Il database non è configurato per questa installazione." />;
+  if (error) return <ErrorView code={navigator.onLine ? '503' : 'offline'} retry={() => window.location.reload()} detail="Non è stato possibile caricare il torneo." />;
+  if (!tenant) return <ErrorView code="404" detail="Questo torneo non esiste oppure non è ancora pubblico." />;
   const pageFeature = navigation.find(nav => nav.slug === page)?.feature;
   return <div className="tournament-app" style={containerStyle}>
     <a className="skip-link" href="#tournament-content">Vai ai contenuti del torneo</a>

@@ -1,20 +1,22 @@
-import { lazy, Suspense, useEffect, type ReactNode } from 'react';
+import { Suspense, useEffect, type ReactNode } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { CircularProgress } from '@mui/material';
 import { useAuth } from './auth/AuthProvider';
 import { Landing } from './pages/Landing';
 import { SiteLayout } from './components/SiteLayout';
 import { CookieSettingsProvider } from './components/CookieNotice';
+import { ErrorBoundary, lazyPage } from './components/ErrorBoundary';
+import { ErrorRoute, NotFound } from './pages/ErrorPage';
 
 // Route-level code splitting keeps the landing bundle small.
-const Configurator = lazy(() => import('./pages/Configurator').then(m => ({ default: m.Configurator })));
-const Access = lazy(() => import('./pages/Access').then(m => ({ default: m.Access })));
-const ConsoleHome = lazy(() => import('./pages/Console').then(m => ({ default: m.ConsoleHome })));
-const TenantConsole = lazy(() => import('./pages/Console').then(m => ({ default: m.TenantConsole })));
-const Tournament = lazy(() => import('./pages/Tournament').then(m => ({ default: m.Tournament })));
-const LegalPage = lazy(() => import('./pages/Legal').then(m => ({ default: m.LegalPage })));
-const Contact = lazy(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
-const AccountSettings = lazy(() => import('./pages/AccountSettings').then(m => ({ default: m.AccountSettings })));
+const Configurator = lazyPage(() => import('./pages/Configurator').then(m => ({ default: m.Configurator })));
+const Access = lazyPage(() => import('./pages/Access').then(m => ({ default: m.Access })));
+const ConsoleHome = lazyPage(() => import('./pages/Console').then(m => ({ default: m.ConsoleHome })));
+const TenantConsole = lazyPage(() => import('./pages/Console').then(m => ({ default: m.TenantConsole })));
+const Tournament = lazyPage(() => import('./pages/Tournament').then(m => ({ default: m.Tournament })));
+const LegalPage = lazyPage(() => import('./pages/Legal').then(m => ({ default: m.LegalPage })));
+const Contact = lazyPage(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
+const AccountSettings = lazyPage(() => import('./pages/AccountSettings').then(m => ({ default: m.AccountSettings })));
 
 const Loading = () => <div className="center-screen" role="status" aria-live="polite"><CircularProgress aria-label="Caricamento" /></div>;
 
@@ -22,7 +24,7 @@ function Private({ children }: { children: ReactNode }) {
   const { session, loading } = useAuth();
   const location = useLocation();
   if (loading) return <Loading />;
-  if (!session) return <Navigate to="/accesso" state={{ from: location.pathname }} replace />;
+  if (!session) return <Navigate to="/accesso" state={{ from: location.pathname, reason: 'auth' }} replace />;
   return <>{children}</>;
 }
 
@@ -32,6 +34,7 @@ const titles: [RegExp, string][] = [
   [/^\/accesso/, 'Accedi · ItalFUT'],
   [/^\/registrati/, 'Crea un account · ItalFUT'],
   [/^\/contatti/, 'Contatti · ItalFUT'],
+  [/^\/errore/, 'Errore · ItalFUT'],
   [/^\/console/, 'Console · ItalFUT'],
   [/^\/account/, 'Account e dati · ItalFUT'],
   [/^\/privacy-policy/, 'Privacy policy · ItalFUT'],
@@ -53,8 +56,10 @@ function RouteEffects() {
 }
 
 export function App() {
+  const { pathname } = useLocation();
   return <CookieSettingsProvider>
     <RouteEffects />
+    <ErrorBoundary resetKey={pathname}>
     <Suspense fallback={<Loading />}>
       <Routes>
         <Route element={<SiteLayout />}>
@@ -72,10 +77,12 @@ export function App() {
           <Route path="/console" element={<Private><ConsoleHome /></Private>} />
           <Route path="/console/:slug" element={<Private><TenantConsole /></Private>} />
           <Route path="/console/:slug/:section" element={<Private><TenantConsole /></Private>} />
+          <Route path="/errore/:code" element={<ErrorRoute />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
         <Route path="/t/:slug/*" element={<Tournament />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
+    </ErrorBoundary>
   </CookieSettingsProvider>;
 }
