@@ -24,15 +24,19 @@ type AuthContextValue = {
 };
 const AuthContext = createContext<AuthContextValue | null>(null);
 const GENERIC_LOGIN_ERROR = 'Username o password non corretti.';
+/** Configuration problems: precise instructions in development, neutral text for visitors. */
+const SETUP = (hint: string) => import.meta.env.DEV ? 'Configurazione: ' + hint : 'La registrazione non è al momento disponibile. Riprova più tardi.';
 
 function authMessage(error: { message?: string; status?: number; code?: string } | null | undefined, fallback: string) {
   const text = (error?.message ?? '').toLowerCase();
   if (text.includes('rate limit') || error?.status === 429) return 'Troppi tentativi. Attendi qualche minuto e riprova.';
-  if (text.includes('email not confirmed')) return 'Account in attesa di attivazione: la conferma email deve essere disattivata nel progetto Supabase.';
+  if (text.includes('email not confirmed')) return SETUP('Account non attivo: in Supabase → Authentication → Sign In / Providers → Email disattiva “Confirm email”.');
   if (text.includes('password') && (text.includes('weak') || text.includes('short'))) return 'Password troppo debole: usa almeno 10 caratteri con lettere e numeri.';
   if (text.includes('already registered') || text.includes('already exists') || text.includes('database error saving new user')) return 'Questo username non è disponibile. Scegline un altro.';
   if (text.includes('signups not allowed')) return 'Le registrazioni sono momentaneamente chiuse.';
-  if (error?.code === 'email_address_invalid' || text.includes('is invalid')) return 'Registrazione non configurata: imposta VITE_AUTH_EMAIL_DOMAIN (vedi docs/MANUAL_INFO_CHECKLIST.md).';
+  // Supabase validates the address only when it must send a confirmation email:
+  // with "Confirm email" disabled (required for username-only accounts) this does not happen.
+  if (error?.code === 'email_address_invalid' || text.includes('is invalid')) return SETUP('Registrazione bloccata da Supabase: in Authentication → Sign In / Providers → Email disattiva “Confirm email” e riprova.');
   return fallback;
 }
 
@@ -81,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const sb = client();
       const { data, error } = await sb.auth.signUp({ email: usernameToEmail(name), password, options: { data: { username: name } } });
       if (error) throw new Error(authMessage(error, 'Registrazione non riuscita. Riprova tra poco.'));
-      if (!data.session) throw new Error('Account creato ma non attivo: nel progetto Supabase disattiva “Confirm email” (vedi la guida).');
+      if (!data.session) throw new Error(SETUP('Account creato ma non attivo: in Supabase disattiva “Confirm email”, poi accedi con username e password.'));
       const code = generateRecoveryCode();
       const { error: codeError } = await sb.rpc('set_recovery_code', { p_code: code });
       if (codeError) throw new Error('Account creato, ma non è stato possibile generare il codice di recupero. Generalo dalla pagina Account.');

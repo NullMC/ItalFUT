@@ -30,9 +30,10 @@ Le Edge Function non servono più. Se nel progetto risulta pubblicata `delete-ac
 
 ### 4. Prova di registrazione
 Crea un account di prova da `/registrati`. Gli account usano internamente un indirizzo fittizio `username@users.italfut.invalid` (dominio riservato: nessuna email può esistere o essere recapitata).
-Se Supabase risponde che l’indirizzo non è valido, imposta nel file `.env.local` e nelle variabili di Cloudflare:
+Se compare “Registrazione bloccata da Supabase” o “indirizzo non valido”, quasi sempre **“Confirm email” è ancora attivo** (punto 2): Supabase controlla l’indirizzo solo quando deve inviare un’email. Disattivalo e riprova.
+Solo se l’errore resta anche con la conferma disattivata, imposta un dominio che possiedi nel file `.env.local` e nelle variabili di Cloudflare:
 ```
-VITE_AUTH_EMAIL_DOMAIN=utenti.<tuodominio>.it
+VITE_AUTH_EMAIL_DOMAIN=utenti.franksitez.com
 ```
 ⚠ Decidi il dominio interno **prima** del lancio: cambiarlo dopo impedisce l’accesso agli account già creati.
 
