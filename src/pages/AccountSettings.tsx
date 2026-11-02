@@ -1,19 +1,31 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Alert, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from '@mui/material';
+import { Alert, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from '@mui/material';
+import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 import DeleteForeverRoundedIcon from '@mui/icons-material/DeleteForeverRounded';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { client, friendlyError } from '../lib/supabase';
-import { legalConfig } from '../config/legal';
+import { checkPassword, isInternalEmail } from '../lib/validation';
+import { PasswordField, StrengthMeter } from './Access';
+import { RecoveryCode } from '../components/RecoveryCode';
 
 type OwnedTenant = { id: string; name: string; slug: string; status: string };
+type SupportRequest = { id: string; kind: string; message: string; status: string; reply: string | null; created_at: string };
+const KIND: Record<string, string> = { privacy: 'Privacy', support: 'Assistenza', minor: 'Dati di un minore', billing: 'Pagamenti', other: 'Altro' };
+const REQUEST_STATUS: Record<string, string> = { open: 'In attesa', answered: 'Risposta disponibile', closed: 'Chiusa' };
 
 function errorText(error: unknown) {
   return friendlyError(error);
 }
 export function AccountSettings() {
-  const { session, profile } = useAuth();
+  const { session, profile, changePassword, regenerateRecoveryCode } = useAuth();
+  const [current, setCurrent] = useState('');
+  const [nextPassword, setNextPassword] = useState('');
+  const [nextConfirm, setNextConfirm] = useState('');
+  const [hasCode, setHasCode] = useState<boolean | null>(null);
+  const [newCode, setNewCode] = useState('');
+  const [requests, setRequests] = useState<SupportRequest[]>([]);
   const [exporting, setExporting] = useState(false);
   const navigate = useNavigate();
   const [owned, setOwned] = useState<OwnedTenant[]>([]);
@@ -56,7 +68,7 @@ export function AccountSettings() {
       const sb = client();
       const tables = ['competitions', 'teams', 'competition_teams', 'players', 'matches', 'match_events', 'staff_members', 'awards', 'sponsors', 'articles', 'market_slots', 'galleries'];
       const [me, memberships] = await Promise.all([
-        sb.from('profiles').select('id,username,email,created_at').eq('id', session.user.id).maybeSingle(),
+        sb.from('profiles').select('id,username,created_at').eq('id', session.user.id).maybeSingle(),
         sb.from('tenant_members').select('tenant_id,role,created_at').eq('user_id', session.user.id),
       ]);
       if (me.error) throw me.error;
@@ -68,7 +80,7 @@ export function AccountSettings() {
         if (failed?.error) throw failed.error;
         tournaments.push({ ...tenant, data: Object.fromEntries(tables.map((table, index) => [table, rows[index].data ?? []])) });
       }
-      const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), account: me.data, memberships: memberships.data, tournaments }, null, 2)], { type: 'application/json' });
+      const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), account: me.data, memberships: memberships.data, requests, tournaments }, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url; link.download = 'italfut-dati-' + new Date().toISOString().slice(0, 10) + '.json';
@@ -77,6 +89,38 @@ export function AccountSettings() {
       setMessage('Esportazione completata: il file JSON è stato scaricato sul tuo dispositivo.');
     } catch (cause) { setError(errorText(cause)); }
     finally { setExporting(false); }
+  };
+
+  useEffect(() => {
+    let alive = true;
+    if (!session) return;
+    void Promise.all([
+      Promise.resolve(client().rpc('has_recovery_code')),
+      Promise.resolve(client().from('support_requests').select('id,kind,message,status,reply,created_at').order('created_at', { ascending: false }).limit(50)),
+    ]).then(([code, list]) => {
+      if (!alive) return;
+      setHasCode(code.error ? null : Boolean(code.data));
+      if (!list.error) setRequests((list.data ?? []) as SupportRequest[]);
+    });
+    return () => { alive = false; };
+  }, [session?.user.id]);
+
+  const savePassword = async (event: FormEvent) => {
+    event.preventDefault(); setError(''); setMessage('');
+    if (!checkPassword(nextPassword, profile?.username).ok || nextPassword !== nextConfirm) { setError('La nuova password non rispetta i requisiti o non coincide.'); return; }
+    setBusy(true);
+    try {
+      await changePassword(current, nextPassword);
+      setCurrent(''); setNextPassword(''); setNextConfirm('');
+      setMessage('Password aggiornata.');
+    } catch (cause) { setError(errorText(cause)); }
+    finally { setBusy(false); }
+  };
+  const newRecoveryCode = async () => {
+    setBusy(true); setError(''); setMessage('');
+    try { setNewCode(await regenerateRecoveryCode()); setHasCode(true); }
+    catch (cause) { setError(errorText(cause)); }
+    finally { setBusy(false); }
   };
 
   const eraseTenant = async (event: FormEvent) => {
@@ -100,19 +144,10 @@ export function AccountSettings() {
     if (confirmationAccount !== 'ELIMINA ACCOUNT' || !password || owned.length) return;
     setBusy(true); setError(''); setMessage('');
     try {
-      const { data, error: issue } = await client().functions.invoke('delete-account', {
-        body: { password, confirmation: confirmationAccount },
-      });
-      if (issue) {
-        const response = (issue as { context?: Response }).context;
-        if (response && typeof response.json === 'function') {
-          const body = await response.json().catch(() => ({})) as { error?: string };
-          throw new Error(body.error || 'Servizio di cancellazione temporaneamente non disponibile.');
-        }
-        throw issue;
-      }
-      if (!data?.deleted) throw new Error('La cancellazione non è stata confermata dal server.');
-      // Remove the local session; Auth records have already been deleted by the server.
+      const { data, error: issue } = await client().rpc('delete_my_account', { p_password: password, p_confirmation: confirmationAccount });
+      if (issue) throw issue;
+      if (data !== true) throw new Error('Password non corretta.');
+      // The account no longer exists: drop the local session.
       await client().auth.signOut({ scope: 'local' }).catch(() => {});
       setPassword(''); setConfirmationAccount(''); setAccountDialog(false);
       navigate('/', { replace: true });
@@ -135,11 +170,38 @@ export function AccountSettings() {
         <h2 id="account-data-title">I tuoi dati</h2>
         <dl className="kv">
           <div><dt>Username</dt><dd>{profile?.username ?? '—'}</dd></div>
-          <div><dt>Email</dt><dd>{session?.user.email || '—'}</dd></div>
+          {!isInternalEmail(session?.user.email) && session?.user.email && <div><dt>Email (account precedente)</dt><dd>{session.user.email}</dd></div>}
           <div><dt>Iscritto dal</dt><dd>{session?.user.created_at ? new Date(session.user.created_at).toLocaleDateString('it-IT') : '—'}</dd></div>
         </dl>
-        <p className="muted">Raccogliamo solo username, email e password (cifrata). Per correggere i dati scrivi all’indirizzo indicato nella <RouterLink to="/privacy-policy">privacy policy</RouterLink>.</p>
+        <p className="muted">Conserviamo solo username e password (cifrata), più i contenuti dei tuoi tornei. Nessuna email, nessun dato di contatto.</p>
         <Button variant="outlined" startIcon={exporting ? <CircularProgress size={16} color="inherit" /> : <DownloadRoundedIcon />} disabled={exporting || loading} onClick={() => void exportData()}>Scarica una copia dei dati (JSON)</Button>
+      </section>
+
+      <section className="panel glass" aria-labelledby="security-title">
+        <h2 id="security-title">Sicurezza</h2>
+        <form onSubmit={savePassword} className="stack-form">
+          <PasswordField id="current-password" label="Password attuale" value={current} onChange={setCurrent} autoComplete="current-password" />
+          <PasswordField id="new-password" label="Nuova password" value={nextPassword} onChange={setNextPassword} autoComplete="new-password" />
+          <StrengthMeter password={nextPassword} username={profile?.username} />
+          <PasswordField id="new-password-confirm" label="Conferma nuova password" value={nextConfirm} onChange={setNextConfirm} autoComplete="new-password"
+            error={nextConfirm.length > 0 && nextConfirm !== nextPassword} helperText={nextConfirm.length > 0 && nextConfirm !== nextPassword ? 'Le password non coincidono.' : undefined} />
+          <Button type="submit" variant="contained" disabled={busy || !current || !nextPassword} sx={{ justifySelf: 'start' }}>Cambia password</Button>
+        </form>
+        <div className="recovery-status">
+          <div><b>Codice di recupero</b><small>{hasCode === null ? 'Stato non disponibile' : hasCode ? 'Attivo: ti permette di reimpostare la password senza email.' : 'Nessun codice attivo: generane uno ora, altrimenti non potrai recuperare l’account.'}</small></div>
+          <Button variant={hasCode === false ? 'contained' : 'outlined'} startIcon={<KeyRoundedIcon />} disabled={busy} onClick={() => void newRecoveryCode()}>{hasCode ? 'Genera nuovo codice' : 'Genera codice'}</Button>
+        </div>
+      </section>
+
+      <section className="panel glass" aria-labelledby="requests-title">
+        <h2 id="requests-title">Le tue richieste</h2>
+        <p className="muted">Richieste di assistenza o privacy inviate dalla pagina <RouterLink to="/contatti">Contatti</RouterLink>. Le risposte compaiono qui.</p>
+        {requests.length ? <ul className="rows">{requests.map(request => <li className="row row--request" key={request.id}>
+          <span className="row__text"><strong>{KIND[request.kind] ?? request.kind} · {new Date(request.created_at).toLocaleDateString('it-IT')}</strong><small>{request.message}</small>
+            {request.reply && <span className="request-reply">{request.reply}</span>}</span>
+          <Chip size="small" variant="outlined" label={REQUEST_STATUS[request.status] ?? request.status} />
+        </li>)}</ul> : <p>Nessuna richiesta inviata.</p>}
+        <Button component={RouterLink} to="/contatti" variant="outlined" sx={{ mt: 2 }}>Nuova richiesta</Button>
       </section>
 
       <section className="panel glass" aria-labelledby="tenant-delete-title">
@@ -162,9 +224,14 @@ export function AccountSettings() {
           Elimina il mio account
         </Button>
         {owned.length > 0 && <p className="hint">Prima elimina {owned.length === 1 ? 'il torneo' : `i ${owned.length} tornei`} di tua proprietà.</p>}
-        {legalConfig.privacyEmail && <p className="hint">Per richieste particolari: <a href={'mailto:' + legalConfig.privacyEmail}>{legalConfig.privacyEmail}</a>.</p>}
+        <p className="hint">Per casi particolari invia una richiesta dalla pagina <RouterLink to="/contatti">Contatti</RouterLink>.</p>
       </section>
     </div>
+
+    <Dialog open={Boolean(newCode)} fullWidth maxWidth="xs" aria-labelledby="new-code-title">
+      <DialogTitle id="new-code-title">Nuovo codice di recupero</DialogTitle>
+      <DialogContent><RecoveryCode code={newCode} username={profile?.username ?? 'account'} doneLabel="Fatto" onDone={() => { setNewCode(''); setMessage('Nuovo codice salvato. Il codice precedente non è più valido.'); }} /></DialogContent>
+    </Dialog>
 
     <Dialog open={Boolean(tenantToDelete)} onClose={() => { if (!busy) setTenantToDelete(null); }} fullWidth maxWidth="sm" aria-labelledby="tenant-delete-confirm-title">
       <form onSubmit={eraseTenant}>

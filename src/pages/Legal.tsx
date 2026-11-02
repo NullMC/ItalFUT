@@ -9,6 +9,9 @@ type Section = { id: string; title: string; body: ReactNode };
 
 const v = (text: string | null | undefined): ReactNode =>
   text ? <span>{text}</span> : <span className="legal-missing">da completare</span>;
+const contactForm = <RouterLink to="/contatti">modulo Contatti</RouterLink>;
+/** Optional extra channel: shown only if an address has been configured. */
+const orMail = (address: string) => address ? <> o all’indirizzo <a href={'mailto:' + address}>{address}</a></> : null;
 const mail = (address: string) => address ? <a href={'mailto:' + address}>{address}</a> : <span className="legal-missing">da completare</span>;
 
 const titleMap: Record<LegalPageId, string> = {
@@ -39,11 +42,12 @@ function sections(page: LegalPageId, openPreferences: () => void): Section[] {
   switch (page) {
     case 'privacy': return [
       { id: 'titolare', title: '1. Titolare del trattamento', body: <>
-        <p>ItalFUT è un progetto realizzato e gestito da {v(c.operatorName)}, che è il titolare del trattamento. Sede legale: {v(c.registeredOffice)}. Contatto privacy: {mail(c.privacyEmail)}{c.dpoContact ? <>. Responsabile della protezione dei dati: {c.dpoContact}</> : null}.</p>
+        <p>ItalFUT è un progetto realizzato e gestito da {v(c.operatorName)}, che è il titolare del trattamento. Sede legale: {v(c.registeredOffice)}. Per qualsiasi richiesta usa il {contactForm}{orMail(c.privacyEmail)}{c.dpoContact ? <>. Responsabile della protezione dei dati: {c.dpoContact}</> : null}.</p>
         <p>Per i dati di giocatori, staff e partecipanti inseriti in un torneo, l’organizzatore che li carica agisce come titolare autonomo e deve informare gli interessati. ItalFUT tratta tali dati per suo conto come fornitore della piattaforma; i rispettivi ruoli vanno formalizzati con un accordo (art. 28 GDPR).</p>
       </> },
       { id: 'dati', title: '2. Dati che trattiamo', body: <ul>
-        <li><b>Account organizzatore:</b> username, indirizzo email, password (conservata dal servizio di autenticazione solo in forma cifrata con hash), data di creazione e accessi.</li>
+        <li><b>Account organizzatore:</b> username e password (conservata solo in forma cifrata con hash), codice di recupero (anch’esso cifrato), data di creazione e ultimi accessi. Non chiediamo né conserviamo indirizzi email.</li>
+        <li><b>Richieste dal modulo Contatti:</b> argomento, messaggio e, solo se lo inserisci tu, un recapito per la risposta.</li>
         <li><b>Contenuti del torneo:</b> nomi di competizioni e squadre, nomi e cognomi dei giocatori, numero di maglia, ruolo, risultati, eventi di gara, immagini o link inseriti dall’organizzatore.</li>
         <li><b>Minorenni:</b> fascia d’età (maggiorenne/minorenne) e la conferma dell’organizzatore di aver raccolto l’autorizzazione del genitore o tutore. Non raccogliamo date di nascita, documenti o dati dei genitori.</li>
         <li><b>Dati tecnici:</b> indirizzo IP e informazioni del browser nei log di sicurezza del fornitore di hosting e del database.</li>
@@ -57,7 +61,7 @@ function sections(page: LegalPageId, openPreferences: () => void): Section[] {
           <tr><td>Adempimenti fiscali e contabili (quando saranno attivi i pagamenti)</td><td>Obbligo di legge (art. 6.1.c GDPR)</td></tr>
         </tbody></table></div> },
       { id: 'destinatari', title: '4. Fornitori e trasferimenti', body: <>
-        <p>Usiamo solo due fornitori, entrambi necessari al funzionamento: {c.databaseProvider} per database, autenticazione ed email di servizio (regione {v(c.serverRegion)}) e {v(c.hostingProvider)} per dominio, DNS, rete di distribuzione e hosting del sito. Agiscono come responsabili del trattamento. Nessun altro servizio esterno riceve i tuoi dati.</p>
+        <p>Usiamo solo due fornitori, entrambi necessari al funzionamento: {c.databaseProvider} per database e autenticazione (regione {v(c.serverRegion)}) e {v(c.hostingProvider)} per dominio, DNS, rete di distribuzione e hosting del sito. Agiscono come responsabili del trattamento. Nessun altro servizio esterno riceve i tuoi dati.</p>
         <p>Alcuni fornitori hanno sede negli Stati Uniti: eventuali trasferimenti avvengono sulla base delle Clausole Contrattuali Standard della Commissione europea o del Data Privacy Framework, ove applicabile. Non vendiamo dati e non usiamo strumenti pubblicitari o di profilazione.</p>
       </> },
       { id: 'conservazione', title: '5. Per quanto tempo', body: <ul>
@@ -68,15 +72,15 @@ function sections(page: LegalPageId, openPreferences: () => void): Section[] {
         <li>Puoi cancellare in autonomia tornei e account dalla pagina <RouterLink to="/account">Account e dati</RouterLink>. Le copie di backup del fornitore vengono sovrascritte secondo i suoi cicli di rotazione.</li>
       </ul> },
       { id: 'diritti', title: '6. I tuoi diritti', body: <>
-        <p>Puoi chiedere accesso, rettifica, cancellazione, limitazione, portabilità e opporti al trattamento (artt. 15–22 GDPR) scrivendo a {mail(c.privacyEmail)}. Rispondiamo entro un mese.</p>
+        <p>Puoi chiedere accesso, rettifica, cancellazione, limitazione, portabilità e opporti al trattamento (artt. 15–22 GDPR) tramite il {contactForm}{orMail(c.privacyEmail)}. Rispondiamo entro un mese. Puoi anche scaricare i tuoi dati e cancellare tornei e account in autonomia dalla pagina <RouterLink to="/account">Account e dati</RouterLink>.</p>
         <p>Hai diritto di proporre reclamo al Garante per la protezione dei dati personali (<a href="https://www.garanteprivacy.it" target="_blank" rel="noopener noreferrer">garanteprivacy.it</a>).</p>
       </> },
       { id: 'minori', title: '7. Minorenni', body: <>
         <p>Gli account organizzatore sono riservati ai maggiorenni: lo dichiari in fase di registrazione. Questa dichiarazione non è una verifica dell’età.</p>
-        <p>Prima di pubblicare nome o foto di un atleta minorenne, l’organizzatore deve ottenere l’autorizzazione di chi esercita la responsabilità genitoriale e conservarne prova. La piattaforma registra chi ha confermato e quando, e non mostra pubblicamente i giocatori minorenni senza questa conferma. Genitori e tutori possono chiedere la rimozione scrivendo a {mail(c.privacyEmail)}.</p>
+        <p>Prima di pubblicare nome o foto di un atleta minorenne, l’organizzatore deve ottenere l’autorizzazione di chi esercita la responsabilità genitoriale e conservarne prova. La piattaforma registra chi ha confermato e quando, e non mostra pubblicamente i giocatori minorenni senza questa conferma. Genitori e tutori possono chiedere la rimozione tramite il {contactForm}, argomento “Dati o foto di un minore”, anche senza account.</p>
       </> },
       { id: 'sicurezza', title: '8. Sicurezza', body: <p>Connessioni cifrate (HTTPS), isolamento dei dati tra tornei con regole di sicurezza a livello di database, password mai visibili al personale, intestazioni di sicurezza del browser e accessi amministrativi limitati.</p> },
-      { id: 'modifiche', title: '9. Modifiche', body: <p>Pubblicheremo qui ogni aggiornamento indicando la data della versione. Le modifiche sostanziali saranno comunicate agli organizzatori via email.</p> },
+      { id: 'modifiche', title: '9. Modifiche', body: <p>Pubblicheremo qui ogni aggiornamento indicando la data della versione. Le modifiche sostanziali saranno segnalate agli organizzatori nella console.</p> },
     ];
     case 'terms': return [
       { id: 'oggetto', title: '1. Il servizio', body: <p>ItalFUT è un progetto realizzato e gestito da {v(c.operatorName)}: una piattaforma per organizzare competizioni calcistiche: gestione di squadre, giocatori, partite e classifiche, con un sito pubblico per ciascun torneo. Le funzioni disponibili dipendono dai moduli attivi.</p> },
@@ -97,12 +101,12 @@ function sections(page: LegalPageId, openPreferences: () => void): Section[] {
       { id: 'disponibilita', title: '5. Disponibilità e responsabilità', body: <p>Ci impegniamo a mantenere il servizio disponibile e sicuro, ma possono verificarsi interruzioni per manutenzione o cause esterne. Nei limiti consentiti dalla legge non rispondiamo di danni indiretti; restano salvi i diritti inderogabili dei consumatori.</p> },
       { id: 'recesso', title: '6. Durata, recesso e chiusura', body: <p>Il servizio dura per il periodo scelto. Le regole su recesso e rimborsi sono descritte nella pagina <RouterLink to="/refund-policy">Rimborsi e recesso</RouterLink>. Alla chiusura puoi esportare i dati e poi cancellarli.</p> },
       { id: 'legge', title: '7. Legge applicabile e controversie', body: <p>Si applica la legge italiana ({c.jurisdiction}). Per i consumatori è competente il giudice del luogo di residenza o domicilio. È disponibile la piattaforma europea di risoluzione delle controversie online e, in alternativa, le procedure ADR previste dal Codice del Consumo.</p> },
-      { id: 'contatti', title: '8. Contatti', body: <p>Assistenza: {mail(c.supportEmail)}{c.telephone ? <> · Tel. {c.telephone}</> : null}. PEC: {v(c.certifiedEmail)}.</p> },
+      { id: 'contatti', title: '8. Contatti', body: <p>Assistenza tramite il {contactForm}{orMail(c.supportEmail)}{c.telephone ? <> · Tel. {c.telephone}</> : null}. PEC: {v(c.certifiedEmail)}.</p> },
     ];
     case 'refund': return [
       { id: 'stato', title: '1. Situazione attuale', body: <p>ItalFUT oggi non effettua addebiti: il configuratore produce un preventivo indicativo e i moduli aggiuntivi si richiedono senza pagamento. Questa pagina descrive le regole che si applicheranno quando i pagamenti saranno attivi.</p> },
       { id: 'recesso', title: '2. Diritto di recesso (consumatori)', body: <>
-        <p>Se sei un consumatore, puoi recedere entro 14 giorni dalla conclusione del contratto senza indicarne il motivo (artt. 52 e ss. Codice del Consumo), comunicandolo a {mail(c.refundContact || c.supportEmail)}.</p>
+        <p>Se sei un consumatore, puoi recedere entro 14 giorni dalla conclusione del contratto senza indicarne il motivo (artt. 52 e ss. Codice del Consumo), comunicandolo tramite il {contactForm} (argomento “Pagamenti e rimborsi”){orMail(c.refundContact || c.supportEmail)}.</p>
         <p>Se chiedi espressamente che il servizio inizi prima della fine dei 14 giorni, in caso di recesso pagherai solo la quota proporzionale al servizio già fornito. Non useremo caselle preselezionate per questa richiesta.</p>
       </> },
       { id: 'rimborsi', title: '3. Come avviene il rimborso', body: <ul>

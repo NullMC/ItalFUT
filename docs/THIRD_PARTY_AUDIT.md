@@ -19,7 +19,7 @@ Removed in this revision: `tailwindcss`, `@tailwindcss/vite` (one utility class 
 
 ## Infrastructure
 
-Only two providers: **Cloudflare** (registrar, DNS, CDN, Pages hosting) and **Supabase** (Postgres, Auth, Edge Functions, service emails). Cloudflare Web Analytics, Rocket Loader, Email Obfuscation and Zaraz must stay off. A production SMTP for auth emails is the only additional service that may be required.
+Only two providers: **Cloudflare** (registrar, DNS, CDN, Pages hosting) and **Supabase** (Postgres, Auth, SQL functions). No email service: users are username + password only, recovery uses one-time codes, requests are stored in `support_requests`. Cloudflare Web Analytics, Rocket Loader, Email Obfuscation and Zaraz must stay off. Stripe will be added at commercial launch (update CSP and policies then).
 
 ## Browser storage
 

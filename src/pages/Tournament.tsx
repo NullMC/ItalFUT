@@ -244,6 +244,7 @@ export function Tournament() {
         <RouterLink to="/cookie-policy">Cookie</RouterLink>
         <button type="button" onClick={openPreferences}>Preferenze cookie</button>
         <RouterLink to="/business">Operatore</RouterLink>
+        <RouterLink to="/contatti">Contatti</RouterLink>
       </nav>
     </Container></footer>
   </div>;

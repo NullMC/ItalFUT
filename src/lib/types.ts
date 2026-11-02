@@ -10,6 +10,6 @@ export type Tenant = {
 };
 export type TenantFeature = { tenant_id: string; code: FeatureCode; enabled: boolean; ends_at: string | null };
 export type Member = { tenant_id: string; user_id: string; role: MemberRole };
-export type Profile = { id: string; username: string; email: string };
+export type Profile = { id: string; username: string };
 export type Row = Record<string, unknown> & { id: string; tenant_id: string };
 export type Option = { id: string; name: string };

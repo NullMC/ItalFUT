@@ -2,28 +2,35 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import type { Session } from '@supabase/supabase-js';
 import { client, supabase } from '../lib/supabase';
 import type { Profile } from '../lib/types';
-import { normalizeUsername, USERNAME_PATTERN } from '../lib/validation';
+import { generateRecoveryCode, normalizeUsername, PASSWORD_MAX, usernameToEmail, USERNAME_PATTERN } from '../lib/validation';
 
+/**
+ * Username + password authentication, entirely inside Supabase.
+ * No email is ever sent: sign-up returns a session immediately ("Confirm email" is
+ * disabled in the project) and password recovery uses a one-time recovery code.
+ */
 type AuthContextValue = {
-  session: Session | null; profile: Profile | null; loading: boolean; recovery: boolean;
+  session: Session | null; profile: Profile | null; loading: boolean;
   signIn: (username: string, password: string) => Promise<void>;
-  signUp: (input: { username: string; email: string; password: string }) => Promise<boolean>;
+  /** Creates the account and returns the recovery code to show once. */
+  signUp: (input: { username: string; password: string }) => Promise<string>;
   usernameAvailable: (username: string) => Promise<boolean | null>;
-  requestPasswordReset: (email: string) => Promise<void>;
-  updatePassword: (password: string) => Promise<void>;
+  resetWithCode: (input: { username: string; code: string; password: string }) => Promise<void>;
+  changePassword: (current: string, next: string) => Promise<void>;
+  regenerateRecoveryCode: () => Promise<string>;
   signOut: () => Promise<void>;
 };
 const AuthContext = createContext<AuthContextValue | null>(null);
 const GENERIC_LOGIN_ERROR = 'Username o password non corretti.';
 
-/** Maps Supabase/Auth errors to safe, non-enumerating Italian messages. */
-function authMessage(error: { message?: string; status?: number } | null | undefined, fallback: string) {
+function authMessage(error: { message?: string; status?: number; code?: string } | null | undefined, fallback: string) {
   const text = (error?.message ?? '').toLowerCase();
-  if (text.includes('email not confirmed')) return 'Conferma prima il tuo indirizzo email dal link che ti abbiamo inviato.';
   if (text.includes('rate limit') || error?.status === 429) return 'Troppi tentativi. Attendi qualche minuto e riprova.';
-  if (text.includes('password') && text.includes('weak')) return 'Password troppo debole: usa almeno 10 caratteri con lettere e numeri.';
-  if (text.includes('already registered') || text.includes('already exists')) return 'Impossibile completare la registrazione con questi dati. Se hai già un account, accedi.';
-  if (text.includes('database error saving new user')) return 'Username non disponibile. Scegline un altro.';
+  if (text.includes('email not confirmed')) return 'Account in attesa di attivazione: la conferma email deve essere disattivata nel progetto Supabase.';
+  if (text.includes('password') && (text.includes('weak') || text.includes('short'))) return 'Password troppo debole: usa almeno 10 caratteri con lettere e numeri.';
+  if (text.includes('already registered') || text.includes('already exists') || text.includes('database error saving new user')) return 'Questo username non è disponibile. Scegline un altro.';
+  if (text.includes('signups not allowed')) return 'Le registrazioni sono momentaneamente chiuse.';
+  if (error?.code === 'email_address_invalid' || text.includes('is invalid')) return 'Registrazione non configurata: imposta VITE_AUTH_EMAIL_DOMAIN (vedi docs/MANUAL_INFO_CHECKLIST.md).';
   return fallback;
 }
 
@@ -31,7 +38,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [recovery, setRecovery] = useState(false);
 
   useEffect(() => {
     if (!supabase) { setLoading(false); return; }
@@ -39,82 +45,73 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void supabase.auth.getSession().then(({ data }) => {
       if (alive) { setSession(data.session); setLoading(false); }
     }).catch(() => { if (alive) setLoading(false); });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, next) => {
-      if (event === 'PASSWORD_RECOVERY') setRecovery(true);
-      if (event === 'SIGNED_OUT') setRecovery(false);
-      setSession(next);
-    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, next) => setSession(next));
     return () => { alive = false; subscription.unsubscribe(); };
   }, []);
 
   useEffect(() => {
     let alive = true;
     if (!session?.user) { setProfile(null); return; }
-    void Promise.resolve(client().from('profiles').select('id,username,email')
+    void Promise.resolve(client().from('profiles').select('id,username')
       .eq('id', session.user.id).maybeSingle())
       .then(({ data }) => { if (alive) setProfile((data as Profile | null) ?? null); });
     return () => { alive = false; };
   }, [session?.user?.id]);
 
   const value = useMemo<AuthContextValue>(() => ({
-    session, profile, loading, recovery,
+    session, profile, loading,
     async signIn(identifier, password) {
-      const sb = client();
       const raw = identifier.trim();
-      if (!raw || !password || password.length > 128) throw new Error(GENERIC_LOGIN_ERROR);
-      if (raw.includes('@')) {
-        const { error } = await sb.auth.signInWithPassword({ email: raw.toLowerCase(), password });
-        if (error) throw new Error(authMessage(error, GENERIC_LOGIN_ERROR));
-        return;
-      }
-      const username = normalizeUsername(raw);
-      if (!USERNAME_PATTERN.test(username)) throw new Error(GENERIC_LOGIN_ERROR);
-      const { data, error } = await sb.functions.invoke('auth-username', { body: { username, password } });
-      if (error) {
-        const response = (error as { context?: Response }).context;
-        const status = response?.status;
-        const body = await response?.clone().json().catch(() => null) as { code?: string } | null;
-        if (status === 429) throw new Error('Troppi tentativi. Attendi qualche minuto e riprova.');
-        if (body?.code === 'email_not_confirmed') throw new Error('Conferma prima il tuo indirizzo email dal link che ti abbiamo inviato.');
-        if (status === 404 || status === 503 || !status) throw new Error('Accesso con username momentaneamente non disponibile: inserisci la tua email al posto dello username.');
-        throw new Error(GENERIC_LOGIN_ERROR);
-      }
-      if (!data?.access_token || !data?.refresh_token) throw new Error(GENERIC_LOGIN_ERROR);
-      const result = await sb.auth.setSession({ access_token: data.access_token, refresh_token: data.refresh_token });
-      if (result.error) throw new Error(GENERIC_LOGIN_ERROR);
+      if (!raw || !password || new TextEncoder().encode(password).length > PASSWORD_MAX) throw new Error(GENERIC_LOGIN_ERROR);
+      // Accounts created before the email-free switch can still sign in with their address.
+      const email = raw.includes('@') ? raw.toLowerCase() : usernameToEmail(raw);
+      if (!raw.includes('@') && !USERNAME_PATTERN.test(normalizeUsername(raw))) throw new Error(GENERIC_LOGIN_ERROR);
+      const { error } = await client().auth.signInWithPassword({ email, password });
+      if (error) throw new Error(authMessage(error, GENERIC_LOGIN_ERROR));
     },
-    async signUp({ username, email, password }) {
-      const { data, error } = await client().auth.signUp({
-        email: email.trim().toLowerCase(), password,
-        options: {
-          data: { username: normalizeUsername(username) },
-          emailRedirectTo: window.location.origin + '/accesso',
-        },
-      });
+    async signUp({ username, password }) {
+      const name = normalizeUsername(username);
+      const sb = client();
+      const { data, error } = await sb.auth.signUp({ email: usernameToEmail(name), password, options: { data: { username: name } } });
       if (error) throw new Error(authMessage(error, 'Registrazione non riuscita. Riprova tra poco.'));
-      return !data.session;
+      if (!data.session) throw new Error('Account creato ma non attivo: nel progetto Supabase disattiva “Confirm email” (vedi la guida).');
+      const code = generateRecoveryCode();
+      const { error: codeError } = await sb.rpc('set_recovery_code', { p_code: code });
+      if (codeError) throw new Error('Account creato, ma non è stato possibile generare il codice di recupero. Generalo dalla pagina Account.');
+      return code;
     },
     async usernameAvailable(username) {
       const { data, error } = await client().rpc('username_available', { p_username: normalizeUsername(username) });
-      if (error) return null; // unknown: the server still enforces uniqueness
+      if (error) return null; // unknown: the database still enforces uniqueness
       return Boolean(data);
     },
-    async requestPasswordReset(email) {
-      // Always resolve with the same message: never reveal whether an email exists.
-      await client().auth.resetPasswordForEmail(email.trim().toLowerCase(), {
-        redirectTo: window.location.origin + '/reimposta-password',
-      }).catch(() => undefined);
+    async resetWithCode({ username, code, password }) {
+      const { data, error } = await client().rpc('reset_password_with_code', {
+        p_username: normalizeUsername(username), p_code: code.trim().toUpperCase(), p_new_password: password,
+      });
+      if (error) throw new Error(/troppi/i.test(error.message) ? error.message : 'Reimpostazione non riuscita. Riprova più tardi.');
+      if (!data) throw new Error('Username o codice di recupero non corretti.');
     },
-    async updatePassword(password) {
-      const { error } = await client().auth.updateUser({ password });
-      if (error) throw new Error(authMessage(error, 'Aggiornamento non riuscito. Richiedi un nuovo link.'));
-      setRecovery(false);
+    async changePassword(current, next) {
+      const sb = client();
+      const email = session?.user.email;
+      if (!email) throw new Error('Sessione non valida. Accedi di nuovo.');
+      const check = await sb.auth.signInWithPassword({ email, password: current });
+      if (check.error) throw new Error('La password attuale non è corretta.');
+      const { error } = await sb.auth.updateUser({ password: next });
+      if (error) throw new Error(authMessage(error, 'Aggiornamento non riuscito. Riprova.'));
+    },
+    async regenerateRecoveryCode() {
+      const code = generateRecoveryCode();
+      const { error } = await client().rpc('set_recovery_code', { p_code: code });
+      if (error) throw new Error('Non è stato possibile generare un nuovo codice. Riprova.');
+      return code;
     },
     async signOut() {
       const { error } = await client().auth.signOut();
       if (error) await client().auth.signOut({ scope: 'local' });
     },
-  }), [session, profile, loading, recovery]);
+  }), [session, profile, loading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

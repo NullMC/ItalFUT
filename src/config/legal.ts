@@ -20,7 +20,9 @@ export const legalConfig = {
   shareCapital: '',          // solo per società di capitali, es. "€ 10.000 i.v."
   registeredOffice: '',      // indirizzo completo della sede legale
   businessAddress: '',       // sede operativa, solo se diversa
-  // Contatti
+  // Contatti: le richieste arrivano nel database (pagina /contatti, tabella support_requests).
+  // Un indirizzo email di sola ricezione è comunque richiesto dalla legge per chi vende online
+  // (D.Lgs. 70/2003, art. 7): compilalo prima del lancio commerciale.
   supportEmail: '',
   privacyEmail: '',
   certifiedEmail: '',        // PEC
@@ -53,8 +55,7 @@ export const legalConfig = {
 export const madeBy = { label: 'franksitez.com', url: 'https://franksitez.com' };
 
 export const legalNeedsReview = !LEGAL_REVIEWED ||
-  !legalConfig.operatorName || !legalConfig.registeredOffice ||
-  !legalConfig.vatNumber || !legalConfig.privacyEmail || !legalConfig.supportEmail;
+  !legalConfig.operatorName || !legalConfig.registeredOffice || !legalConfig.vatNumber;
 
 /** Footer line built only from real, configured values. */
 export const businessLine = [

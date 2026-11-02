@@ -130,6 +130,7 @@ export function SiteLayout() {
           <RouterLink to="/cookie-policy">Cookie</RouterLink>
           <button type="button" onClick={openPreferences}>Preferenze cookie</button>
           <RouterLink to="/business">Operatore</RouterLink>
+          <RouterLink to="/contatti">Contatti</RouterLink>
         </nav>
       </div>
     </footer> : <footer className="footer">
@@ -158,6 +159,7 @@ export function SiteLayout() {
           <RouterLink to="/cookie-policy">Cookie policy</RouterLink>
           <button type="button" onClick={openPreferences}>Preferenze cookie</button>
           <RouterLink to="/business">Informazioni sull’operatore</RouterLink>
+          <RouterLink to="/contatti">Contatti</RouterLink>
         </nav>
       </div>
       <div className="container footer__bottom">

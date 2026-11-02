@@ -154,3 +154,18 @@
   .cookie-banner { left: 10px; right: 10px; bottom: 10px; width: auto; }
   .cookie-banner__actions { grid-template-columns: 1fr; }
 }
+
+/* Recovery code */
+.recovery { display: grid; gap: 14px; }
+.recovery__code { display: block; text-align: center; padding: 16px 8px; border-radius: 16px; font-size: clamp(1.05rem, 4.6vw, 1.5rem); letter-spacing: .04em; white-space: nowrap; overflow-x: auto; background: var(--accent-soft); border: 1px dashed color-mix(in srgb, var(--accent) 55%, transparent); user-select: all; }
+.recovery__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.stack-form { display: grid; gap: 14px; margin-bottom: 20px; }
+.recovery-status { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 16px; border-radius: 16px; background: var(--surface-hover); border: 1px solid var(--line); }
+.recovery-status div { display: grid; gap: 2px; max-width: 48ch; }
+.recovery-status small { color: var(--ink-2); }
+.row--request { align-items: flex-start; }
+.row--request .row__text small { white-space: normal; }
+.request-reply { margin-top: 8px; padding: 10px 12px; border-radius: 12px; background: var(--accent-soft); font-size: .9rem; white-space: pre-wrap; }
+.contact__grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+.contact__aside { display: grid; gap: 10px; color: var(--ink-2); font-size: .92rem; }
+@media (max-width: 900px) { .contact__grid { grid-template-columns: 1fr; } }

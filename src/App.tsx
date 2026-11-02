@@ -13,6 +13,7 @@ const ConsoleHome = lazy(() => import('./pages/Console').then(m => ({ default: m
 const TenantConsole = lazy(() => import('./pages/Console').then(m => ({ default: m.TenantConsole })));
 const Tournament = lazy(() => import('./pages/Tournament').then(m => ({ default: m.Tournament })));
 const LegalPage = lazy(() => import('./pages/Legal').then(m => ({ default: m.LegalPage })));
+const Contact = lazy(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
 const AccountSettings = lazy(() => import('./pages/AccountSettings').then(m => ({ default: m.AccountSettings })));
 
 const Loading = () => <div className="center-screen" role="status" aria-live="polite"><CircularProgress aria-label="Caricamento" /></div>;
@@ -30,7 +31,7 @@ const titles: [RegExp, string][] = [
   [/^\/configura/, 'Configura il torneo · ItalFUT'],
   [/^\/accesso/, 'Accedi · ItalFUT'],
   [/^\/registrati/, 'Crea un account · ItalFUT'],
-  [/^\/reimposta-password/, 'Reimposta password · ItalFUT'],
+  [/^\/contatti/, 'Contatti · ItalFUT'],
   [/^\/console/, 'Console · ItalFUT'],
   [/^\/account/, 'Account e dati · ItalFUT'],
   [/^\/privacy-policy/, 'Privacy policy · ItalFUT'],
@@ -61,7 +62,7 @@ export function App() {
           <Route path="/configura" element={<Configurator />} />
           <Route path="/accesso" element={<Access />} />
           <Route path="/registrati" element={<Access register />} />
-          <Route path="/reimposta-password" element={<Access reset />} />
+          <Route path="/contatti" element={<Contact />} />
           <Route path="/privacy-policy" element={<LegalPage page="privacy" />} />
           <Route path="/terms-of-service" element={<LegalPage page="terms" />} />
           <Route path="/refund-policy" element={<LegalPage page="refund" />} />
