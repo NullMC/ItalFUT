@@ -141,7 +141,7 @@
   .legal__grid { grid-template-columns: 1fr; }
   .legal__aside { position: static; }
   .legal__toc { display: none; }
-  .legal__docs { display: flex; overflow-x: auto; scrollbar-width: none; gap: 6px; }
+  .legal__docs { display: flex; gap: 6px; padding-inline: 6px; margin-inline: -6px; }
   .legal__docs a { white-space: nowrap; border: 1px solid var(--line); border-radius: 999px; }
 }
 @media (max-width: 640px) {

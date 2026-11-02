@@ -126,9 +126,11 @@
 .footer__col a:hover, .footer__col button:hover { color: var(--ink); }
 .footer__bottom { position: relative; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-top: 64px; padding-block: 22px; border-top: 1px solid var(--line); color: var(--ink-3); font-size: .85rem; }
 .footer__wordmark {
-  position: relative; text-align: center; line-height: .76; margin-bottom: -.06em; user-select: none;
-  font-family: var(--font-display); font-weight: 900; font-size: clamp(6rem, 26vw, 24rem); letter-spacing: -.01em;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 55%, transparent) 0%, transparent 85%);
+  /* The serif "ital" overhangs its box: full line box + bottom room, then a soft fade,
+     instead of glyphs sliced by the footer edge. */
+  position: relative; text-align: center; line-height: .92; padding: 0 .04em .06em; margin-top: 12px; user-select: none; white-space: nowrap; overflow: visible;
+  font-family: var(--font-display); font-weight: 900; font-size: clamp(5rem, 22vw, 21rem); letter-spacing: -.01em;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 55%, transparent) 0%, color-mix(in srgb, var(--accent) 22%, transparent) 55%, transparent 96%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 .footer__wordmark span { font-family: var(--font-serif); font-style: italic; font-weight: 400; letter-spacing: -.04em; margin-right: .02em; }

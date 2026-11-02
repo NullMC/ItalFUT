@@ -20,6 +20,7 @@ import { useAuth } from '../auth/AuthProvider';
 import { ErrorView } from '../pages/ErrorPage';
 import { trackSpotlight } from '../components/MarketingMotion';
 import { AdminTable } from './AdminTable';
+import { ScrollRail } from '../components/ScrollRail';
 import { GROUPS, TABLES, valueLabel, type AdminSchema } from './adminConfig';
 
 type Stats = {
@@ -48,7 +49,13 @@ function Overview() {
   ];
   const peak = Math.max(1, ...stats.signups_by_week.map(w => w.count));
   return <>
-    <header className="workspace__head"><h1>Panoramica della piattaforma</h1><p>Numeri reali dal database, aggiornati a ogni apertura.</p></header>
+    <header className="ws-head"><div className="ws-head__text"><h1>Panoramica della piattaforma</h1><p>Numeri reali dal database, aggiornati a ogni apertura.</p></div></header>
+    {(stats.open_requests > 0 || stats.pending_upgrades > 0) && <div className="banner glass" role="status">
+      <span className="banner__icon" aria-hidden="true"><SupportAgentRoundedIcon /></span>
+      <div><b>{[stats.open_requests > 0 && `${stats.open_requests} ${stats.open_requests === 1 ? 'richiesta aperta' : 'richieste aperte'}`, stats.pending_upgrades > 0 && `${stats.pending_upgrades} ${stats.pending_upgrades === 1 ? 'modulo da valutare' : 'moduli da valutare'}`].filter(Boolean).join(' · ')}</b>
+        <p>Gli utenti leggono la risposta nella pagina Account: scrivi nel campo “Risposta” e imposta lo stato su risposta inviata.</p></div>
+      <RouterLink className="btn btn--ghost btn--sm" to={stats.open_requests > 0 ? '/admin/support_requests' : '/admin/upgrade_requests'}>Apri la coda</RouterLink>
+    </div>}
     <div className="kpis kpis--admin">
       {kpis.map((kpi, index) => <motion.div key={kpi.label} initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * .05, duration: .5, ease: [.16, 1, .3, 1] }}>
         <RouterLink to={kpi.to} className="kpi kpi--link glass spotlight" onPointerMove={trackSpotlight}>
@@ -96,18 +103,18 @@ export function AdminDashboard() {
 
   return <div className="workspace workspace--admin">
     <aside className="workspace__side glass" aria-label="Schede superadmin">
-      <div className="side-identity">
+      <div className="side-top"><div className="side-identity">
         <span className="tenant-card__avatar admin-avatar"><AdminPanelSettingsRoundedIcon /></span>
         <div><b>{profile?.username ? '@' + profile.username : 'Superadmin'}</b><small>Superadmin · accesso completo</small></div>
-      </div>
-      <nav className="side-nav">
+      </div></div>
+      <ScrollRail as="nav" axis="y" className="side-nav" label="Schede del database" activeKey={table}>
         <NavLink to="/admin" end className={({ isActive }) => 'side-link' + (isActive ? ' is-active' : '')}><SpaceDashboardRoundedIcon fontSize="small" /><span>Panoramica</span></NavLink>
         {GROUPS.map(group => <div key={group.id}>
           <p className="side-nav__title">{group.label}</p>
           {Object.entries(TABLES).filter(([, meta]) => meta.group === group.id).map(([key, meta]) =>
             <NavLink key={key} to={'/admin/' + key} className={({ isActive }) => 'side-link' + (isActive ? ' is-active' : '')}><span className="side-link__dot" aria-hidden="true" /><span>{meta.label}</span></NavLink>)}
         </div>)}
-      </nav>
+      </ScrollRail>
     </aside>
     <div className="workspace__main">
       <div className="admin-mobile-nav">

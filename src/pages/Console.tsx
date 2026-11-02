@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { useNavigate, useParams, Link as RouterLink, NavLink } from 'react-router-dom';
-import { Alert, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from '@mui/material';
+import { Alert, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from '@mui/material';
 import { motion, useReducedMotion } from 'motion/react';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
@@ -34,6 +34,9 @@ import { TenantAnalytics } from '../components/TenantAnalytics';
 import { cleanText, HEX_COLOR, safeUrl, SLUG_PATTERN } from '../lib/validation';
 import { trackSpotlight } from '../components/MarketingMotion';
 import { ErrorView } from './ErrorPage';
+import { ScrollRail } from '../components/ScrollRail';
+import { summarize, useTenantStats } from '../lib/useTenantStats';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 type Owned = { role: MemberRole; tenants: Tenant | null };
 type PlanDraft = { months: number; modules: FeatureCode[] };
@@ -179,6 +182,8 @@ export function TenantConsole() {
   const [upgrading, setUpgrading] = useState(false);
   const [fields, setFields] = useState({ name: '', tagline: '', brand_color: '#173d32', logo_url: '', cover_url: '' });
   const [saving, setSaving] = useState(false);
+  const { data: stats } = useTenantStats(tenant?.id);
+  const season = stats ? summarize(stats) : null;
   const refresh = async () => {
     if (!slug || !session) return;
     const sb = client();
@@ -243,26 +248,38 @@ export function TenantConsole() {
   if (!role) return <ErrorView code="403" compact detail="Il tuo account non fa parte dello staff di questo torneo." />;
   const base = '/console/' + slug;
   const accent = HEX_COLOR.test(tenant.brand_color) ? tenant.brand_color : '#0f6b4a';
-  const navItem = (to: string, label: string, icon: ReactNode, end = false, locked = false) => <NavLink key={to} to={to} end={end}
+  const counts: Record<string, number | undefined> = stats ? { teams: stats.teams.length, players: stats.players, matches: stats.matches.length, competitions: stats.competitions } : {};
+  const navItem = (to: string, label: string, icon: ReactNode, end = false, locked = false, count?: number) => <NavLink key={to} to={to} end={end}
     className={({ isActive }) => 'side-link' + (isActive ? ' is-active' : '')}>
-    {icon}<span>{label}</span>{locked && <LockOutlinedIcon className="side-link__lock" aria-label="Modulo non attivo" />}
+    {icon}<span>{label}</span>
+    {locked ? <LockOutlinedIcon className="side-link__lock" aria-label="Modulo non attivo" /> : count != null && <em className="side-link__count" aria-label={count + ' elementi'}>{count}</em>}
   </NavLink>;
+  const today = new Intl.DateTimeFormat('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
+  const playedPct = season?.total ? Math.round(season.finished / season.total * 100) : 0;
   return <div className="workspace" style={{ ['--tenant' as string]: accent }}>
     <aside className="workspace__side glass" aria-label="Gestione del torneo">
-      <RouterLink to="/console" className="side-back"><ArrowBackRoundedIcon fontSize="small" />Tutti i tornei</RouterLink>
-      <div className="side-identity">
-        <span className="tenant-card__avatar">{tenant.name.charAt(0).toUpperCase()}</span>
-        <div><b>{tenant.name}</b><small><span className={'dot ' + (tenant.status === 'active' ? 'dot--live' : 'dot--wait')} />{STATUS_LABEL[tenant.status]}</small></div>
+      <div className="side-top">
+        <RouterLink to="/console" className="side-back"><ArrowBackRoundedIcon fontSize="small" />Tutti i tornei</RouterLink>
+        <div className="side-identity">
+          <span className="tenant-card__avatar">{tenant.name.charAt(0).toUpperCase()}</span>
+          <div><b title={tenant.name}>{tenant.name}</b><small><span className={'dot ' + (tenant.status === 'active' ? 'dot--live' : 'dot--wait')} />{STATUS_LABEL[tenant.status]} · {ROLE_LABEL[role]}</small></div>
+          <a className="side-site" href={'/t/' + tenant.slug} target="_blank" rel="noopener noreferrer" aria-label={(tenant.status === 'active' ? 'Apri il sito' : 'Apri l’anteprima') + ' in una nuova scheda'} title={tenant.status === 'active' ? 'Apri il sito' : 'Anteprima'}><ArrowOutwardRoundedIcon fontSize="small" /></a>
+        </div>
       </div>
-      <nav className="side-nav">
+      <ScrollRail as="nav" axis="y" className="side-nav" label="Sezioni del torneo" activeKey={section}>
         <p className="side-nav__title">Torneo</p>
         {navItem(base, 'Panoramica', <SpaceDashboardRoundedIcon fontSize="small" />, true)}
         {navItem(base + '/settings', 'Identità e aspetto', <PaletteRoundedIcon fontSize="small" />)}
         <p className="side-nav__title">Contenuti</p>
-        {EDITORS.map(item => navItem(base + '/' + item.key, item.label, EDITOR_ICONS[item.key], false, !enabled(item.feature)))}
+        {EDITORS.map(item => navItem(base + '/' + item.key, item.label, EDITOR_ICONS[item.key], false, !enabled(item.feature), counts[item.key]))}
         <p className="side-nav__title">Piano</p>
         {navItem(base + '/modules', 'Moduli', <ExtensionRoundedIcon fontSize="small" />)}
-      </nav>
+      </ScrollRail>
+      {season && <RouterLink to={base + '/matches'} className="side-season" aria-label={`Stagione: ${season.finished} partite giocate su ${season.total}`}>
+        <span className="side-season__head"><b>Stagione</b><em>{playedPct}%</em></span>
+        <span className="side-season__bar" aria-hidden="true"><i style={{ width: playedPct + '%' }} /></span>
+        <small>{season.total ? `${season.finished} di ${season.total} partite giocate` : 'Calendario ancora vuoto'}{season.upcoming[0]?.kickoff_at ? ' · prossima ' + new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'short' }).format(new Date(season.upcoming[0].kickoff_at)) : ''}</small>
+      </RouterLink>}
       <div className="side-bottom">
         <RouterLink to="/account" className="side-link"><ManageAccountsRoundedIcon fontSize="small" /><span>Account e dati</span></RouterLink>
         <button type="button" className="side-link" onClick={() => void signOut().then(() => navigate('/'))}><LogoutRoundedIcon fontSize="small" /><span>Esci</span></button>
@@ -270,29 +287,42 @@ export function TenantConsole() {
     </aside>
     <div className="workspace__main">
       <div className="workspace__top">
-        <nav className="workspace__chips" aria-label="Sezioni">
+        <ScrollRail as="nav" className="workspace__chips" label="Sezioni" activeKey={section}>
           {[{ key: 'overview', label: 'Panoramica', to: base }, { key: 'settings', label: 'Aspetto', to: base + '/settings' }, ...EDITORS.map(e => ({ key: e.key, label: e.label, to: base + '/' + e.key })), { key: 'modules', label: 'Moduli', to: base + '/modules' }]
             .map(item => <RouterLink key={item.key} to={item.to} className={'chip-link' + (section === item.key ? ' is-active' : '')} aria-current={section === item.key ? 'page' : undefined}>{item.label}</RouterLink>)}
-        </nav>
-        <a className="btn btn--ghost btn--sm glass" href={'/t/' + tenant.slug} target="_blank" rel="noopener noreferrer">{tenant.status === 'active' ? 'Apri il sito' : 'Anteprima'}<ArrowOutwardRoundedIcon /></a>
+        </ScrollRail>
+        {section !== 'overview' && <a className="btn btn--ghost btn--sm glass workspace__site" href={'/t/' + tenant.slug} target="_blank" rel="noopener noreferrer">{tenant.status === 'active' ? 'Apri il sito' : 'Anteprima'}<ArrowOutwardRoundedIcon /></a>}
       </div>
       {error && <Alert severity="error" sx={{ mb: 3 }} role="alert">{error}</Alert>}
       {notice && <Alert severity="success" sx={{ mb: 3 }} role="status" onClose={() => setNotice('')}>{notice}</Alert>}
 
       {section === 'overview' && <>
-        <header className="workspace__head"><h1>{tenant.name}</h1><p>{tenant.tagline || 'Panoramica del torneo'}</p></header>
-        {tenant.status !== 'active' && <Alert severity="info" sx={{ mb: 3 }}>Il torneo è in bozza: puoi preparare tutti i contenuti, ma il sito pubblico resta visibile solo ai membri finché non viene attivato.</Alert>}
-        <TenantAnalytics tenantId={tenant.id} />
+        <header className="ws-head">
+          <div className="ws-head__text">
+            <h1>{tenant.name}</h1>
+            <p><span className="ws-head__date">{today}</span>{tenant.tagline ? ' · ' + tenant.tagline : ''}</p>
+          </div>
+          <div className="ws-head__actions">
+            <a className="btn btn--ghost btn--sm glass" href={'/t/' + tenant.slug} target="_blank" rel="noopener noreferrer">{tenant.status === 'active' ? 'Apri il sito' : 'Anteprima'}<ArrowOutwardRoundedIcon /></a>
+            {editable && enabled('matches') && <RouterLink to={base + '/matches'} className="btn btn--primary btn--sm"><AddRoundedIcon />Partita</RouterLink>}
+          </div>
+        </header>
+        {tenant.status !== 'active' && <div className="banner glass" role="status">
+          <span className="banner__icon" aria-hidden="true"><InfoOutlinedIcon /></span>
+          <div><b>Il torneo è in bozza.</b><p>Prepara squadre, rose e calendario: il sito pubblico resta visibile solo allo staff finché non viene pubblicato.</p></div>
+          <a className="btn btn--ghost btn--sm" href={'/t/' + tenant.slug} target="_blank" rel="noopener noreferrer">Vedi l’anteprima</a>
+        </div>}
+        <TenantAnalytics tenantId={tenant.id} base={base} />
         <h2 className="workspace__subhead">Gestione rapida</h2>
         <div className="quick-grid">{EDITORS.slice(0, 6).map(item => <RouterLink key={item.key} to={base + '/' + item.key} className="quick-card glass spotlight" onPointerMove={trackSpotlight}>
           <span className="quick-card__icon" aria-hidden="true">{EDITOR_ICONS[item.key]}</span>
-          <span><b>{item.label}</b><small>{item.summary}</small></span>
+          <span><b>{item.label}{counts[item.key] != null && <em className="quick-card__count">{counts[item.key]}</em>}</b><small>{item.summary}</small></span>
           {enabled(item.feature) ? <ArrowForwardRoundedIcon className="quick-card__arrow" /> : <LockOutlinedIcon className="quick-card__arrow" aria-label="Modulo non attivo" />}
         </RouterLink>)}</div>
       </>}
 
       {section === 'settings' && <div className="settings">
-        <header className="workspace__head"><h1>Identità e aspetto</h1><p>Nome, slogan, colori e immagini del sito pubblico.</p></header>
+        <header className="ws-head"><div className="ws-head__text"><h1>Identità e aspetto</h1><p>Nome, slogan, colori e immagini del sito pubblico.</p></div></header>
         <div className="settings__grid">
           <form onSubmit={saveSettings} className="panel glass"><Stack spacing={2.5}>
             <TextField label="Nome del torneo" required value={fields.name} onChange={e => setFields(f => ({ ...f, name: e.target.value }))} disabled={!editable} slotProps={{ htmlInput: { maxLength: 90 } }} />
@@ -327,13 +357,13 @@ export function TenantConsole() {
       </div>}
 
       {section === 'modules' && <div>
-        <header className="workspace__head"><h1>Moduli</h1><p>Le funzioni base sono incluse. I moduli aggiuntivi si richiedono qui e si attivano solo dopo conferma.</p></header>
+        <header className="ws-head"><div className="ws-head__text"><h1>Moduli</h1><p>Le funzioni base sono incluse. I moduli aggiuntivi si richiedono qui e si attivano solo dopo conferma.</p></div></header>
         <div className="grant-list">{MODULES.map(module => {
           const active = enabled(module.code);
           const picked = upgrade.includes(module.code);
           return <div className={'grant glass' + (active ? ' is-active' : '') + (picked ? ' is-picked' : '')} key={module.code}>
-            <div><b>{module.name}</b><small>{module.description}</small></div>
-            {active ? <Chip color="success" size="small" icon={<CheckRoundedIcon />} label={module.core ? 'Incluso' : 'Attivo'} />
+            <div className="grant__text"><b>{module.name}</b><small>{module.description}</small></div>
+            {active ? <span className="pill pill--active">{module.core ? 'Incluso' : 'Attivo'}</span>
               : <span className="grant__price">{formatEuro(module.monthly)}/mese</span>}
             {!active && editable && <Button size="small" variant={picked ? 'contained' : 'outlined'} aria-pressed={picked}
               onClick={() => setUpgrade(prev => prev.includes(module.code) ? prev.filter(code => code !== module.code) : [...prev, module.code])}>{picked ? 'Selezionato' : 'Seleziona'}</Button>}

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
-import { Alert, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, IconButton, InputAdornment, MenuItem, Stack, Switch, TextField, Tooltip } from '@mui/material';
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, IconButton, MenuItem, Stack, Switch, TextField, Tooltip } from '@mui/material';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
 import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
+import { DataTable } from '../components/DataTable';
 import { client, friendlyError } from '../lib/supabase';
 import { checkPassword } from '../lib/validation';
 import { columnLabel, enumValues, HIDDEN_IN_FORM, isLongText, recordLabel, TABLES, valueLabel, type AdminColumn, type AdminRow, type AdminSchema } from './adminConfig';
@@ -119,7 +119,7 @@ export function AdminTable({ table, schema }: { table: string; schema: AdminSche
     if (col?.type === 'boolean') return value ? 'Sì' : 'No';
     if (col?.type.startsWith('timestamp')) return new Date(String(value)).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' });
     if (col?.type === 'ARRAY') return (value as unknown[]).map(valueLabel).join(', ');
-    if (enumValues(def, column)) return <Chip size="small" variant="outlined" label={valueLabel(value)} className={'status status--' + String(value)} />;
+    if (enumValues(def, column)) return <span className={'pill pill--' + String(value)}>{valueLabel(value)}</span>;
     if (column.endsWith('_cents')) return (Number(value) / 100).toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
     if (typeof value === 'object') return <code>{JSON.stringify(value).slice(0, 60)}</code>;
     const text = String(value);
@@ -186,7 +186,6 @@ export function AdminTable({ table, schema }: { table: string; schema: AdminSche
 
   if (!def) return <Alert severity="error">Scheda non disponibile: esegui la migrazione superadmin.</Alert>;
   const display = meta.display.filter(column => def.columns.some(c => c.name === column));
-  const pages = Math.max(1, Math.ceil(total / PAGE));
 
   const field = (column: AdminColumn) => {
     const label = columnLabel(column.name) + (!column.nullable && !column.default ? ' *' : '');
@@ -209,43 +208,25 @@ export function AdminTable({ table, schema }: { table: string; schema: AdminSche
   };
 
   return <section className="admin-table" aria-labelledby="admin-table-title">
-    <header className="workspace__head workspace__head--row">
-      <div><h1 id="admin-table-title">{meta.label}</h1>{meta.hint && <p>{meta.hint}</p>}</div>
-      <Stack direction="row" gap={1}>
+    <header className="ws-head">
+      <div className="ws-head__text"><h1 id="admin-table-title">{meta.label}</h1>{meta.hint && <p>{meta.hint}</p>}</div>
+      <Stack direction="row" gap={1} className="ws-head__actions">
         <Tooltip title="Aggiorna"><IconButton aria-label="Aggiorna" onClick={() => void load()}><RefreshRoundedIcon /></IconButton></Tooltip>
         {!meta.readOnly && !meta.noCreate && <Button variant="contained" startIcon={<AddRoundedIcon />} onClick={() => openForm('new')}>Aggiungi</Button>}
       </Stack>
     </header>
     {notice && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setNotice('')} role="status">{notice}</Alert>}
     {error && <Alert severity="error" sx={{ mb: 2 }} role="alert">{error}</Alert>}
-    <div className="admin-toolbar">
-      <TextField size="small" placeholder="Cerca in tutti i campi" value={search} onChange={e => setSearch(e.target.value)}
-        slotProps={{ htmlInput: { 'aria-label': 'Cerca' }, input: { startAdornment: <InputAdornment position="start"><SearchRoundedIcon fontSize="small" /></InputAdornment> } }} />
-      <span className="admin-toolbar__count">{total.toLocaleString('it-IT')} record</span>
-    </div>
-    <div className="admin-grid glass" role="region" aria-label={'Tabella ' + meta.label} tabIndex={0}>
-      <table>
-        <thead><tr>{display.map(column => <th key={column} scope="col">{columnLabel(column)}</th>)}<th scope="col" className="admin-grid__actions"><span className="sr-only">Azioni</span></th></tr></thead>
-        <tbody>
-          {loading ? <tr><td colSpan={display.length + 1} className="admin-grid__state"><CircularProgress size={24} aria-label="Caricamento" /></td></tr>
-            : rows.length === 0 ? <tr><td colSpan={display.length + 1} className="admin-grid__state">{query ? 'Nessun risultato per la ricerca.' : 'Nessun record.'}</td></tr>
-            : rows.map(row => <tr key={keyString(def.pk, row)}>
-              {display.map(column => <td key={column}>{cell(column, row[column])}</td>)}
-              <td className="admin-grid__actions">
-                <IconButton size="small" aria-label="Dettagli" onClick={() => setViewing(row)}><VisibilityRoundedIcon fontSize="small" /></IconButton>
-                {table === 'profiles' && <IconButton size="small" aria-label={'Imposta password per ' + recordLabel(table, row)} onClick={() => { setPasswordFor(row); setNewPassword(''); setFormError(''); }}><KeyRoundedIcon fontSize="small" /></IconButton>}
-                {!meta.readOnly && !meta.noEdit && <IconButton size="small" aria-label="Modifica" onClick={() => openForm(row)}><EditOutlinedIcon fontSize="small" /></IconButton>}
-                {!meta.readOnly && <IconButton size="small" color="error" aria-label="Elimina" onClick={() => setToDelete(row)}><DeleteOutlineRoundedIcon fontSize="small" /></IconButton>}
-              </td>
-            </tr>)}
-        </tbody>
-      </table>
-    </div>
-    {pages > 1 && <nav className="admin-pager" aria-label="Pagine">
-      <Button size="small" disabled={page === 0} onClick={() => setPage(p => p - 1)}>Precedente</Button>
-      <span>Pagina {page + 1} di {pages}</span>
-      <Button size="small" disabled={page + 1 >= pages} onClick={() => setPage(p => p + 1)}>Successiva</Button>
-    </nav>}
+    <DataTable<AdminRow> rows={rows} rowKey={row => keyString(def.pk, row)} caption={'Tabella ' + meta.label} pageSize={PAGE}
+      searchLabel="Cerca in tutti i campi" noun={['record', 'record']}
+      remote={{ total, page, onPage: setPage, query: search, onQuery: setSearch, loading }}
+      columns={display.map((column, index) => ({ key: column, title: columnLabel(column), primary: index === 0, render: (row: AdminRow) => cell(column, row[column]) }))}
+      actions={row => <span className="row-actions">
+        <IconButton size="small" aria-label="Dettagli" onClick={() => setViewing(row)}><VisibilityRoundedIcon fontSize="small" /></IconButton>
+        {table === 'profiles' && <IconButton size="small" aria-label={'Imposta password per ' + recordLabel(table, row)} onClick={() => { setPasswordFor(row); setNewPassword(''); setFormError(''); }}><KeyRoundedIcon fontSize="small" /></IconButton>}
+        {!meta.readOnly && !meta.noEdit && <IconButton size="small" aria-label="Modifica" onClick={() => openForm(row)}><EditOutlinedIcon fontSize="small" /></IconButton>}
+        {!meta.readOnly && <IconButton size="small" color="error" aria-label="Elimina" onClick={() => setToDelete(row)}><DeleteOutlineRoundedIcon fontSize="small" /></IconButton>}
+      </span>} />
 
     <Dialog open={editing !== null} onClose={() => !saving && setEditing(null)} fullWidth maxWidth="sm" aria-labelledby="admin-form-title">
       <form onSubmit={save} noValidate>

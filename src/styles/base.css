@@ -162,3 +162,17 @@ p { text-wrap: pretty; }
 @media (max-width: 720px) {
   :root { --glass-blur: 14px; }
 }
+
+/* Scroll rails (ScrollRail.tsx): no hard cuts. Room on the cross axis for rings and
+   shadows, fades only on the sides that hide content. */
+.rail { --fade: 32px; scrollbar-width: none; overscroll-behavior: contain; }
+.rail::-webkit-scrollbar { display: none; }
+.rail[data-axis="x"] { overflow-x: auto; overflow-y: hidden; padding-block: 6px; margin-block: -6px; scroll-padding-inline: 32px; }
+.rail[data-axis="y"] { overflow-y: auto; overflow-x: hidden; padding-inline: 6px; margin-inline: -6px; scroll-padding-block: 32px; }
+.rail[data-axis="x"][data-start="true"] { -webkit-mask-image: linear-gradient(90deg, transparent, #000 var(--fade)); mask-image: linear-gradient(90deg, transparent, #000 var(--fade)); }
+.rail[data-axis="x"][data-end="true"] { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - var(--fade)), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - var(--fade)), transparent); }
+.rail[data-axis="x"][data-start="true"][data-end="true"] { -webkit-mask-image: linear-gradient(90deg, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent); mask-image: linear-gradient(90deg, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent); }
+.rail[data-axis="y"][data-start="true"] { -webkit-mask-image: linear-gradient(180deg, transparent, #000 var(--fade)); mask-image: linear-gradient(180deg, transparent, #000 var(--fade)); }
+.rail[data-axis="y"][data-end="true"] { -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - var(--fade)), transparent); mask-image: linear-gradient(180deg, #000 calc(100% - var(--fade)), transparent); }
+.rail[data-axis="y"][data-start="true"][data-end="true"] { -webkit-mask-image: linear-gradient(180deg, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent); mask-image: linear-gradient(180deg, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent); }
+@media (pointer: fine) { .rail[data-axis="y"] { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; } }

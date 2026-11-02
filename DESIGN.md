@@ -23,3 +23,10 @@ Shader Hero / Mesh drift / Aurora (backgrounds), Glassmorphism Navigation & Floa
 
 ## Responsive & accessibility
 Breakpoints 1020 / 900 / 640 / 560 px; tested at 390 and 1440. Mobile nav becomes a glass sheet, console sidebar becomes a chip bar, sticky scroll scenes become linear. WCAG 2.1 AA: axe-core clean on all main routes in both themes, visible focus rings, skip link, labelled controls, ≥44px targets, keyboard-operable demo phone and tabs.
+
+## Scroll containers and data views (Nov 2026)
+
+- **Never a hard cut.** Every horizontal or vertical scroller uses `ScrollRail` (`src/components/ScrollRail.tsx`): breathing room on the cross axis (focus rings, borders and shadows are not clipped), fades only on the sides that hide content, active item brought into view. Do not add `overflow-x: auto` to a bordered pill or card directly: wrap a rail inside it.
+- **Grid children shrink.** Tracks that hold charts, tables or wide visuals use `minmax(0, 1fr)` and the children `min-width: 0`, otherwise min-content widths push content out of the card.
+- **Dashboards** follow the 21st.dev dashboard/admin templates (Settle, Studio Admin): workspace header with context line and actions, attention banner, KPI cards with insight line + sparkline/progress, main chart with range control and metric strip, right rail (stacked status bar, timeline).
+- **Tables** use `DataTable` (`src/components/DataTable.tsx`): one card with toolbar (search, segmented and select filters, count), sortable uppercase headers, status pills, numbered pagination; rows become cards under 640px. Secondary columns (`hideOnMobile`) disappear under 1180px.

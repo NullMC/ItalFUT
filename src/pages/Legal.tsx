@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from 'react';
+import { ScrollRail } from '../components/ScrollRail';
 import { Alert } from '@mui/material';
 import { Link as RouterLink, NavLink } from 'react-router-dom';
 import { LEGAL_VERSION, legalConfig, legalNeedsReview, madeBy, requiredLegalFields, vatNote } from '../config/legal';
@@ -141,11 +142,11 @@ export function LegalPage({ page }: { page: LegalPageId }) {
     <div className="page-glow" aria-hidden="true" />
     <div className="container legal__grid">
       <aside className="legal__aside">
-        <nav aria-label="Documenti legali" className="legal__docs">
+        <ScrollRail as="nav" label="Documenti legali" className="legal__docs" activeKey={page}>
           {(Object.keys(titleMap) as LegalPageId[]).map(id => <NavLink key={id}
             to={{ privacy: '/privacy-policy', terms: '/terms-of-service', refund: '/refund-policy', cookies: '/cookie-policy', business: '/business' }[id]}
             className={({ isActive }) => isActive ? 'is-active' : ''}>{titleMap[id]}</NavLink>)}
-        </nav>
+        </ScrollRail>
         {list.length > 0 && <nav aria-label="In questa pagina" className="legal__toc">
           <p>In questa pagina</p>
           {list.map(section => <a key={section.id} href={'#' + section.id}>{section.title.replace(/^\d+\.\s/, '')}</a>)}

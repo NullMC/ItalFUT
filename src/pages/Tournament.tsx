@@ -16,6 +16,7 @@ import { GlowField } from '../components/fx/Backdrop';
 import { safeUrl } from '../lib/validation';
 import { MadeBy } from '../components/SiteLayout';
 import { ErrorView } from './ErrorPage';
+import { ScrollRail } from '../components/ScrollRail';
 import { useCookiePreferences } from '../components/CookieNotice';
 
 type Data = Record<string, Row[]>;
@@ -171,10 +172,10 @@ export function Tournament() {
       <RouterLink to={base} className="tournament-brand"><BrandImage url={tenant.logo_url} name={tenant.name} size={42} /><b>{tenant.name}</b></RouterLink>
       <div className="tournament-head-actions"><ThemeToggle /><RouterLink to="/" className="tournament-backlink">ItalFUT <ArrowOutwardRoundedIcon sx={{ fontSize: 15 }} /></RouterLink></div>
     </Container></header>
-    <div className="tournament-nav" role="navigation" aria-label="Sezioni del torneo"><Container maxWidth="lg"><div className="tournament-nav-scroll">
+    <div className="tournament-nav" role="navigation" aria-label="Sezioni del torneo"><Container maxWidth="lg"><div className="tournament-nav-pill"><ScrollRail className="tournament-nav-scroll" activeKey={page}>
       <RouterLink to={base} aria-current={page === 'home' ? 'page' : undefined} className={page === 'home' ? 'active' : ''}>Home</RouterLink>
       {navigation.filter(nav => enabled(nav.feature)).map(nav => <RouterLink key={nav.slug} to={base + '/' + nav.slug} aria-current={page === nav.slug ? 'page' : undefined} className={page === nav.slug ? 'active' : ''}>{nav.label}</RouterLink>)}
-    </div></Container></div>
+    </ScrollRail></div></Container></div>
     {tenant.status !== 'active' && <div className="preview-alert"><Container maxWidth="lg">Anteprima visibile solo ai membri: il sito è in bozza e non è ancora pubblico.</Container></div>}
     {pageFeature && !enabled(pageFeature) ? <Container id="tournament-content" maxWidth="lg" sx={{ py: 8 }}><Empty title="Sezione non disponibile." text="L'organizzatore non ha ancora attivato questo modulo." /></Container> :
       <main id="tournament-content" className="tournament-main"><Container maxWidth="lg">
@@ -205,7 +206,7 @@ export function Tournament() {
         </section>}
         {page === 'classifiche' && <section className="public-section"><Typography variant="h3">Classifiche</Typography><CompetitionSelect competitions={competitions} selected={selected} onSelect={id => setQuery({ competizione: id })} />
           <div id="itf-competition-panel" role={competitions.length > 1 ? 'tabpanel' : undefined} aria-labelledby={competitions.length > 1 ? 'itf-competition-tab-' + selected : undefined}>
-          {ranking.length ? <div className="standings-scroll"><table className="standings-full"><caption className="sr-only">Classifica della competizione selezionata</caption><thead><tr><th>#</th><th>Squadra</th><th>PG</th><th>V</th><th>N</th><th>P</th><th>GF</th><th>GS</th><th>DR</th><th>Pt</th></tr></thead><tbody>{ranking.map((row,i) => <tr key={row.team.id}><td>{i+1}</td><td><RouterLink to={base + '/squadre/' + row.team.id}><BrandImage url={row.team.logo_url} name={nameOf(row.team)} size={27} />{nameOf(row.team)}</RouterLink></td><td>{row.played}</td><td>{row.wins}</td><td>{row.draws}</td><td>{row.losses}</td><td>{row.gf}</td><td>{row.ga}</td><td>{row.gf - row.ga}</td><td><b>{row.points}</b></td></tr>)}</tbody></table></div> : <Empty title="La classifica sarà disponibile dopo le iscrizioni." />}
+          {ranking.length ? <ScrollRail className="standings-scroll" tabIndex={0} label="Classifica completa"><table className="standings-full"><caption className="sr-only">Classifica della competizione selezionata</caption><thead><tr><th>#</th><th>Squadra</th><th>PG</th><th>V</th><th>N</th><th>P</th><th>GF</th><th>GS</th><th>DR</th><th>Pt</th></tr></thead><tbody>{ranking.map((row,i) => <tr key={row.team.id}><td>{i+1}</td><td><RouterLink to={base + '/squadre/' + row.team.id}><BrandImage url={row.team.logo_url} name={nameOf(row.team)} size={27} />{nameOf(row.team)}</RouterLink></td><td>{row.played}</td><td>{row.wins}</td><td>{row.draws}</td><td>{row.losses}</td><td>{row.gf}</td><td>{row.ga}</td><td>{row.gf - row.ga}</td><td><b>{row.points}</b></td></tr>)}</tbody></table></ScrollRail> : <Empty title="La classifica sarà disponibile dopo le iscrizioni." />}
           </div>
         </section>}
         {page === 'squadre' && <section className="public-section"><Typography variant="h3">{detail ? 'Scheda squadra' : 'Le squadre'}</Typography>{detail ? (() => {

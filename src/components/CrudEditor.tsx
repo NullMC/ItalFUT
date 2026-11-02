@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { Alert, Button, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, IconButton, InputAdornment, MenuItem, Stack, TextField, Typography } from '@mui/material';
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import { Alert, Button, Checkbox, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { cleanText, HEX_COLOR, safeUrl } from '../lib/validation';
 import { Link as RouterLink } from 'react-router-dom';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
@@ -8,6 +7,8 @@ import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { client, friendlyError } from '../lib/supabase';
 import type { FeatureCode, Option, Row } from '../lib/types';
+import { DataTable, type Column, type Filter } from './DataTable';
+import { invalidateTenantStats } from '../lib/useTenantStats';
 
 type Field = { key: string; label: string; type?: 'number' | 'date' | 'datetime-local' | 'textarea' | 'select' | 'color' | 'url'; required?: boolean; values?: string[]; ref?: string; min?: number; max?: number; maxLength?: number };
 export type EditorDefinition = { key: string; label: string; table: string; feature: FeatureCode; summary: string; fields: Field[] };
@@ -125,7 +126,6 @@ export function CrudEditor({ tenantId, config, editable }: { tenantId: string; c
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [query, setQuery] = useState('');
   const [toDelete, setToDelete] = useState<Row | null>(null);
   const refTables = useMemo(() => [...new Set(config.fields.map(f => f.ref).filter((x): x is string => !!x))], [config]);
   const refName = (table: string, id: unknown) => references[table]?.find(option => option.id === String(id))?.name ?? '';
@@ -150,10 +150,11 @@ export function CrudEditor({ tenantId, config, editable }: { tenantId: string; c
     const { data, error: issue } = await client().from(config.table).select('*').eq('tenant_id', tenantId).order('created_at', { ascending: false }).limit(1000);
     if (issue) throw issue;
     setItems((data ?? []) as Row[]);
+    invalidateTenantStats(tenantId);
   };
   useEffect(() => {
     let live = true;
-    setLoading(true); setError(''); setQuery('');
+    setLoading(true); setError('');
     const run = async () => {
       try {
         const sb = client();
@@ -174,6 +175,8 @@ export function CrudEditor({ tenantId, config, editable }: { tenantId: string; c
         }))]));
         const { data, error: issue } = await sb.from(config.table).select('*').eq('tenant_id', tenantId).order('created_at', { ascending: false }).limit(1000);
         if (issue) throw issue;
+        const teamRows = referenceEntries.find(([t]) => t === 'teams')?.[1] ?? [];
+        refs.teams_colors = teamRows.map(r => ({ id: String(r.id), name: String(r.accent_hex ?? '') }));
         if (live) { setReferences(refs); setItems((data ?? []) as Row[]); }
       } catch (cause) { if (live) setError(friendlyError(cause)); }
       finally { if (live) setLoading(false); }
@@ -264,29 +267,61 @@ export function CrudEditor({ tenantId, config, editable }: { tenantId: string; c
     } catch (cause) { setError(friendlyError(cause)); setToDelete(null); }
     finally { setSaving(false); }
   };
-  const visible = query.trim() ? items.filter(row => (labelFor(row) + ' ' + secondaryFor(row)).toLowerCase().includes(query.trim().toLowerCase())) : items;
+  const teamColor = (id: unknown) => { const hex = String(references.teams_colors?.find(o => o.id === String(id))?.name ?? ''); return HEX_COLOR.test(hex) ? hex : undefined; };
+  const time = (value: unknown) => { const d = new Date(String(value ?? '')); return Number.isNaN(d.getTime()) ? null : d.getTime(); };
+  const statusPill = (value: unknown) => value ? <span className={'pill pill--' + String(value)}>{label(value)}</span> : <span className="muted">—</span>;
+  const avatar = (row: Row, color?: string) => <span className="cell-avatar" style={color ? { ['--c' as string]: color } : undefined} aria-hidden="true">{labelFor(row).charAt(0).toUpperCase()}</span>;
+  const primary: Column<Row> = { key: 'name', title: config.key === 'players' ? 'Giocatore' : config.key === 'matches' ? 'Partita' : 'Nome', primary: true,
+    value: row => labelFor(row),
+    render: row => <span className="cell-main">{avatar(row, config.key === 'teams' ? (HEX_COLOR.test(String(row.accent_hex)) ? String(row.accent_hex) : undefined)
+      : config.key === 'players' || config.key === 'market' ? teamColor(row.team_id) : config.key === 'matches' ? teamColor(row.home_team_id) : undefined)}
+      <span><b>{labelFor(row)}</b>{!['players', 'matches', 'teams', 'competitions'].includes(config.key) && secondaryFor(row) && <small>{secondaryFor(row)}</small>}</span></span> };
+  const columns: Column<Row>[] = config.key === 'players' ? [primary,
+    { key: 'team', title: 'Squadra', value: row => refName('teams', row.team_id), render: row => <span className="cell-team"><i style={{ background: teamColor(row.team_id) ?? 'var(--ink-3)' }} />{refName('teams', row.team_id) || '—'}</span> },
+    { key: 'number', title: 'N°', align: 'end', width: '64px', value: row => row.shirt_number == null ? null : Number(row.shirt_number), render: row => row.shirt_number != null ? <span className="num">{String(row.shirt_number)}</span> : <span className="muted">—</span> },
+    { key: 'position', title: 'Ruolo', value: row => label(row.position), render: row => row.position ? label(row.position) : <span className="muted">—</span> },
+    { key: 'age', title: 'Età', hideOnMobile: true, value: row => label(row.age_category), render: row => row.age_category === 'minor' ? <span className="pill pill--minor">Minorenne</span> : <span className="muted">Maggiorenne</span> },
+  ] : config.key === 'matches' ? [primary,
+    { key: 'score', title: 'Risultato', align: 'center', render: row => row.home_score != null && row.away_score != null ? <span className="num score">{String(row.home_score)} – {String(row.away_score)}</span> : <span className="muted">—</span> },
+    { key: 'kickoff', title: 'Data', value: row => time(row.kickoff_at), render: row => shortDate(row.kickoff_at) || <span className="muted">Da definire</span> },
+    { key: 'matchday', title: 'Giornata', hideOnMobile: true, value: row => String(row.matchday ?? ''), render: row => String(row.matchday ?? '') || <span className="muted">—</span> },
+    { key: 'venue', title: 'Campo', hideOnMobile: true, value: row => String(row.venue ?? ''), render: row => String(row.venue ?? '') || <span className="muted">—</span> },
+    { key: 'status', title: 'Stato', value: row => label(row.status), render: row => statusPill(row.status) },
+  ] : config.key === 'teams' ? [primary,
+    { key: 'color', title: 'Colore', render: row => HEX_COLOR.test(String(row.accent_hex)) ? <span className="cell-team"><i style={{ background: String(row.accent_hex) }} /><code>{String(row.accent_hex)}</code></span> : <span className="muted">—</span> },
+    { key: 'logo', title: 'Logo', value: row => row.logo_url ? 1 : 0, render: row => row.logo_url ? 'Caricato' : <span className="muted">Nessuno</span> },
+    { key: 'created', title: 'Aggiunta', hideOnMobile: true, value: row => time(row.created_at), render: row => shortDate(row.created_at) },
+  ] : config.key === 'competitions' ? [primary,
+    { key: 'season', title: 'Stagione', value: row => String(row.season_label ?? ''), render: row => String(row.season_label ?? '') || <span className="muted">—</span> },
+    { key: 'period', title: 'Periodo', hideOnMobile: true, value: row => time(row.start_date), render: row => row.start_date ? `${new Date(String(row.start_date)).toLocaleDateString('it-IT')}${row.end_date ? ' – ' + new Date(String(row.end_date)).toLocaleDateString('it-IT') : ''}` : <span className="muted">—</span> },
+    { key: 'status', title: 'Stato', value: row => label(row.status), render: row => statusPill(row.status) },
+  ] : [primary,
+    ...(config.fields.some(f => f.key === 'status') ? [{ key: 'status', title: 'Stato', value: (row: Row) => label(row.status), render: (row: Row) => statusPill(row.status) }] : []),
+    { key: 'created', title: 'Aggiunto', hideOnMobile: true, value: row => time(row.created_at), render: row => shortDate(row.created_at) || '—' },
+  ];
+  const statusField = config.fields.find(f => f.key === 'status' && f.values);
+  const typeField = config.fields.find(f => f.key === 'event_type' || f.key === 'award_type');
+  const teamField = config.fields.find(f => f.ref === 'teams' && f.key === 'team_id');
+  const filters: Filter<Row>[] = [
+    ...(statusField ? [{ label: 'Stato', options: statusField.values!.map(v => ({ id: v, label: label(v) })), test: (row: Row, id: string) => row.status === id }] : []),
+    ...(typeField ? [{ label: typeField.label, options: typeField.values!.map(v => ({ id: v, label: label(v) })), test: (row: Row, id: string) => row[typeField.key] === id }] : []),
+    ...(teamField && (references.teams ?? []).length ? [{ label: 'Squadra', kind: 'select' as const, options: (references.teams ?? []).map(o => ({ id: o.id, label: o.name })), test: (row: Row, id: string) => String(row.team_id) === id }] : []),
+  ];
 
   return <section className="crud" aria-labelledby={'crud-' + config.key}>
-    <header className="workspace__head workspace__head--row">
-      <div><h1 id={'crud-' + config.key}>{config.label}</h1><p>{config.summary}</p></div>
-      {editable && <Button variant="contained" startIcon={<AddRoundedIcon />} onClick={() => open()}>Aggiungi</Button>}
+    <header className="ws-head">
+      <div className="ws-head__text"><h1 id={'crud-' + config.key}>{config.label}</h1><p>{config.summary}</p></div>
+      {editable && <div className="ws-head__actions"><Button variant="contained" startIcon={<AddRoundedIcon />} onClick={() => open()}>Aggiungi</Button></div>}
     </header>
     {error && !dialog && <Alert severity="error" sx={{ my: 2 }} role="alert">{error}</Alert>}
-    {items.length > 6 && <TextField className="crud__search" size="small" placeholder={'Cerca in ' + config.label.toLowerCase()} value={query} onChange={e => setQuery(e.target.value)}
-      slotProps={{ htmlInput: { 'aria-label': 'Cerca' }, input: { startAdornment: <InputAdornment position="start"><SearchRoundedIcon fontSize="small" /></InputAdornment> } }} />}
     {loading ? <div className="center-min"><CircularProgress aria-label="Caricamento" /></div>
       : items.length === 0 ? <div className="empty-state glass"><h2>Nessun elemento ancora</h2><p>Aggiungi il primo elemento in “{config.label}”.</p>{editable && <Button variant="outlined" onClick={() => open()} startIcon={<AddRoundedIcon />}>Aggiungi</Button>}</div>
-      : <ul className="rows glass">{visible.map(row => <li className="row" key={row.id}>
-          <span className="row__initial" aria-hidden="true">{labelFor(row).charAt(0).toUpperCase()}</span>
-          <span className="row__text"><strong>{labelFor(row)}</strong>{secondaryFor(row) && <small>{secondaryFor(row)}</small>}</span>
-          {typeof row.status === 'string' && <Chip label={label(row.status)} size="small" variant="outlined" className={'status status--' + row.status} />}
-          {editable && <span className="row__actions">
-            <IconButton aria-label={'Modifica ' + labelFor(row)} onClick={() => open(row)}><EditOutlinedIcon fontSize="small" /></IconButton>
-            <IconButton aria-label={'Elimina ' + labelFor(row)} color="error" onClick={() => setToDelete(row)}><DeleteOutlineRoundedIcon fontSize="small" /></IconButton>
-          </span>}
-        </li>)}
-        {visible.length === 0 && <li className="row row--empty">Nessun risultato per “{query}”.</li>}
-      </ul>}
+      : <DataTable rows={items} columns={columns} rowKey={row => String(row.id)} filters={filters} caption={config.label}
+          searchLabel={'Cerca in ' + config.label.toLowerCase()} noun={['elemento', 'elementi']}
+          actions={editable ? row => <span className="row-actions">
+            <IconButton size="small" aria-label={'Modifica ' + labelFor(row)} onClick={() => open(row)}><EditOutlinedIcon fontSize="small" /></IconButton>
+            <IconButton size="small" aria-label={'Elimina ' + labelFor(row)} color="error" onClick={() => setToDelete(row)}><DeleteOutlineRoundedIcon fontSize="small" /></IconButton>
+          </span> : undefined} />}
 
     <Dialog open={dialog} onClose={() => !saving && setDialog(false)} maxWidth="sm" fullWidth aria-labelledby="crud-dialog-title">
       <form onSubmit={save} noValidate><DialogTitle id="crud-dialog-title">{editing ? 'Modifica' : 'Nuovo'} · {config.label}</DialogTitle>

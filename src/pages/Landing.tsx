@@ -103,11 +103,13 @@ const steps = [
   { title: 'Gioca', text: 'Inserisci squadre, rose e partite dalla console. Risultati e classifiche si aggiornano sul sito del torneo.' },
 ];
 
-function Step({ index, progress, title, text }: { index: number; progress: MotionValue<number>; title: string; text: string }) {
+function Step({ index, progress, still, title, text }: { index: number; progress: MotionValue<number>; still: boolean; title: string; text: string }) {
   const start = index / steps.length, end = (index + 1) / steps.length;
-  const opacity = useTransform(progress, [start - .12, start + .04, end - .04, end + .1], [.28, 1, 1, .28]);
-  const x = useTransform(progress, [start - .12, start + .04], [12, 0]);
-  return <motion.li className="step" style={{ opacity, x }}>
+  // Offsets stay inside [0, 1] and increasing: scroll-linked animations reject anything else.
+  const a = Math.max(0, start - .12), b = Math.max(a + .01, start + .04), d = Math.min(1, end + .1), c = Math.min(d - .01, end - .04);
+  const opacity = useTransform(progress, [a, b, c, d], [index === 0 ? 1 : .28, 1, 1, index === steps.length - 1 ? 1 : .28]);
+  const x = useTransform(progress, [a, b], [index === 0 ? 0 : 12, 0]);
+  return <motion.li className="step" style={still ? undefined : { opacity, x }}>
     <span className="step__num display-num">0{index + 1}</span>
     <div><h3>{title}</h3><p>{text}</p></div>
   </motion.li>;
@@ -131,7 +133,7 @@ function HowItWorks() {
           <h2 id="how-title" className="section-title">Dall’idea al campo. <span className="serif-accent">Tre passaggi.</span></h2>
           <ol className="steps">
             <motion.span className="steps__bar" style={{ scaleY: reduce ? 1 : bar }} aria-hidden="true" />
-            {steps.map((step, index) => <Step key={step.title} index={index} progress={reduce ? scrollYProgress : progress} {...step} />)}
+            {steps.map((step, index) => <Step key={step.title} index={index} progress={progress} still={Boolean(reduce)} {...step} />)}
           </ol>
         </div>
         <div className="how__stage" aria-hidden="true">
