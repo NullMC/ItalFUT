@@ -45,13 +45,26 @@ VITE_SUPABASE_PUBLISHABLE_KEY=<chiave publishable del progetto>
 VITE_AUTH_EMAIL_DOMAIN=users.italfut.invalid
 ```
 
+### 6. Superadmin (dashboard `/admin`)
+1. SQL Editor → esegui `supabase/migrations/202611030001_superadmin.sql`.
+2. Registrati sul sito con il tuo account (se non l’hai già fatto).
+3. SQL Editor → nominati superadmin (sostituisci lo username):
+   ```sql
+   insert into public.platform_admins(user_id)
+   select id from public.profiles where username = 'il_tuo_username';
+   ```
+4. Esci e rientra: nella barra in alto compare **Superadmin**.
+
+Dalla dashboard gestisci tutte le tabelle (aggiungi, modifica, elimina, cerca). Ogni operazione finisce nel **Registro attività**. Altri superadmin si aggiungono dalla scheda “Superadmin”; l’ultimo non può essere rimosso.
+
 ---
 
 ## B. Gestione quotidiana (tutto dalla Dashboard Supabase)
 
 | Cosa | Dove |
 | --- | --- |
-| Richieste da `/contatti` (assistenza, privacy, minori, pagamenti) | Table Editor → `support_requests`. Rispondi scrivendo in `reply`, imposta `status = answered` e `answered_at = now()`: l’utente vede la risposta nella pagina Account. Le richieste anonime hanno un recapito facoltativo in `contact`. |
+| Tutto quanto sotto | Più comodo dalla dashboard **`/admin`** (punto 6); la Dashboard Supabase resta un’alternativa. |
+| Richieste da `/contatti` (assistenza, privacy, minori, pagamenti) | Scheda “Richieste di supporto” o Table Editor → `support_requests`. Rispondi scrivendo in `reply`, imposta `status = answered` e `answered_at = now()`: l’utente vede la risposta nella pagina Account. Le richieste anonime hanno un recapito facoltativo in `contact`. |
 | Richieste di moduli extra | Table Editor → `upgrade_requests` |
 | Pubblicare un torneo | `update public.tenants set status = 'active' where slug = '...';` |
 | Attivare un modulo | esempio in `README.md` |
@@ -61,7 +74,7 @@ VITE_AUTH_EMAIL_DOMAIN=users.italfut.invalid
 
 ## C. Prima del lancio commerciale (dopo la Partita IVA)
 
-### 6. Dati dell’operatore
+### 7. Dati dell’operatore
 ItalFUT è un progetto della tua attività, non una società: qui vanno **i tuoi dati di freelancer/impresa**.
 **File:** `src/config/legal.ts` → `legalConfig`
 
@@ -79,7 +92,7 @@ ItalFUT è un progetto della tua attività, non una società: qui vanno **i tuoi
 
 Il credito “made with ♥ by franksitez.com” si modifica in `madeBy`, nello stesso file.
 
-### 7. Conservazione dati e fornitori
+### 8. Conservazione dati e fornitori
 | Campo | Cosa inserire |
 | --- | --- |
 | `serverRegion` | Regione del progetto Supabase (Project Settings → General). Oggi “UE — Francia (eu-west-3)”: **verificare** |
@@ -87,7 +100,7 @@ Il credito “made with ♥ by franksitez.com” si modifica in `madeBy`, nello 
 
 Accetta i **DPA** di Supabase e Cloudflare dalle rispettive dashboard.
 
-### 8. Pagamenti (Stripe)
+### 9. Pagamenti (Stripe)
 | Campo | Cosa inserire |
 | --- | --- |
 | `pricesIncludeVat` | `true` (IVA inclusa) o `false`; ai consumatori i prezzi vanno mostrati IVA inclusa |
@@ -99,12 +112,12 @@ Accetta i **DPA** di Supabase e Cloudflare dalle rispettive dashboard.
 Prezzi: `src/lib/catalog.ts` **e** tabella `feature_catalog` / funzione `quote_plan` nel database (devono coincidere).
 Con Stripe andranno aggiunti alla CSP in `public/_headers` i domini di Stripe, e aggiornate privacy e cookie policy.
 
-### 9. Testi legali (`src/pages/Legal.tsx`)
+### 10. Testi legali (`src/pages/Legal.tsx`)
 - Accordo con gli organizzatori sui dati dei partecipanti (art. 28 GDPR).
 - Trasferimenti extra-UE (Supabase e Cloudflare sono statunitensi: verificare SCC/DPF nei DPA).
 - Foro competente, ADR/ODR se vendi a consumatori.
 
-### 10. Minorenni
+### 11. Minorenni
 Procedura esterna per raccogliere e conservare i consensi firmati dei genitori. Le richieste di rimozione arrivano in `support_requests` con `kind = 'minor'`.
 
 ---

@@ -9,6 +9,7 @@ ItalFUT è una piattaforma SaaS multi-tenant per la gestione dei tornei di calci
 - Landing page ItalFUT responsive, sezioni prodotto, CTA e demo visiva esplicitamente illustrativa.
 - Configuratore durata + moduli aggiuntivi, stima indicativa e preventivo server-side.
 - Account **solo username e password** (nessuna email raccolta né inviata), codice di recupero monouso per reimpostare la password, cambio password e cancellazione account tramite funzioni SQL.
+- Dashboard **superadmin** (`/admin`): una scheda per ogni tabella con ricerca, creazione, modifica ed eliminazione, statistiche della piattaforma e registro attività (funzioni SQL `admin_*`, solo per gli account in `platform_admins`).
 - Modulo Contatti salvato nel database (`support_requests`): l'operatore risponde dalla Dashboard e l'utente legge la risposta nella pagina Account.
 - Pagine legali (privacy, termini, rimborsi, cookie, operatore), consenso cookie senza dark pattern, esportazione JSON dei dati e cancellazione self-service di tornei e account.
 - Console organizzatori con più piattaforme indipendenti e gestione identità visiva.

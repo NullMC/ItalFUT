@@ -11,6 +11,8 @@ import { generateRecoveryCode, normalizeUsername, PASSWORD_MAX, usernameToEmail,
  */
 type AuthContextValue = {
   session: Session | null; profile: Profile | null; loading: boolean;
+  /** Platform superadmin (null while checking). */
+  isAdmin: boolean | null;
   signIn: (username: string, password: string) => Promise<void>;
   /** Creates the account and returns the recovery code to show once. */
   signUp: (input: { username: string; password: string }) => Promise<string>;
@@ -38,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!supabase) { setLoading(false); return; }
@@ -51,15 +54,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let alive = true;
-    if (!session?.user) { setProfile(null); return; }
+    if (!session?.user) { setProfile(null); setIsAdmin(false); return; }
+    setIsAdmin(null);
     void Promise.resolve(client().from('profiles').select('id,username')
       .eq('id', session.user.id).maybeSingle())
       .then(({ data }) => { if (alive) setProfile((data as Profile | null) ?? null); });
+    // The server re-checks on every admin call; this only decides what to show.
+    void Promise.resolve(client().rpc('am_i_admin'))
+      .then(({ data, error }) => { if (alive) setIsAdmin(!error && data === true); });
     return () => { alive = false; };
   }, [session?.user?.id]);
 
   const value = useMemo<AuthContextValue>(() => ({
-    session, profile, loading,
+    session, profile, loading, isAdmin,
     async signIn(identifier, password) {
       const raw = identifier.trim();
       if (!raw || !password || new TextEncoder().encode(password).length > PASSWORD_MAX) throw new Error(GENERIC_LOGIN_ERROR);
@@ -111,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error } = await client().auth.signOut();
       if (error) await client().auth.signOut({ scope: 'local' });
     },
-  }), [session, profile, loading]);
+  }), [session, profile, loading, isAdmin]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

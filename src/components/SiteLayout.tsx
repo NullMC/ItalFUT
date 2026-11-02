@@ -35,7 +35,7 @@ function MenuIcon({ open }: { open: boolean }) {
 }
 
 export function SiteLayout() {
-  const { session } = useAuth();
+  const { session, isAdmin } = useAuth();
   const { openPreferences } = useCookiePreferences();
   const reduce = useReducedMotion();
   const location = useLocation();
@@ -43,7 +43,7 @@ export function SiteLayout() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [active, setActive] = useState<string | null>(null);
-  const appRoute = /^\/(console|account)/.test(location.pathname);
+  const appRoute = /^\/(console|account|admin)/.test(location.pathname);
   const home = location.pathname === '/';
 
   useEffect(() => {
@@ -106,6 +106,7 @@ export function SiteLayout() {
         {appRoute && <nav className="nav__links nav__links--app" aria-label="Area organizzatori">
           <NavLink to="/console" end className={({ isActive }) => 'nav__link' + (isActive ? ' is-active' : '')}>I tuoi tornei</NavLink>
           <NavLink to="/account" className={({ isActive }) => 'nav__link' + (isActive ? ' is-active' : '')}>Account e dati</NavLink>
+          {isAdmin && <NavLink to="/admin" className={({ isActive }) => 'nav__link nav__link--admin' + (isActive ? ' is-active' : '')}>Superadmin</NavLink>}
         </nav>}
         <div className="nav__actions">
           <ThemeToggle />
@@ -175,7 +176,7 @@ export function SiteLayout() {
       slotProps={{ paper: { className: 'mobile-menu glass' } }}>
       <div className="mobile-menu__head"><Brand /><IconButton aria-label="Chiudi menu" onClick={() => setOpen(false)}><MenuIcon open /></IconButton></div>
       <nav className="mobile-menu__links" aria-label="Menu">
-        {(appRoute ? [{ label: 'I tuoi tornei', href: '/console', id: 'c' }, { label: 'Account e dati', href: '/account', id: 'a' }] : marketingLinks).map((link, index) =>
+        {(appRoute ? [{ label: 'I tuoi tornei', href: '/console', id: 'c' }, { label: 'Account e dati', href: '/account', id: 'a' }, ...(isAdmin ? [{ label: 'Superadmin', href: '/admin', id: 'sa' }] : [])] : marketingLinks).map((link, index) =>
           <motion.a key={link.id} href={link.href} onClick={event => { event.preventDefault(); go(link.href); }}
             initial={reduce ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: .04 + index * .05, duration: .45, ease: [.16, 1, .3, 1] }}>{link.label}</motion.a>)}

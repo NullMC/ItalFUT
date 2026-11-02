@@ -16,6 +16,7 @@ const TenantConsole = lazyPage(() => import('./pages/Console').then(m => ({ defa
 const Tournament = lazyPage(() => import('./pages/Tournament').then(m => ({ default: m.Tournament })));
 const LegalPage = lazyPage(() => import('./pages/Legal').then(m => ({ default: m.LegalPage })));
 const Contact = lazyPage(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
+const AdminDashboard = lazyPage(() => import('./admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 const AccountSettings = lazyPage(() => import('./pages/AccountSettings').then(m => ({ default: m.AccountSettings })));
 
 const Loading = () => <div className="center-screen" role="status" aria-live="polite"><CircularProgress aria-label="Caricamento" /></div>;
@@ -35,6 +36,7 @@ const titles: [RegExp, string][] = [
   [/^\/registrati/, 'Crea un account · ItalFUT'],
   [/^\/contatti/, 'Contatti · ItalFUT'],
   [/^\/errore/, 'Errore · ItalFUT'],
+  [/^\/admin/, 'Superadmin · ItalFUT'],
   [/^\/console/, 'Console · ItalFUT'],
   [/^\/account/, 'Account e dati · ItalFUT'],
   [/^\/privacy-policy/, 'Privacy policy · ItalFUT'],
@@ -77,6 +79,8 @@ export function App() {
           <Route path="/console" element={<Private><ConsoleHome /></Private>} />
           <Route path="/console/:slug" element={<Private><TenantConsole /></Private>} />
           <Route path="/console/:slug/:section" element={<Private><TenantConsole /></Private>} />
+          <Route path="/admin" element={<Private><AdminDashboard /></Private>} />
+          <Route path="/admin/:table" element={<Private><AdminDashboard /></Private>} />
           <Route path="/errore/:code" element={<ErrorRoute />} />
           <Route path="*" element={<NotFound />} />
         </Route>
