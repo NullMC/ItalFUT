@@ -13,11 +13,33 @@ type Props = {
   as?: ElementType; axis?: 'x' | 'y'; className?: string; children: ReactNode;
   /** Changes when the active item changes (e.g. the pathname), to re-center it. */
   activeKey?: unknown; style?: CSSProperties; label?: string; role?: string; tabIndex?: number;
+  /** Fade the hidden sides (default). Off for tables: sticky columns + shadows instead. */
+  fade?: boolean;
+  /** Mouse wheel scrolls a horizontal rail sideways (chips, tabs). Off for tables, where the wheel scrolls the page. */
+  wheel?: boolean;
 };
 const ACTIVE = '[aria-current="page"], [aria-current="true"], [aria-selected="true"], .is-active, .active';
 
-export function ScrollRail({ as: Tag = 'div', axis = 'x', className = '', children, activeKey, style, label, role, tabIndex }: Props) {
+export function ScrollRail({ as: Tag = 'div', axis = 'x', className = '', children, activeKey, style, label, role, tabIndex, fade = true, wheel = axis === 'x' }: Props) {
   const ref = useRef<HTMLElement>(null);
+
+  // A vertical mouse wheel moves a horizontal rail, only while it can still move that way:
+  // at either end the page scrolls as usual. Trackpads and touch already scroll sideways.
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || axis !== 'x' || !wheel) return;
+    const onWheel = (event: WheelEvent) => {
+      if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+      const max = el.scrollWidth - el.clientWidth;
+      if (max <= 1) return;
+      const delta = event.deltaMode === 1 ? event.deltaY * 16 : event.deltaY;
+      if ((delta < 0 && el.scrollLeft <= 0) || (delta > 0 && el.scrollLeft >= max - 1)) return;
+      event.preventDefault();
+      el.scrollLeft += delta;
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [axis, wheel]);
 
   useEffect(() => {
     const el = ref.current;
@@ -53,5 +75,5 @@ export function ScrollRail({ as: Tag = 'div', axis = 'x', className = '', childr
     }
   }, [activeKey, axis]);
 
-  return <Tag ref={ref} className={'rail ' + className} data-axis={axis} style={style} aria-label={label} role={role} tabIndex={tabIndex}>{children}</Tag>;
+  return <Tag ref={ref} className={'rail ' + className} data-axis={axis} data-fade={fade ? undefined : 'off'} style={style} aria-label={label} role={role} tabIndex={tabIndex}>{children}</Tag>;
 }

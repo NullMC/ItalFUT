@@ -5,7 +5,7 @@
  * table with muted uppercase headers and tabular numerals, footer with
  * "Mostrati x–y di n" and numbered pagination. On phones every row becomes a card.
  */
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import ArrowUpwardRoundedIcon from '@mui/icons-material/ArrowUpwardRounded';
 import UnfoldMoreRoundedIcon from '@mui/icons-material/UnfoldMoreRounded';
@@ -18,6 +18,8 @@ export type Column<T> = {
   /** Value used for sorting and searching. */
   value?: (row: T) => string | number | null | undefined;
   align?: 'start' | 'end' | 'center'; width?: string; primary?: boolean; hideOnMobile?: boolean;
+  /** Short values (dates, scores, pills) never wrap; everything else wraps instead of being cut. */
+  nowrap?: boolean;
 };
 export type Filter<T> = { label: string; options: { id: string; label: string }[]; test: (row: T, id: string) => boolean; kind?: 'segmented' | 'select' };
 
@@ -63,12 +65,36 @@ export function DataTable<T>({ rows, columns, rowKey, actions, filters = [], sea
   const visible = remote ? filtered : filtered.slice(current * pageSize, current * pageSize + pageSize);
   const go = (next: number) => { const p = Math.min(pages - 1, Math.max(0, next)); if (remote) remote.onPage(p); else setPage(p); };
   const counter = (n: number) => n.toLocaleString('it-IT') + ' ' + (n === 1 ? noun[0] : noun[1]);
+  // Table when every column fits, stacked cards otherwise: nothing (actions included)
+  // ends up out of reach. Measured on the real content, re-checked on resize and new rows.
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [stacked, setStacked] = useState(false);
+  const needed = useRef(0);
+  const rowsKey = visible.map(rowKey).join('|') + columns.map(c => c.key).join();
+  useLayoutEffect(() => { setStacked(false); }, [rowsKey]);
+  useLayoutEffect(() => {
+    const box = boxRef.current;
+    if (!box) return;
+    const check = () => {
+      const scroller = box.querySelector<HTMLElement>('.data-scroll');
+      if (!scroller) return;
+      const width = box.clientWidth;
+      if (!stacked) {
+        needed.current = scroller.scrollWidth;
+        if (scroller.scrollWidth > scroller.clientWidth + 1 || width < 520) setStacked(true);
+      } else if (width >= needed.current + 2 && width >= 520) setStacked(false);
+    };
+    check();
+    const observer = new ResizeObserver(check);
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, [stacked, rowsKey]);
   const pageList = (() => {
     const set = new Set([0, pages - 1, current - 1, current, current + 1].filter(p => p >= 0 && p < pages));
     return [...set].sort((a, b) => a - b);
   })();
 
-  return <div className="data-card glass">
+  return <div className={'data-card glass' + (stacked ? ' is-stacked' : '')} ref={boxRef}>
     <div className="data-toolbar">
       <label className="data-search">
         <SearchRoundedIcon aria-hidden="true" />
@@ -89,7 +115,7 @@ export function DataTable<T>({ rows, columns, rowKey, actions, filters = [], sea
       {toolbarExtra}
       <span className="data-count" aria-live="polite">{counter(total)}</span>
     </div>
-    <ScrollRail className="data-scroll" tabIndex={0} label={caption ?? 'Tabella'}>
+    <ScrollRail className="data-scroll" tabIndex={0} label={(caption ?? 'Tabella') + ' (scorre in orizzontale)'} fade={false} wheel={false}>
       <table className="data-table">
         {caption && <caption className="sr-only">{caption}</caption>}
         <thead><tr>
@@ -108,7 +134,7 @@ export function DataTable<T>({ rows, columns, rowKey, actions, filters = [], sea
         <tbody>
           {visible.map(row => <tr key={rowKey(row)}>
             {columns.map(col => <td key={col.key} data-label={col.title}
-              className={(col.primary ? 'is-primary ' : '') + (col.hideOnMobile ? 'hide-mobile ' : '') + (col.align === 'end' ? 'is-end' : col.align === 'center' ? 'is-center' : '')}>
+              className={(col.primary ? 'is-primary ' : '') + (col.nowrap ? 'is-nowrap ' : '') + (col.hideOnMobile ? 'hide-mobile ' : '') + (col.align === 'end' ? 'is-end' : col.align === 'center' ? 'is-center' : '')}>
               {col.render(row)}</td>)}
             {actions && <td className="data-table__actions">{actions(row)}</td>}
           </tr>)}
@@ -118,6 +144,7 @@ export function DataTable<T>({ rows, columns, rowKey, actions, filters = [], sea
       </table>
     </ScrollRail>
     {total > 0 && <div className="data-foot">
+      <span className="data-foot__hint" aria-hidden="true">Scorri la tabella per vedere tutte le colonne →</span>
       <span>Mostrati <b>{(current * pageSize + 1).toLocaleString('it-IT')}–{Math.min(total, current * pageSize + pageSize).toLocaleString('it-IT')}</b> di {counter(total)}</span>
       {pages > 1 && <nav className="pager" aria-label="Pagine">
         <button type="button" onClick={() => go(current - 1)} disabled={current === 0} aria-label="Pagina precedente"><ChevronLeftRoundedIcon /></button>

@@ -449,16 +449,24 @@
 .data-sort:hover, .data-sort.is-active { color: var(--ink); }
 .data-sort.is-active svg { opacity: 1; color: var(--accent-text); }
 .data-sort svg.is-desc { transform: rotate(180deg); }
-.data-table td { padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; white-space: nowrap; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
-.data-table td.is-primary { max-width: 340px; }
-@media (max-width: 1180px) { .data-table .hide-mobile { display: none; } }
+.data-table td { padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.data-table td.is-primary { min-width: 200px; }
+.data-table .nowrap, .data-table td.is-nowrap { white-space: nowrap; }
+@media (max-width: 1180px) and (min-width: 641px) { .data-table td, .data-table th { padding-inline: 10px; } }
 .data-table tbody tr:last-child td { border-bottom: 0; }
 .data-table tbody tr { transition: background-color .15s ease; }
 .data-table tbody tr:hover { background: var(--surface-hover); }
 .data-table td.is-end { text-align: right; }
 .data-table td.is-center { text-align: center; }
 .data-table__actions { width: 1%; white-space: nowrap; text-align: right !important; }
-.data-table td.data-table__actions { overflow: visible; max-width: none; }
+/* Actions stay reachable: the column sticks to the right edge while the rest scrolls,
+   with a shadow only when columns are hidden behind it. */
+.data-table th.data-table__actions, .data-table td.data-table__actions { position: sticky; right: 0; z-index: 1; background: var(--surface-solid); transition: box-shadow .2s ease; }
+.data-table tbody tr:hover td.data-table__actions { background: color-mix(in srgb, var(--surface-solid) 100%, var(--ink) 4%); }
+.data-scroll[data-end="true"] .data-table__actions { box-shadow: -14px 0 18px -14px rgba(0, 0, 0, .55), inset 1px 0 0 var(--line); }
+.data-scroll { overscroll-behavior-x: contain; }
+.data-scroll[data-end="true"] + .data-foot .data-foot__hint { display: inline-flex; }
+.data-foot__hint { display: none; align-items: center; gap: 4px; color: var(--ink-3); font-size: .78rem; }
 .data-table__empty { text-align: center !important; padding: 40px 14px !important; color: var(--ink-2); }
 .row-actions { display: inline-flex; gap: 2px; }
 .cell-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
@@ -492,21 +500,27 @@
   .data-toolbar { padding: 10px; }
   .data-search { max-width: none; flex-basis: 100%; }
   .data-count { margin-left: 0; }
-  .data-table thead { display: none; }
-  .data-table, .data-table tbody { display: block; }
-  .data-table tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
-  .data-table tbody tr:last-child { border-bottom: 0; }
-  .data-table td { display: flex; justify-content: space-between; gap: 12px; padding: 0; border: 0; grid-column: 1; text-align: left !important; font-size: .86rem; white-space: normal; max-width: none; overflow: visible; min-width: 0; }
-  .data-table td.data-table__actions { width: auto; }
-  .data-table td:not(.is-primary):not(.data-table__actions) { grid-column: 1 / -1; }
-  .cell-main b { overflow-wrap: anywhere; }
-  .data-table td::before { content: attr(data-label); color: var(--ink-3); font-size: .78rem; }
-  .data-table td.is-primary { margin-bottom: 4px; }
-  .data-table td.is-primary::before, .data-table td.data-table__actions::before, .data-table td.data-table__empty::before { content: none; }
-  .data-table td.data-table__actions { grid-column: 2; grid-row: 1; align-self: start; }
-  .data-table td.hide-mobile { display: none; }
-  .data-table td.data-table__empty { display: block; grid-column: 1 / -1; }
   .data-foot { justify-content: center; text-align: center; }
 }
+/* Stacked rows: when the columns do not fit the card (DataTable measures it), every row
+   becomes a card with all its fields and actions visible, nothing scrolled away. */
+.data-card.is-stacked .data-table thead { display: none; }
+.data-card.is-stacked .data-table, .data-card.is-stacked .data-table tbody { display: block; }
+.data-card.is-stacked .data-table tbody tr { position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px 16px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.data-card.is-stacked .data-table tbody tr:last-child { border-bottom: 0; }
+.data-card.is-stacked .data-table td { display: grid; align-content: start; gap: 3px; padding: 0; border: 0; text-align: left !important; font-size: .88rem; white-space: normal; min-width: 0; overflow-wrap: anywhere; }
+.data-card.is-stacked .data-table td::before { content: attr(data-label); color: var(--ink-3); font-size: .68rem; font-weight: 650; letter-spacing: .07em; text-transform: uppercase; }
+.data-card.is-stacked .data-table td.is-primary { grid-column: 1 / -1; padding-right: 92px; min-width: 0; }
+.data-card.is-stacked .data-table td.is-primary::before, .data-card.is-stacked .data-table td.data-table__actions::before, .data-card.is-stacked .data-table td.data-table__empty::before { content: none; }
+.data-card.is-stacked .data-table td.data-table__actions { position: absolute; top: 10px; right: 10px; width: auto; background: none; box-shadow: none !important; }
+.data-card.is-stacked .data-table td.data-table__empty { display: block; grid-column: 1 / -1; }
+.data-card.is-stacked .data-table .is-nowrap { white-space: normal; }
+.data-card.is-stacked .data-table td > .pill { justify-self: start; }
 .bars[data-dense="true"] .bars__col:not(:nth-child(4n+1)) .bars__label { visibility: hidden; }
 .bars[data-dense="true"] .bars__col:nth-child(4n+1) .bars__label { visibility: visible; overflow: visible; }
+/* Standings: position + team and points stay visible while the stats scroll. */
+.standings-full th:first-child, .standings-full td:first-child { position: sticky; left: 0; z-index: 1; width: 44px; min-width: 44px; background: var(--surface-solid); }
+.standings-full th:nth-child(2), .standings-full td:nth-child(2) { position: sticky; left: 44px; z-index: 1; background: var(--surface-solid); }
+.standings-full th:last-child, .standings-full td:last-child { position: sticky; right: 0; z-index: 1; background: var(--surface-solid); }
+.standings-scroll[data-start="true"] .standings-full td:nth-child(2), .standings-scroll[data-start="true"] .standings-full th:nth-child(2) { box-shadow: 14px 0 18px -14px rgba(0, 0, 0, .5); }
+.standings-scroll[data-end="true"] .standings-full td:last-child, .standings-scroll[data-end="true"] .standings-full th:last-child { box-shadow: -14px 0 18px -14px rgba(0, 0, 0, .5); }

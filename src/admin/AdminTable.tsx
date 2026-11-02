@@ -117,9 +117,9 @@ export function AdminTable({ table, schema }: { table: string; schema: AdminSche
     if (ref) return names[ref]?.get(String(value)) ?? <code>{String(value).slice(0, 8)}</code>;
     const col = def.columns.find(c => c.name === column);
     if (col?.type === 'boolean') return value ? 'Sì' : 'No';
-    if (col?.type.startsWith('timestamp')) return new Date(String(value)).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' });
+    if (col?.type.startsWith('timestamp')) return <span className="nowrap">{new Date(String(value)).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })}</span>;
     if (col?.type === 'ARRAY') return (value as unknown[]).map(valueLabel).join(', ');
-    if (enumValues(def, column)) return <span className={'pill pill--' + String(value)}>{valueLabel(value)}</span>;
+    if (enumValues(def, column)) return <span className={'nowrap pill pill--' + String(value)}>{valueLabel(value)}</span>;
     if (column.endsWith('_cents')) return (Number(value) / 100).toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
     if (typeof value === 'object') return <code>{JSON.stringify(value).slice(0, 60)}</code>;
     const text = String(value);
