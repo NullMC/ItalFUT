@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { client, supabase } from '../lib/supabase';
 import type { Profile } from '../lib/types';
@@ -9,10 +9,19 @@ import { generateRecoveryCode, normalizeUsername, PASSWORD_MAX, usernameToEmail,
  * No email is ever sent: sign-up returns a session immediately ("Confirm email" is
  * disabled in the project) and password recovery uses a one-time recovery code.
  */
+export type Role = 'guest' | 'user' | 'admin';
+/** Landing page of each role after sign-in. */
+export const roleHome = (role: Role) => role === 'admin' ? '/admin' : role === 'user' ? '/console' : '/';
+export const roleLabel: Record<Role, string> = { guest: 'Ospite', user: 'Organizzatore', admin: 'Superadmin' };
+
 type AuthContextValue = {
   session: Session | null; profile: Profile | null; loading: boolean;
   /** Platform superadmin (null while checking). */
   isAdmin: boolean | null;
+  /** What the interface shows: null while the role of a signed-in user is being resolved. */
+  role: Role | null;
+  /** Re-reads profile and role from the database (also runs on focus and every minute). */
+  refresh: () => Promise<void>;
   signIn: (username: string, password: string) => Promise<void>;
   /** Creates the account and returns the recovery code to show once. */
   signUp: (input: { username: string; password: string }) => Promise<string>;
@@ -45,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const refreshRef = useRef<() => Promise<void>>(async () => {});
 
   useEffect(() => {
     if (!supabase) { setLoading(false); return; }
@@ -52,25 +62,74 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void supabase.auth.getSession().then(({ data }) => {
       if (alive) { setSession(data.session); setLoading(false); }
     }).catch(() => { if (alive) setLoading(false); });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, next) => setSession(next));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, next) => {
+      setSession(next);
+      // Token refresh / profile change: re-read the role without waiting for the next tick.
+      if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') window.setTimeout(() => void refreshRef.current(), 0);
+    });
     return () => { alive = false; subscription.unsubscribe(); };
   }, []);
 
+  const userId = session?.user?.id ?? null;
+  const userRef = useRef<string | null>(null);
+  userRef.current = userId;
+
+  /**
+   * Profile + role check. The server re-checks permissions on every admin call;
+   * this only decides what the interface shows, so it errs on the side of "user".
+   */
+  const refresh = useCallback(async () => {
+    const id = userRef.current;
+    if (!supabase || !id) return;
+    const [profileResult, adminResult] = await Promise.all([
+      Promise.resolve(supabase.from('profiles').select('id,username').eq('id', id).maybeSingle()),
+      Promise.resolve(supabase.rpc('am_i_admin')),
+    ]);
+    if (userRef.current !== id) return; // signed out or switched account meanwhile
+    if (!profileResult.error) setProfile((profileResult.data as Profile | null) ?? null);
+    // Keep the last known role on network errors; a definitive answer replaces it.
+    if (!adminResult.error) setIsAdmin(adminResult.data === true);
+    else setIsAdmin(previous => previous ?? false);
+  }, []);
+
+  // New user (or sign-out): reset and resolve the role from scratch.
   useEffect(() => {
-    let alive = true;
-    if (!session?.user) { setProfile(null); setIsAdmin(false); return; }
-    setIsAdmin(null);
-    void Promise.resolve(client().from('profiles').select('id,username')
-      .eq('id', session.user.id).maybeSingle())
-      .then(({ data }) => { if (alive) setProfile((data as Profile | null) ?? null); });
-    // The server re-checks on every admin call; this only decides what to show.
-    void Promise.resolve(client().rpc('am_i_admin'))
-      .then(({ data, error }) => { if (alive) setIsAdmin(!error && data === true); });
-    return () => { alive = false; };
-  }, [session?.user?.id]);
+    if (!userId) { setProfile(null); setIsAdmin(false); return; }
+    setProfile(null); setIsAdmin(null);
+    void refresh();
+  }, [userId, refresh]);
+
+  // Constant session check: verifies the session with the server (a deleted account or a
+  // password reset from the dashboard logs the browser out) and refreshes the role, so
+  // promoting or demoting a superadmin is reflected without signing in again.
+  useEffect(() => {
+    if (!supabase || !userId) return;
+    const sb = supabase;
+    let running = false;
+    const check = async () => {
+      if (running || document.visibilityState === 'hidden') return;
+      running = true;
+      try {
+        const { error } = await sb.auth.getUser();
+        if (error && (error.status === 401 || error.status === 403 || /session|jwt|not found/i.test(error.message))) {
+          await sb.auth.signOut({ scope: 'local' });
+          return;
+        }
+        await refresh();
+      } finally { running = false; }
+    };
+    const onVisible = () => { if (document.visibilityState === 'visible') void check(); };
+    const timer = window.setInterval(() => void check(), 60_000);
+    window.addEventListener('focus', onVisible);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { window.clearInterval(timer); window.removeEventListener('focus', onVisible); document.removeEventListener('visibilitychange', onVisible); };
+  }, [userId, refresh]);
+
+  refreshRef.current = refresh;
+  const role: Role | null = !session ? 'guest' : isAdmin === null ? null : isAdmin ? 'admin' : 'user';
 
   const value = useMemo<AuthContextValue>(() => ({
-    session, profile, loading, isAdmin,
+    session, profile, loading, isAdmin, role, refresh,
     async signIn(identifier, password) {
       const raw = identifier.trim();
       if (!raw || !password || new TextEncoder().encode(password).length > PASSWORD_MAX) throw new Error(GENERIC_LOGIN_ERROR);
@@ -122,7 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error } = await client().auth.signOut();
       if (error) await client().auth.signOut({ scope: 'local' });
     },
-  }), [session, profile, loading, isAdmin]);
+  }), [session, profile, loading, isAdmin, role, refresh]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -3,9 +3,11 @@
    Hero (ruixen.ui), Phone Mockups (solaceui), Tilt (ibelick). */
 .itf-phone-stage {
   --phone-w: clamp(250px, 23vw, 320px);
+  /* ~8 mm on a 71 mm wide device, slightly exaggerated so the volume reads at a glance. */
+  --phone-depth: calc(var(--phone-w) * .12);
   position: relative; display: grid; place-items: center; isolation: isolate;
   width: 100%; min-height: calc(var(--phone-w) * 2.15);
-  perspective: 1400px; perspective-origin: 50% 45%;
+  perspective: 1150px; perspective-origin: 45% 40%;
   touch-action: pan-y;
 }
 .itf-phone-stage { --phone-bg: #f5f6f1; --phone-paper: #ffffff; --phone-ink: #0f1d17; --phone-muted: #56665d; --phone-border: #e1e7df; --phone-accent: #0f6b4a; --phone-accent-ink: #fff; }
@@ -21,30 +23,56 @@
 .itf-phone-frame {
   position: relative; width: var(--phone-w); aspect-ratio: .49; padding: 10px; border-radius: calc(var(--phone-w) * .16);
   transform-style: preserve-3d;
-  background: linear-gradient(115deg, #3a4540 0%, #1a221e 18%, #59655e 38%, #1b2420 52%, #0c1110 74%, #48534d 100%);
+  /* Front plate: polished titanium rim around the glass. */
+  background: linear-gradient(115deg, #46524c 0%, #1c2420 16%, #6c7972 36%, #1d2622 52%, #0d1211 74%, #55615a 100%);
   box-shadow:
-    0 0 0 1px rgba(255,255,255,.14) inset,
-    0 0 0 2px #0b0f0d inset,
-    0 2px 0 rgba(255,255,255,.18) inset,
-    -26px 40px 80px -20px rgba(0,0,0,.65),
-    -60px 90px 140px -40px rgba(0,0,0,.45),
-    0 0 90px -20px var(--accent-glow);
+    0 0 0 1px rgba(255,255,255,.22) inset,
+    0 0 0 2.5px #0b0f0d inset,
+    0 2px 0 rgba(255,255,255,.22) inset,
+    0 -1px 0 rgba(0,0,0,.6) inset;
 }
-/* Side thickness: a darker slab offset in Z gives the device real depth. */
-.itf-phone-frame::before {
-  content: ""; position: absolute; inset: 0; border-radius: inherit; transform: translateZ(-14px);
-  background: linear-gradient(90deg, #0a0e0c, #2a332e 30%, #0d1210 70%, #222a26); z-index: -1;
+/* Extruded body: stacked slices form the side wall (see BODY_SLICES). */
+.itf-phone-body { position: absolute; inset: 0; border-radius: inherit; transform-style: preserve-3d; pointer-events: none; }
+.itf-phone-body i {
+  position: absolute; inset: 0; border-radius: inherit;
+  transform: translateZ(calc(var(--phone-depth) * var(--t) * -1));
+  background: linear-gradient(90deg,
+    hsl(150 5% calc(var(--l) * .7)) 0%, hsl(150 6% var(--l)) 4%, hsl(150 4% calc(var(--l) * .45)) 50%,
+    hsl(150 6% calc(var(--l) * 1.08)) 96%, hsl(150 5% calc(var(--l) * .75)) 100%);
+  backface-visibility: visible;
+}
+/* Back plate carries the cast shadow, so it sits behind the whole volume. */
+.itf-phone-body i.is-back {
+  background: linear-gradient(140deg, #26302b, #121815 60%, #1f2824);
+  box-shadow:
+    -34px 46px 80px -18px rgba(0,0,0,.6),
+    -70px 100px 150px -40px rgba(0,0,0,.42),
+    0 0 110px -16px var(--accent-glow);
 }
 /* Moving specular reflection across glass */
 .itf-phone-frame::after {
   content: ""; position: absolute; inset: 10px; border-radius: calc(var(--phone-w) * .13); pointer-events: none; z-index: 20;
   background: linear-gradient(115deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 28%, rgba(255,255,255,0) 62%, rgba(255,255,255,.07) 74%, rgba(255,255,255,0) 86%);
-  mix-blend-mode: screen;
+  /* No mix-blend-mode here: blending forces the 3D context to flatten and the body loses its depth. */
 }
-.itf-phone-button { position: absolute; width: 4px; border-radius: 3px; background: linear-gradient(90deg, #0c100e, #4b5650, #141a17); }
-.itf-phone-button--action { left: -3px; top: 17%; height: 4.5%; }
-.itf-phone-button--volume { left: -3px; top: 25%; height: 12%; box-shadow: 0 calc(var(--phone-w) * .02) 0 transparent; }
-.itf-phone-button--power { right: -3px; top: 27%; height: 15%; }
+/* Buttons live on the side wall: planes turned 90° and centred in the body's depth. */
+.itf-phone-button {
+  position: absolute; width: calc(var(--phone-depth) * .42); border-radius: 3px;
+  background: linear-gradient(180deg, #59665f, #1b221f 30%, #3f4a44 55%, #121715);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.5) inset;
+}
+.itf-phone-button--action, .itf-phone-button--volume { left: 0; transform-origin: 0 50%; transform: translate3d(-2px, 0, calc(var(--phone-depth) * -.29)) rotateY(90deg); }
+.itf-phone-button--power { right: 0; transform-origin: 100% 50%; transform: translate3d(2px, 0, calc(var(--phone-depth) * -.29)) rotateY(-90deg); }
+.itf-phone-button--action { top: 17%; height: 4.5%; }
+.itf-phone-button--volume { top: 25%; height: 12%; }
+.itf-phone-button--power { top: 27%; height: 15%; }
+/* Contact shadow on the "floor" below the floating device. */
+.itf-phone-stage::after {
+  content: ""; position: absolute; z-index: -1; left: 22%; right: 18%; bottom: 3%; height: 7%;
+  border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,0,.42), transparent);
+  filter: blur(10px); pointer-events: none;
+}
+:root[data-theme="light"] .itf-phone-stage::after { background: radial-gradient(closest-side, rgba(12,30,22,.26), transparent); }
 
 .itf-phone-screen {
   position: relative; height: 100%; overflow: hidden; display: flex; flex-direction: column;
@@ -179,7 +207,7 @@
 @media (max-width: 420px) { .itf-phone-stage { --phone-w: min(250px, 68vw); } }
 @media (pointer: coarse) {
   /* Touch: a fixed, gentler cinematic angle; the screen faces the user while used. */
-  .itf-phone-tilt { transform: rotateX(6deg) rotateY(-14deg) rotateZ(3deg) !important; transition: transform .5s var(--ease-out); }
+  .itf-phone-tilt { transform: rotateX(8deg) rotateY(-22deg) rotateZ(4deg) !important; transition: transform .5s var(--ease-out); }
   .itf-phone-tilt:focus-within { transform: none !important; }
 }
-@media (prefers-reduced-motion: reduce) { .itf-phone-tilt { transform: rotateY(-10deg) !important; } }
+@media (prefers-reduced-motion: reduce) { .itf-phone-tilt { transform: rotateX(6deg) rotateY(-18deg) !important; } }

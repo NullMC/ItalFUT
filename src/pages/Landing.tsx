@@ -16,6 +16,7 @@ import type { FeatureCode } from '../lib/types';
 import { Backdrop } from '../components/fx/Backdrop';
 import { Football3D } from '../components/fx/Football3D';
 import { HeroPhonePreview } from '../components/HeroPhonePreview';
+import { roleHome, useAuth } from '../auth/AuthProvider';
 import { Reveal, WordReveal, trackSpotlight } from '../components/MarketingMotion';
 import { demoTeams, standings, teamById } from '../components/heroDemoData';
 
@@ -158,6 +159,8 @@ function HowItWorks() {
 
 export function Landing() {
   const reduce = useReducedMotion();
+  const { session, role } = useAuth();
+  const signedIn = Boolean(session);
   const heroRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
   const copyY = useTransform(scrollYProgress, [0, 1], [0, -60]);
@@ -178,8 +181,10 @@ export function Landing() {
             Competizioni, squadre, partite e classifiche in un unico spazio. Organizza il tuo torneo dalla console e fallo seguire a tutti dal suo sito pubblico.
           </motion.p>
           <motion.div className="hero__actions" initial={reduce ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .7, duration: .8, ease: [.16, 1, .3, 1] }}>
-            <RouterLink to="/configura" className="btn btn--primary btn--lg">Crea il tuo torneo<ArrowForwardRoundedIcon /></RouterLink>
-            <a href="#funzionalita" className="btn btn--ghost btn--lg glass" onClick={event => { event.preventDefault(); document.getElementById('funzionalita')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); }}>Scopri la piattaforma</a>
+            {signedIn
+              ? <RouterLink to={roleHome(role ?? 'user')} className="btn btn--primary btn--lg">{role === 'admin' ? 'Apri la dashboard' : 'Vai ai tuoi tornei'}<ArrowForwardRoundedIcon /></RouterLink>
+              : <RouterLink to="/configura" className="btn btn--primary btn--lg">Crea il tuo torneo<ArrowForwardRoundedIcon /></RouterLink>}
+            {signedIn ? <RouterLink to="/configura" className="btn btn--ghost btn--lg glass">Nuovo torneo</RouterLink> : <a href="#funzionalita" className="btn btn--ghost btn--lg glass" onClick={event => { event.preventDefault(); document.getElementById('funzionalita')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); }}>Scopri la piattaforma</a>}
           </motion.div>
           <motion.ul className="hero__facts" initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: .9, duration: .8 }}>
             <li><CheckRoundedIcon />Funzioni base incluse</li>

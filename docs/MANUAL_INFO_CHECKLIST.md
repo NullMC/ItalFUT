@@ -54,7 +54,7 @@ VITE_AUTH_EMAIL_DOMAIN=users.italfut.invalid
    insert into public.platform_admins(user_id)
    select id from public.profiles where username = 'il_tuo_username';
    ```
-4. Esci e rientra: nella barra in alto compare **Superadmin**.
+4. Ricarica la pagina (o torna sulla scheda del sito: il ruolo viene ricontrollato al rientro e ogni minuto). In alto a destra compaiono il tuo **@username** con il ruolo *Superadmin* e i link **Superadmin** e **Richieste**; dopo l’accesso vieni portato direttamente su `/admin`.
 
 Dalla dashboard gestisci tutte le tabelle (aggiungi, modifica, elimina, cerca). Ogni operazione finisce nel **Registro attività**. Altri superadmin si aggiungono dalla scheda “Superadmin”; l’ultimo non può essere rimosso.
 

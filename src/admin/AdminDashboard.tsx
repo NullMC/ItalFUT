@@ -78,7 +78,7 @@ function Overview() {
 
 export function AdminDashboard() {
   const { table } = useParams();
-  const { isAdmin } = useAuth();
+  const { isAdmin, profile } = useAuth();
   const navigate = useNavigate();
   const [schema, setSchema] = useState<AdminSchema | null>(null);
   const [error, setError] = useState('');
@@ -98,7 +98,7 @@ export function AdminDashboard() {
     <aside className="workspace__side glass" aria-label="Schede superadmin">
       <div className="side-identity">
         <span className="tenant-card__avatar admin-avatar"><AdminPanelSettingsRoundedIcon /></span>
-        <div><b>Superadmin</b><small>Accesso completo al database</small></div>
+        <div><b>{profile?.username ? '@' + profile.username : 'Superadmin'}</b><small>Superadmin · accesso completo</small></div>
       </div>
       <nav className="side-nav">
         <NavLink to="/admin" end className={({ isActive }) => 'side-link' + (isActive ? ' is-active' : '')}><SpaceDashboardRoundedIcon fontSize="small" /><span>Panoramica</span></NavLink>

@@ -5,7 +5,7 @@ import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
-import { useAuth } from '../auth/AuthProvider';
+import { roleHome, useAuth } from '../auth/AuthProvider';
 import { configured, friendlyError, notConfiguredMessage } from '../lib/supabase';
 import { checkPassword, normalizeUsername, PASSWORD_MAX, RECOVERY_CODE_PATTERN, USERNAME_PATTERN } from '../lib/validation';
 import { Backdrop } from '../components/fx/Backdrop';
@@ -37,7 +37,7 @@ export function StrengthMeter({ password, username = '' }: { password: string; u
 export function Access({ register = false }: { register?: boolean }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { session, signIn, signUp, usernameAvailable, resetWithCode } = useAuth();
+  const { session, role, signIn, signUp, usernameAvailable, resetWithCode } = useAuth();
   const routeState = location.state as { from?: string; reason?: string; recover?: boolean } | null;
   const [mode, setMode] = useState<Mode>(register ? 'register' : routeState?.recover ? 'recover' : 'login');
   const [username, setUsername] = useState('');
@@ -54,11 +54,16 @@ export function Access({ register = false }: { register?: boolean }) {
   const failures = useRef(0);
   const [cooldown, setCooldown] = useState(0);
   const from = routeState?.from;
-  const safeFrom = from && from.startsWith('/') && !from.startsWith('//') ? from : '/console';
+  // Back to the page that asked for sign-in, otherwise to the home of the user's role.
+  const safeFrom = from && from.startsWith('/') && !from.startsWith('//') && !from.startsWith('/errore') ? from : null;
 
   useEffect(() => { setMode(register ? 'register' : routeState?.recover ? 'recover' : 'login'); setError(''); setMessage(''); }, [register]); // eslint-disable-line react-hooks/exhaustive-deps
   // A fresh sign-up stays on this page until the recovery code has been saved.
-  useEffect(() => { if (session && mode === 'login') navigate(safeFrom, { replace: true }); }, [session, mode, navigate, safeFrom]);
+  useEffect(() => {
+    if (!session || mode !== 'login') return;
+    if (safeFrom) navigate(safeFrom, { replace: true });
+    else if (role && role !== 'guest') navigate(roleHome(role), { replace: true });
+  }, [session, role, mode, navigate, safeFrom]);
   useEffect(() => {
     if (!cooldown) return;
     const timer = window.setTimeout(() => setCooldown(value => Math.max(0, value - 1)), 1000);
@@ -86,8 +91,7 @@ export function Access({ register = false }: { register?: boolean }) {
     try {
       if (mode === 'login') {
         await signIn(username, password);
-        failures.current = 0;
-        navigate(safeFrom, { replace: true });
+        failures.current = 0; // the effect above redirects once the role is known
       } else if (mode === 'register') {
         if (!canRegister) throw new Error('Controlla i campi evidenziati e i consensi obbligatori.');
         const generated = await signUp({ username, password });

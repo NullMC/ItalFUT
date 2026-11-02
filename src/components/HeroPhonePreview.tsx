@@ -31,7 +31,17 @@ type Route = {
 };
 type MainPage = 'home' | 'matches' | 'standings' | 'teams';
 /** Resting cinematic angle of the device (degrees). */
-const TILT = { x: 9, y: -24, z: 5 };
+const TILT = { x: 11, y: -30, z: 6 };
+/**
+ * The device body is extruded with stacked slices (CSS has no real solids): each slice is a
+ * rounded rectangle pushed back in Z. Lightness follows a sine so the titanium band catches
+ * the light in the middle like a rounded edge, darker toward the front and back plates.
+ */
+const BODY_SLICES = 22;
+const bodySlices = Array.from({ length: BODY_SLICES }, (_, index) => {
+  const t = (index + 1) / BODY_SLICES;
+  return { t, light: Math.round(15 + 30 * Math.sin(Math.PI * t) ** 1.4) };
+});
 
 const navigation: { id: MainPage; label: string; icon: typeof HomeRoundedIcon }[] = [
   { id: 'home', label: 'Home', icon: HomeRoundedIcon },
@@ -295,8 +305,8 @@ export function HeroPhonePreview() {
     onPointerMove={handlePointerMove} onPointerLeave={restoreTilt}>
     <div className="itf-phone-ambient-light" aria-hidden="true" />
     <motion.div className="itf-phone-arrival"
-      initial={reducedMotion ? false : { opacity: .7, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={reducedMotion ? false : { y: 20 }}
+      animate={{ y: 0 }}
       transition={{ duration: reducedMotion ? 0 : .65, ease: [.16, 1, .3, 1] }}>
       <motion.div className="itf-phone-float"
         animate={reducedMotion || interacting ? { y: 0 } : { y: [0, -5, 0] }}
@@ -308,6 +318,10 @@ export function HeroPhonePreview() {
             onBlurCapture={event => {
               if (!event.currentTarget.contains(event.relatedTarget as Node | null)) { setInteracting(false); restoreTilt(); }
             }}>
+            <span className="itf-phone-body" aria-hidden="true">
+              {bodySlices.map(slice => <i key={slice.t} className={slice.t === 1 ? 'is-back' : undefined}
+                style={{ '--t': slice.t, '--l': slice.light + '%' } as CSSProperties} />)}
+            </span>
             <span className="itf-phone-button itf-phone-button--volume" aria-hidden="true" />
             <span className="itf-phone-button itf-phone-button--action" aria-hidden="true" />
             <span className="itf-phone-button itf-phone-button--power" aria-hidden="true" />

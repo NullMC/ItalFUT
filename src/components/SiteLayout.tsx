@@ -3,7 +3,8 @@ import { motion, useReducedMotion } from 'motion/react';
 import { Outlet, Link as RouterLink, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { CircularProgress, Drawer, IconButton } from '@mui/material';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
-import { useAuth } from '../auth/AuthProvider';
+import { roleHome, useAuth } from '../auth/AuthProvider';
+import { displayName, RoleBadge, roleLinks, UserAvatar, UserMenu } from './UserMenu';
 import { ThemeToggle } from './ThemeToggle';
 import { useCookiePreferences } from './CookieNotice';
 import { businessLine, madeBy } from '../config/legal';
@@ -35,7 +36,9 @@ function MenuIcon({ open }: { open: boolean }) {
 }
 
 export function SiteLayout() {
-  const { session, isAdmin } = useAuth();
+  const { session, role, profile, signOut } = useAuth();
+  const signedIn = Boolean(session);
+  const links = roleLinks(role ?? (signedIn ? 'user' : 'guest'));
   const { openPreferences } = useCookiePreferences();
   const reduce = useReducedMotion();
   const location = useLocation();
@@ -87,13 +90,15 @@ export function SiteLayout() {
     } else navigate(href);
   };
 
-  const accountHref = session ? '/console' : '/accesso';
+  const accountHref = signedIn ? roleHome(role ?? 'user') : '/accesso';
+  const accountLabel = role === 'admin' ? 'Dashboard superadmin' : 'I tuoi tornei';
+  const exit = () => { setOpen(false); void signOut().then(() => navigate('/', { replace: true })); };
   return <div className={'site' + (appRoute ? ' site--app' : '')}>
     <a href="#main-content" className="skip-link">Vai al contenuto</a>
     <header className={'nav-wrap' + (scrolled ? ' is-scrolled' : '') + (appRoute ? ' nav-wrap--app' : '')}>
       <div className="nav glass">
         <Brand />
-        {!appRoute && <nav className="nav__links" aria-label="Navigazione principale">
+        {!signedIn ? <nav className="nav__links" aria-label="Navigazione principale">
           {marketingLinks.map(link => <a key={link.id} href={link.href}
             className={'nav__link' + (active === link.id ? ' is-active' : '')}
             aria-current={active === link.id ? (link.id === 'configura' ? 'page' : 'location') : undefined}
@@ -102,16 +107,16 @@ export function SiteLayout() {
               transition={reduce ? { duration: 0 } : { type: 'spring', bounce: .18, duration: .5 }} />}
             <span>{link.label}</span>
           </a>)}
-        </nav>}
-        {appRoute && <nav className="nav__links nav__links--app" aria-label="Area organizzatori">
-          <NavLink to="/console" end className={({ isActive }) => 'nav__link' + (isActive ? ' is-active' : '')}>I tuoi tornei</NavLink>
-          <NavLink to="/account" className={({ isActive }) => 'nav__link' + (isActive ? ' is-active' : '')}>Account e dati</NavLink>
-          {isAdmin && <NavLink to="/admin" className={({ isActive }) => 'nav__link nav__link--admin' + (isActive ? ' is-active' : '')}>Superadmin</NavLink>}
+        </nav> : <nav className="nav__links nav__links--app" aria-label={role === 'admin' ? 'Navigazione superadmin' : 'Area organizzatori'}>
+          {links.map(link => <NavLink key={link.to} to={link.to} end={link.end ?? link.to === '/console'}
+            className={({ isActive }) => 'nav__link' + (link.to.startsWith('/admin') ? ' nav__link--admin' : '') + (isActive ? ' is-active' : '')}>{link.label}</NavLink>)}
         </nav>}
         <div className="nav__actions">
           <ThemeToggle />
-          <RouterLink to={accountHref} className="nav__login">{session ? 'Console' : 'Accedi'}</RouterLink>
-          {!appRoute && <RouterLink to="/configura" className="btn btn--primary btn--sm nav__cta">Crea un torneo<ArrowForwardRoundedIcon /></RouterLink>}
+          {signedIn ? <UserMenu /> : <>
+            <RouterLink to="/accesso" className="nav__login">Accedi</RouterLink>
+            <RouterLink to="/configura" className="btn btn--primary btn--sm nav__cta">Crea un torneo<ArrowForwardRoundedIcon /></RouterLink>
+          </>}
           <IconButton className="nav__menu" aria-label={open ? 'Chiudi menu' : 'Apri menu'} aria-expanded={open} aria-controls="mobile-menu" onClick={() => setOpen(value => !value)}>
             <MenuIcon open={open} />
           </IconButton>
@@ -149,9 +154,9 @@ export function SiteLayout() {
         </nav>
         <nav className="footer__col" aria-labelledby="footer-org">
           <h2 id="footer-org">Organizzatori</h2>
-          <RouterLink to={accountHref}>{session ? 'Console' : 'Accedi'}</RouterLink>
-          {!session && <RouterLink to="/registrati">Crea un account</RouterLink>}
-          {session && <RouterLink to="/account">Account e dati</RouterLink>}
+          <RouterLink to={accountHref}>{signedIn ? accountLabel : 'Accedi'}</RouterLink>
+          {!signedIn && <RouterLink to="/registrati">Crea un account</RouterLink>}
+          {signedIn && <RouterLink to="/account">Account e dati</RouterLink>}
           <RouterLink to="/contatti">Contatti e assistenza</RouterLink>
         </nav>
         <nav className="footer__col" aria-labelledby="footer-legal">
@@ -175,15 +180,25 @@ export function SiteLayout() {
     <Drawer anchor="top" open={open} onClose={() => setOpen(false)} id="mobile-menu"
       slotProps={{ paper: { className: 'mobile-menu glass' } }}>
       <div className="mobile-menu__head"><Brand /><IconButton aria-label="Chiudi menu" onClick={() => setOpen(false)}><MenuIcon open /></IconButton></div>
+      {signedIn && <div className="mobile-menu__user">
+        <UserAvatar username={profile?.username} role={role} size={44} />
+        <span><b>{displayName(profile?.username)}</b><RoleBadge role={role} /></span>
+      </div>}
       <nav className="mobile-menu__links" aria-label="Menu">
-        {(appRoute ? [{ label: 'I tuoi tornei', href: '/console', id: 'c' }, { label: 'Account e dati', href: '/account', id: 'a' }, ...(isAdmin ? [{ label: 'Superadmin', href: '/admin', id: 'sa' }] : [])] : marketingLinks).map((link, index) =>
+        {(signedIn ? links.map(link => ({ label: link.label, href: link.to, id: link.to })) : marketingLinks).map((link, index) =>
           <motion.a key={link.id} href={link.href} onClick={event => { event.preventDefault(); go(link.href); }}
+            aria-current={signedIn && location.pathname === link.href ? 'page' : undefined}
             initial={reduce ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: .04 + index * .05, duration: .45, ease: [.16, 1, .3, 1] }}>{link.label}</motion.a>)}
       </nav>
       <div className="mobile-menu__actions">
-        <RouterLink to={accountHref} className="btn btn--ghost glass" onClick={() => setOpen(false)}>{session ? 'Console' : 'Accedi'}</RouterLink>
-        <RouterLink to="/configura" className="btn btn--primary" onClick={() => setOpen(false)}>Crea un torneo<ArrowForwardRoundedIcon /></RouterLink>
+        {signedIn ? <>
+          <RouterLink to="/configura" className="btn btn--primary" onClick={() => setOpen(false)}>Nuovo torneo<ArrowForwardRoundedIcon /></RouterLink>
+          <button type="button" className="btn btn--ghost glass" onClick={exit}>Esci</button>
+        </> : <>
+          <RouterLink to="/accesso" className="btn btn--ghost glass" onClick={() => setOpen(false)}>Accedi</RouterLink>
+          <RouterLink to="/configura" className="btn btn--primary" onClick={() => setOpen(false)}>Crea un torneo<ArrowForwardRoundedIcon /></RouterLink>
+        </>}
       </div>
       <div className="mobile-menu__legal">
         <RouterLink to="/privacy-policy" onClick={() => setOpen(false)}>Privacy</RouterLink>

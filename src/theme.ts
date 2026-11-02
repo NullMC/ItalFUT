@@ -84,7 +84,8 @@ export function createItalFutTheme(mode: AppearanceMode) {
           },
         },
       },
-      MuiBackdrop: { styleOverrides: { root: { backgroundColor: 'rgba(3,8,6,.55)', backdropFilter: 'blur(6px)' } } },
+      // Only visible backdrops (dialogs, drawers) dim and blur; menus and selects keep the page sharp.
+      MuiBackdrop: { styleOverrides: { root: ({ ownerState }) => ownerState.invisible ? {} : { backgroundColor: 'rgba(3,8,6,.55)', backdropFilter: 'blur(6px)' } } },
       MuiDialogTitle: { styleOverrides: { root: { fontWeight: 620, letterSpacing: '-0.02em' } } },
       MuiIconButton: { styleOverrides: { root: { borderRadius: 12 } } },
       MuiAlert: { styleOverrides: { root: { borderRadius: 14, alignItems: 'center' } } },
