@@ -12,10 +12,10 @@ export const LEGAL_REVIEWED = false; // true ONLY after review by a lawyer/accou
 export const legalConfig = {
   // Identità dell'operatore: la TUA azienda. ItalFUT è un progetto/marchio dell'azienda,
   // non una società a sé: qui vanno i dati dell'azienda che lo realizza e lo gestisce.
-  operatorName: '',          // ragione sociale o nome della ditta che gestisce ItalFUT
-  legalForm: '',             // es. "Ditta individuale", "S.r.l."
+  operatorName: 'Francesco Tenerelli',          // ragione sociale o nome della ditta che gestisce ItalFUT
+  legalForm: 'Ditta individuale',             // es. "Ditta individuale", "S.r.l."
   vatNumber: '',             // Partita IVA (11 cifre) — obbligatoria sul sito se esercizio d'impresa
-  taxCode: '',               // Codice fiscale dell'impresa / del titolare
+  taxCode: 'TNRFNC08B22A662A',               // Codice fiscale dell'impresa / del titolare
   reaRegistration: '',       // es. "BA-123456" (se iscritti al Registro Imprese)
   shareCapital: '',          // solo per società di capitali, es. "€ 10.000 i.v."
   registeredOffice: '',      // indirizzo completo della sede legale
@@ -25,8 +25,8 @@ export const legalConfig = {
   // (D.Lgs. 70/2003, art. 7): compilalo prima del lancio commerciale.
   supportEmail: '',
   privacyEmail: '',
-  certifiedEmail: '',        // PEC
-  telephone: '',
+  certifiedEmail: 'tenerellifrancesco@notificapostale.it',        // PEC
+  telephone: '+39 3389173386',
   contactUrl: '',
   dpoContact: '',            // solo se un DPO è nominato
   // Infrastruttura e fornitori
@@ -52,7 +52,7 @@ export const legalConfig = {
 };
 
 /** Credito nel footer: "made with ♥ by …" verso il portfolio dell'azienda. */
-export const madeBy = { label: 'franksitez.com', url: 'https://franksitez.com' };
+export const madeBy = { label: 'FrankSitez', url: 'https://franksitez.com' };
 
 export const legalNeedsReview = !LEGAL_REVIEWED ||
   !legalConfig.operatorName || !legalConfig.registeredOffice || !legalConfig.vatNumber;
