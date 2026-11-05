@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button, Checkbox } from '@mui/material';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
@@ -7,7 +7,7 @@ import { motion, useReducedMotion } from 'motion/react';
 import { BASE_MONTHLY, CORE, estimate, EXTRA, formatEuro, MODULES, TERMS } from '../lib/catalog';
 import type { FeatureCode } from '../lib/types';
 import { AnimatedAmount } from '../components/AnimatedAmount';
-import { paymentsActive, vatNote } from '../config/legal';
+import { vatNote } from '../config/legal';
 import { Reveal } from '../components/MarketingMotion';
 
 export function Configurator() {
@@ -70,12 +70,12 @@ export function Configurator() {
             {quote.discount > 0 && <div className="quote__discount"><dt>Sconto durata ({Math.round(quote.discount * 100)}%)</dt><dd>− {formatEuro(Math.round((gross - quote.total) * 100) / 100)}</dd></div>}
           </dl>
           <div className="quote__total">
-            <span>{paymentsActive ? 'Totale stimato' : 'Totale indicativo · oggi gratis'}</span>
+            <span>Totale stimato</span>
             <strong className="display-num"><AnimatedAmount amount={quote.total} /></strong>
-            <small>per {months} {months === 1 ? 'mese' : 'mesi'} · {vatNote}</small>
+            <small>per {months} {months === 1 ? 'mese' : 'mesi'}{vatNote ? ' · ' + vatNote : ''}</small>
           </div>
           <Button variant="contained" size="large" fullWidth onClick={proceed} endIcon={<ArrowForwardRoundedIcon />}>Continua</Button>
-          <p className="quote__note">{paymentsActive ? 'Riepilogo del preventivo: il prezzo definitivo, i metodi di pagamento e il rinnovo ti vengono mostrati prima di qualsiasi acquisto.' : 'Oggi ItalFUT è gratuito: questo è solo un preventivo indicativo del possibile listino futuro. Proseguendo crei uno spazio in bozza; nessun pagamento viene richiesto e i moduli si attivano su richiesta, senza costi.'} <RouterLink to="/refund-policy">Dettagli</RouterLink></p>
+          <p className="quote__note">Preventivo indicativo. Oggi non è attivo alcun pagamento: proseguendo crei uno spazio in bozza e nessun importo viene addebitato. Rinnovo automatico non previsto.</p>
         </aside>
       </div>
     </div>

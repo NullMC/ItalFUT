@@ -18,7 +18,6 @@ import { MadeBy } from '../components/SiteLayout';
 import { ErrorView } from './ErrorPage';
 import { ScrollRail } from '../components/ScrollRail';
 import { useCookiePreferences } from '../components/CookieNotice';
-import { isPrivate } from '../config/legal';
 
 type Data = Record<string, Row[]>;
 const tables = ['competitions', 'teams', 'competition_teams', 'players', 'matches', 'match_events', 'staff_members', 'awards', 'sponsors', 'articles', 'market_slots', 'galleries'];
@@ -246,7 +245,7 @@ export function Tournament() {
         <RouterLink to="/terms-of-service">Termini</RouterLink>
         <RouterLink to="/cookie-policy">Cookie</RouterLink>
         <button type="button" onClick={openPreferences}>Preferenze cookie</button>
-        <RouterLink to="/business">{isPrivate ? 'Chi gestisce ItalFUT' : 'Operatore'}</RouterLink>
+        <RouterLink to="/business">Chi gestisce ItalFUT</RouterLink>
         <RouterLink to="/contatti">Contatti</RouterLink>
       </nav>
     </Container></footer>

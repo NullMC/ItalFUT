@@ -1,13 +1,9 @@
 # ItalFUT — Cosa configurare e inserire a mano
 
-ItalFUT è un progetto personale gestito da una persona fisica, **gratuito**: oggi non chiede e non accetta pagamenti (`OPERATOR_MODE = 'privato'`, `PAYMENTS_ACTIVE = false` in `src/config/legal.ts`). Diventerà a pagamento solo dopo l’apertura di una partita IVA che copra questa attività (con Stripe per i pagamenti).
+ItalFUT è un progetto personale, che verrà lanciato commercialmente dopo l’apertura della Partita IVA (con Stripe per i pagamenti).
 Infrastruttura: **solo Cloudflare** (dominio, DNS, hosting) **+ Supabase** (database, autenticazione, richieste). Nessun servizio email: nessuna email viene mai inviata agli utenti.
 
-Finché un campo resta vuoto, le pagine legali mostrano “da completare” e il footer non mostra dati fiscali.
-
-**Subito, anche nella fase gratuita:** in `legalConfig` compila `operatorName` (nome e cognome: serve a identificare il titolare del trattamento nella privacy policy) e, se vuoi, `operatorCity`. Rivedi `requestRetention` e gli altri tempi di conservazione già proposti. Non pubblicare codice fiscale o indirizzo di casa: non sono richiesti in questa fase.
-
-> Perché gratuito: incassare abbonamenti ricorrenti da più clienti è un’attività abituale, non una prestazione occasionale; per farlo serve la partita IVA indipendentemente dalla soglia dei 5.000 € (che riguarda solo i contributi INPS). Vedi la sezione C e chiedi conferma a un commercialista.
+Le pagine legali mostrano solo i dati presenti in `src/config/legal.ts`: un campo vuoto viene omesso, senza segnaposto.
 
 > Non sono un avvocato né un commercialista: i testi in `src/pages/Legal.tsx` sono bozze da far revisionare prima del lancio commerciale.
 
@@ -77,44 +73,33 @@ Dalla dashboard gestisci tutte le tabelle (aggiungi, modifica, elimina, cerca). 
 
 ---
 
-## C. Prima di incassare (dopo l’apertura della partita IVA)
+## C. Prima del lancio commerciale (dopo la Partita IVA)
 
-Ordine: 1) partita IVA aperta con il codice ATECO concordato con il commercialista; 2) `OPERATOR_MODE = 'partita-iva'` e campi qui sotto compilati; 3) Stripe collegato e testato; 4) solo allora `PAYMENTS_ACTIVE = true`. Avvisa gli utenti nella console almeno 30 giorni prima (lo promettono i Termini).
-
-### 7. Dati dell’operatore
-Con la partita IVA vanno pubblicati **i tuoi dati fiscali** (la partita IVA anche nel footer di ogni pagina).
+### 7. Dati del gestore
 **File:** `src/config/legal.ts` → `legalConfig`
 
-| Campo | Cosa inserire |
+| Campo | Cosa contiene |
 | --- | --- |
-| `operatorName` | Nome e cognome (o denominazione della ditta) |
-| `legalForm` | Es. “Ditta individuale”, “Libero professionista” |
-| `vatNumber` | Partita IVA |
-| `taxCode` | Codice fiscale |
-| `reaRegistration` | Numero REA, solo se iscritto al Registro Imprese |
-| `registeredOffice` | Indirizzo della sede / domicilio fiscale |
-| `certifiedEmail` | PEC (obbligatoria per le imprese iscritte al Registro Imprese) |
-| `supportEmail` / `privacyEmail` | **Un indirizzo email di sola ricezione.** Per la vendita online la legge chiede che sul sito compaia un indirizzo email (D.Lgs. 70/2003, art. 7). Non serve un servizio di invio: basta una casella gratuita, oppure un indirizzo del tuo dominio inoltrato con Cloudflare Email Routing. Il modulo Contatti resta il canale principale. |
+| `operatorName` | Il tuo nome (pagina “Chi gestisce ItalFUT”, privacy, termini) |
+| `supportEmail` | Facoltativo: se compilato compare accanto al modulo Contatti |
 | `officialDomain` | Es. `https://italfut.it` |
 
-Il credito “made with ♥ by franksitez.com” si modifica in `madeBy`, nello stesso file.
+Dati fiscali, sede, PEC e recapiti non sono più previsti dal file: se ti servono, aggiungili tu nella pagina “Chi gestisce ItalFUT” in `src/pages/Legal.tsx` (blocco `page === 'business'`).
+Il credito “made with ♥ by FrankSitez” si modifica in `madeBy`, nello stesso file.
 
 ### 8. Conservazione dati e fornitori
 | Campo | Cosa inserire |
 | --- | --- |
 | `serverRegion` | Regione del progetto Supabase (Project Settings → General). Oggi “UE — Francia (eu-west-3)”: **verificare** |
-| `accountRetention`, `tenantRetention`, `logRetention`, `legalRecordsRetention` | Tempi di conservazione decisi (documenti fiscali: di norma 10 anni) |
+| `accountRetention`, `tenantRetention`, `requestRetention`, `logRetention` | Tempi di conservazione mostrati nella privacy policy (già compilati: rivedili) |
 
 Accetta i **DPA** di Supabase e Cloudflare dalle rispettive dashboard.
 
 ### 9. Pagamenti (Stripe)
-| Campo | Cosa inserire |
+| Campo / file | Cosa fare |
 | --- | --- |
-| `pricesIncludeVat` | `true` (IVA inclusa) o `false`; ai consumatori i prezzi vanno mostrati IVA inclusa |
-| `acceptedPaymentMethods` | Es. “Carte di pagamento tramite Stripe” |
-| `billingStartCondition`, `autoRenewal` | Decorrenza dell’addebito, rinnovo e disdetta |
-| `contractualCustomerTypes` | “B2B”, “B2C” o entrambi |
-| `LEGAL_REVIEWED`, `lastReviewedOn` | Solo dopo la revisione di un professionista |
+| `pricesIncludeVat` | `true` (IVA inclusa), `false` (IVA esclusa) o `null` per non mostrare nulla accanto ai prezzi |
+| `src/pages/Legal.tsx` | Termini (sezione 4) e Rimborsi: metodo di pagamento, decorrenza e rinnovo quando attivi i pagamenti |
 
 Prezzi: `src/lib/catalog.ts` **e** tabella `feature_catalog` / funzione `quote_plan` nel database (devono coincidere).
 Con Stripe andranno aggiunti alla CSP in `public/_headers` i domini di Stripe, e aggiornate privacy e cookie policy.

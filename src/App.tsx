@@ -7,7 +7,6 @@ import { SiteLayout } from './components/SiteLayout';
 import { CookieSettingsProvider } from './components/CookieNotice';
 import { ErrorBoundary, lazyPage } from './components/ErrorBoundary';
 import { ErrorRoute, NotFound } from './pages/ErrorPage';
-import { isPrivate } from './config/legal';
 
 // Route-level code splitting keeps the landing bundle small.
 const Configurator = lazyPage(() => import('./pages/Configurator').then(m => ({ default: m.Configurator })));
@@ -42,9 +41,9 @@ const titles: [RegExp, string][] = [
   [/^\/account/, 'Account e dati · ItalFUT'],
   [/^\/privacy-policy/, 'Privacy policy · ItalFUT'],
   [/^\/terms-of-service/, 'Termini di servizio · ItalFUT'],
-  [/^\/refund-policy/, (isPrivate ? 'Prezzi e pagamenti' : 'Rimborsi e recesso') + ' · ItalFUT'],
+  [/^\/refund-policy/, 'Rimborsi e recesso · ItalFUT'],
   [/^\/cookie-policy/, 'Cookie policy · ItalFUT'],
-  [/^\/business/, (isPrivate ? 'Chi gestisce ItalFUT' : 'Informazioni sull’operatore') + ' · ItalFUT'],
+  [/^\/business/, 'Chi gestisce ItalFUT · ItalFUT'],
 ];
 
 /** Restores scroll on navigation and keeps document titles meaningful for assistive tech. */

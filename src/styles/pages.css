@@ -106,7 +106,6 @@
 .legal__section ul { padding-left: 20px; margin: 0; display: grid; gap: 6px; }
 .legal__section a { color: var(--accent-text); }
 .legal__section b { color: var(--ink); font-weight: 600; }
-.legal-missing { display: inline-block; padding: 0 8px; border-radius: 6px; font-size: .85em; color: var(--ink); background: color-mix(in srgb, var(--warning) 12%, transparent); }
 .table-wrap { overflow-x: auto; margin: 10px 0; border-radius: 14px; border: 1px solid var(--line); }
 .legal-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
 .legal-table th, .legal-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; color: var(--ink-2); }

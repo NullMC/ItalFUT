@@ -7,7 +7,7 @@ import { roleHome, useAuth } from '../auth/AuthProvider';
 import { displayName, RoleBadge, roleLinks, UserAvatar, UserMenu } from './UserMenu';
 import { ThemeToggle } from './ThemeToggle';
 import { useCookiePreferences } from './CookieNotice';
-import { businessLine, isPrivate, madeBy } from '../config/legal';
+import { madeBy } from '../config/legal';
 import { ErrorBoundary } from './ErrorBoundary';
 
 /** Credit to the company behind ItalFUT. */
@@ -136,7 +136,7 @@ export function SiteLayout() {
           <RouterLink to="/terms-of-service">Termini</RouterLink>
           <RouterLink to="/cookie-policy">Cookie</RouterLink>
           <button type="button" onClick={openPreferences}>Preferenze cookie</button>
-          <RouterLink to="/business">{isPrivate ? 'Chi gestisce ItalFUT' : 'Operatore'}</RouterLink>
+          <RouterLink to="/business">Chi gestisce ItalFUT</RouterLink>
           <RouterLink to="/contatti">Contatti</RouterLink>
         </nav>
       </div>
@@ -163,15 +163,15 @@ export function SiteLayout() {
           <h2 id="footer-legal">Legale</h2>
           <RouterLink to="/privacy-policy">Privacy policy</RouterLink>
           <RouterLink to="/terms-of-service">Termini di servizio</RouterLink>
-          <RouterLink to="/refund-policy">{isPrivate ? 'Prezzi e pagamenti' : 'Rimborsi e recesso'}</RouterLink>
+          <RouterLink to="/refund-policy">Rimborsi e recesso</RouterLink>
           <RouterLink to="/cookie-policy">Cookie policy</RouterLink>
           <button type="button" onClick={openPreferences}>Preferenze cookie</button>
-          <RouterLink to="/business">{isPrivate ? 'Chi gestisce ItalFUT' : 'Informazioni sull’operatore'}</RouterLink>
+          <RouterLink to="/business">Chi gestisce ItalFUT</RouterLink>
           <RouterLink to="/contatti">Contatti</RouterLink>
         </nav>
       </div>
       <div className="container footer__bottom">
-        <span>© {new Date().getFullYear()} ItalFUT{businessLine ? ' · ' + businessLine : ''}</span>
+        <span>© {new Date().getFullYear()} ItalFUT</span>
         <MadeBy />
       </div>
       <div className="footer__wordmark" aria-hidden="true"><span>ital</span>FUT</div>
