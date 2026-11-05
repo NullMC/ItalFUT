@@ -191,3 +191,4 @@
 .error-page__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 8px; }
 .btn.is-disabled { opacity: .45; pointer-events: none; }
 @media (max-width: 560px) { .error-page__actions .btn { flex: 1 1 100%; } }
+.legal__section p + h2, .legal__section ul + h2 { margin-top: 28px; }

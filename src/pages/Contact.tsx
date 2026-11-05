@@ -43,7 +43,7 @@ export function Contact() {
     <div className="container">
       <Reveal className="page-head">
         <h1 className="page-title">Contatti <span className="serif-accent">e richieste.</span></h1>
-        <p className="lead">Assistenza, richieste privacy o segnalazioni sui dati di un minore. Le richieste arrivano direttamente all’operatore di ItalFUT.</p>
+        <p className="lead">Assistenza, richieste privacy o segnalazioni sui dati di un minore. Le richieste arrivano direttamente al gestore di ItalFUT.</p>
       </Reveal>
       <div className="contact__grid">
         <form className="panel glass stack-form" onSubmit={submit}>

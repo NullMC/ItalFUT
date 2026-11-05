@@ -1,9 +1,13 @@
 # ItalFUT — Cosa configurare e inserire a mano
 
-ItalFUT è un progetto personale, che verrà lanciato commercialmente dopo l’apertura della Partita IVA (con Stripe per i pagamenti).
+ItalFUT è un progetto personale gestito da una persona fisica, **gratuito**: oggi non chiede e non accetta pagamenti (`OPERATOR_MODE = 'privato'`, `PAYMENTS_ACTIVE = false` in `src/config/legal.ts`). Diventerà a pagamento solo dopo l’apertura di una partita IVA che copra questa attività (con Stripe per i pagamenti).
 Infrastruttura: **solo Cloudflare** (dominio, DNS, hosting) **+ Supabase** (database, autenticazione, richieste). Nessun servizio email: nessuna email viene mai inviata agli utenti.
 
 Finché un campo resta vuoto, le pagine legali mostrano “da completare” e il footer non mostra dati fiscali.
+
+**Subito, anche nella fase gratuita:** in `legalConfig` compila `operatorName` (nome e cognome: serve a identificare il titolare del trattamento nella privacy policy) e, se vuoi, `operatorCity`. Rivedi `requestRetention` e gli altri tempi di conservazione già proposti. Non pubblicare codice fiscale o indirizzo di casa: non sono richiesti in questa fase.
+
+> Perché gratuito: incassare abbonamenti ricorrenti da più clienti è un’attività abituale, non una prestazione occasionale; per farlo serve la partita IVA indipendentemente dalla soglia dei 5.000 € (che riguarda solo i contributi INPS). Vedi la sezione C e chiedi conferma a un commercialista.
 
 > Non sono un avvocato né un commercialista: i testi in `src/pages/Legal.tsx` sono bozze da far revisionare prima del lancio commerciale.
 
@@ -73,10 +77,12 @@ Dalla dashboard gestisci tutte le tabelle (aggiungi, modifica, elimina, cerca). 
 
 ---
 
-## C. Prima del lancio commerciale (dopo la Partita IVA)
+## C. Prima di incassare (dopo l’apertura della partita IVA)
+
+Ordine: 1) partita IVA aperta con il codice ATECO concordato con il commercialista; 2) `OPERATOR_MODE = 'partita-iva'` e campi qui sotto compilati; 3) Stripe collegato e testato; 4) solo allora `PAYMENTS_ACTIVE = true`. Avvisa gli utenti nella console almeno 30 giorni prima (lo promettono i Termini).
 
 ### 7. Dati dell’operatore
-ItalFUT è un progetto della tua attività, non una società: qui vanno **i tuoi dati di freelancer/impresa**.
+Con la partita IVA vanno pubblicati **i tuoi dati fiscali** (la partita IVA anche nel footer di ogni pagina).
 **File:** `src/config/legal.ts` → `legalConfig`
 
 | Campo | Cosa inserire |

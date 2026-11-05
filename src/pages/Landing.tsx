@@ -19,6 +19,7 @@ import { HeroPhonePreview } from '../components/HeroPhonePreview';
 import { roleHome, useAuth } from '../auth/AuthProvider';
 import { Reveal, WordReveal, trackSpotlight } from '../components/MarketingMotion';
 import { demoTeams, standings, teamById } from '../components/heroDemoData';
+import { paymentsActive } from '../config/legal';
 
 const moduleIcons: Partial<Record<FeatureCode, ReactNode>> = {
   statistics: <QueryStatsRoundedIcon />, staff: <BadgeRoundedIcon />, awards: <WorkspacePremiumRoundedIcon />,
@@ -191,7 +192,7 @@ export function Landing() {
           <motion.ul className="hero__facts" initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: .9, duration: .8 }}>
             <li><CheckRoundedIcon />Funzioni base incluse</li>
             <li><CheckRoundedIcon />Moduli solo se ti servono</li>
-            <li><CheckRoundedIcon />Nessun addebito automatico</li>
+            <li><CheckRoundedIcon />{paymentsActive ? 'Nessun addebito automatico' : 'Gratuito durante il lancio'}</li>
           </motion.ul>
         </motion.div>
         <motion.div className="hero__device" style={reduce ? undefined : { y: phoneY }}>
@@ -240,7 +241,7 @@ export function Landing() {
             {MODULES.filter(module => module.core).map(module => <li key={module.code}><CheckRoundedIcon />{module.name}</li>)}
           </ul>
           <RouterLink to="/configura" className="btn btn--primary">Configura i moduli<ArrowForwardRoundedIcon /></RouterLink>
-          <p className="modules__note">Prezzi indicativi mensili. Oggi nessun pagamento viene richiesto: i moduli extra si attivano solo dopo una conferma esplicita.</p>
+          <p className="modules__note">{paymentsActive ? 'Prezzi mensili. I moduli extra si attivano solo dopo una conferma esplicita.' : 'Prezzi indicativi del possibile listino futuro: oggi ItalFUT è gratuito e i moduli extra si attivano su richiesta, senza costi.'}</p>
         </Reveal>
         <ul className="modules__list">
           {EXTRA.map((module, index) => <Reveal as="li" key={module.code} delay={index * .04} className="module-tile glass">

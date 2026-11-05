@@ -37,6 +37,7 @@ import { ErrorView } from './ErrorPage';
 import { ScrollRail } from '../components/ScrollRail';
 import { summarize, useTenantStats } from '../lib/useTenantStats';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import { paymentsActive } from '../config/legal';
 
 type Owned = { role: MemberRole; tenants: Tenant | null };
 type PlanDraft = { months: number; modules: FeatureCode[] };
@@ -158,7 +159,7 @@ export function ConsoleHome() {
             onChange={e => { setSlugEdited(true); setSlug(formatSlug(e.target.value)); }}
             helperText={window.location.origin + '/t/' + (slug || 'nome-torneo')}
             slotProps={{ htmlInput: { maxLength: 42, pattern: '[a-z0-9][a-z0-9\\-]{2,41}' } }} />
-          <Alert severity="info">Configurazione scelta: {plan.months} {plan.months === 1 ? 'mese' : 'mesi'}, {plan.modules.length} moduli facoltativi. Preventivo indicativo {formatEuro(quote.total)}. Nessun addebito: i moduli extra restano da attivare.</Alert>
+          <Alert severity="info">Configurazione scelta: {plan.months} {plan.months === 1 ? 'mese' : 'mesi'}, {plan.modules.length} moduli facoltativi. {paymentsActive ? <>Preventivo {formatEuro(quote.total)}. Nessun addebito automatico: i moduli extra restano da attivare.</> : <>Oggi ItalFUT è gratuito (valore indicativo {formatEuro(quote.total)}): i moduli extra si attivano su richiesta, senza costi.</>}</Alert>
           {error && <Alert severity="error">{error}</Alert>}
         </Stack></DialogContent>
         <DialogActions sx={{ p: 3, pt: 1 }}><Button onClick={() => setCreating(false)} disabled={busy}>Annulla</Button><Button variant="contained" type="submit" disabled={busy}>{busy ? 'Creazione…' : 'Crea torneo'}</Button></DialogActions>
@@ -238,7 +239,7 @@ export function TenantConsole() {
       const { error: issue } = await client().rpc('request_upgrade', { p_tenant_id: tenant.id, p_months: upgradeMonths, p_features: upgrade });
       if (issue) throw issue;
       setUpgrade([]);
-      setNotice('Richiesta registrata. I moduli restano disattivati finché non vengono confermati: nessun addebito automatico.');
+      setNotice(paymentsActive ? 'Richiesta registrata. I moduli restano disattivati finché non vengono confermati: nessun addebito automatico.' : 'Richiesta registrata. Riceverai la conferma nella console: durante questa fase i moduli si attivano senza costi.');
     } catch (cause) { setError(friendlyError(cause)); }
     finally { setUpgrading(false); }
   };
@@ -357,7 +358,7 @@ export function TenantConsole() {
       </div>}
 
       {section === 'modules' && <div>
-        <header className="ws-head"><div className="ws-head__text"><h1>Moduli</h1><p>Le funzioni base sono incluse. I moduli aggiuntivi si richiedono qui e si attivano solo dopo conferma.</p></div></header>
+        <header className="ws-head"><div className="ws-head__text"><h1>Moduli</h1><p>{paymentsActive ? 'Le funzioni base sono incluse. I moduli aggiuntivi si richiedono qui e si attivano solo dopo conferma.' : 'Le funzioni base sono incluse. I moduli aggiuntivi si richiedono qui e si attivano dopo conferma; oggi ItalFUT è gratuito e i prezzi sono solo indicativi.'}</p></div></header>
         <div className="grant-list">{MODULES.map(module => {
           const active = enabled(module.code);
           const picked = upgrade.includes(module.code);
@@ -373,8 +374,8 @@ export function TenantConsole() {
           <h2>Richiedi attivazione</h2>
           <div className="upgrade__terms" role="radiogroup" aria-label="Durata">{[1, 3, 6, 12].map(months => <button key={months} type="button" role="radio" aria-checked={upgradeMonths === months}
             className={'chip-link' + (upgradeMonths === months ? ' is-active' : '')} onClick={() => setUpgradeMonths(months)}>{months} {months === 1 ? 'mese' : 'mesi'}</button>)}</div>
-          <p>Stima per i moduli selezionati: <b>{formatEuro(estimate(upgradeMonths, upgrade).total - estimate(upgradeMonths, []).total)}</b> per {upgradeMonths} {upgradeMonths === 1 ? 'mese' : 'mesi'}.</p>
-          <p className="muted">Inviando la richiesta non attivi nulla e non paghi nulla: verrai ricontattato con le condizioni definitive.</p>
+          <p>{paymentsActive ? 'Stima per i moduli selezionati' : 'Valore indicativo dei moduli selezionati (oggi gratuiti)'}: <b>{formatEuro(estimate(upgradeMonths, upgrade).total - estimate(upgradeMonths, []).total)}</b> per {upgradeMonths} {upgradeMonths === 1 ? 'mese' : 'mesi'}.</p>
+          <p className="muted">{paymentsActive ? 'Inviando la richiesta non attivi nulla e non paghi nulla: verrai ricontattato con le condizioni definitive.' : 'Inviando la richiesta non paghi nulla: oggi ItalFUT è gratuito e la richiesta viene valutata e, se accolta, attivata senza costi.'}</p>
           <Button variant="contained" disabled={upgrading} onClick={() => void askUpgrade()}>{upgrading ? 'Invio…' : 'Invia richiesta'}</Button>
         </div>}
       </div>}

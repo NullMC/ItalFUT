@@ -1,33 +1,48 @@
 /**
  * ─────────────────────────────────────────────────────────────────────────────
- *  OPERATOR ACTION REQUIRED — single source of truth for legal/business data.
+ *  OPERATOR ACTION REQUIRED — single source of truth for legal data.
  *  See docs/MANUAL_INFO_CHECKLIST.md for what each field needs and why.
  *  Never fill these with invented values: empty fields are shown as
  *  "da completare" on the legal pages and hidden in the footer.
  * ─────────────────────────────────────────────────────────────────────────────
  */
-export const LEGAL_VERSION = 'Bozza — 1 novembre 2026';
+export const LEGAL_VERSION = 'Bozza — 5 novembre 2026';
 export const LEGAL_REVIEWED = false; // true ONLY after review by a lawyer/accountant.
 
+/**
+ * How ItalFUT is run today.
+ * - 'privato': personal project of a private individual, no partita IVA. The service is
+ *   FREE: the platform neither asks for nor accepts payments, prices are only indicative.
+ * - 'partita-iva': switch here ONLY after opening a partita IVA that covers this activity
+ *   (then fill the fiscal fields below and the commercial terms before any payment).
+ * The legal pages, footer, configurator and console adapt to this value.
+ */
+export type OperatorMode = 'privato' | 'partita-iva';
+export const OPERATOR_MODE = 'privato' as OperatorMode;
+/** Payments may exist only with a partita IVA. Keep false until Stripe is wired AND the mode is 'partita-iva'. */
+export const PAYMENTS_ACTIVE = false;
+export const isPrivate = OPERATOR_MODE === 'privato';
+export const paymentsActive = PAYMENTS_ACTIVE && !isPrivate;
+
 export const legalConfig = {
-  // Identità dell'operatore: la TUA azienda. ItalFUT è un progetto/marchio dell'azienda,
-  // non una società a sé: qui vanno i dati dell'azienda che lo realizza e lo gestisce.
-  operatorName: 'Francesco Tenerelli',          // ragione sociale o nome della ditta che gestisce ItalFUT
-  legalForm: 'Ditta individuale',             // es. "Ditta individuale", "S.r.l."
-  vatNumber: '',             // Partita IVA (11 cifre) — obbligatoria sul sito se esercizio d'impresa
-  taxCode: 'TNRFNC08B22A662A',               // Codice fiscale dell'impresa / del titolare
+  // Chi gestisce ItalFUT. In modalità 'privato': nome e cognome della persona fisica.
+  operatorName: 'Francesco Tenerelli', // in futuro: nome della ditta / denominazione
+  operatorCity: '',          // comune di residenza o recapito, es. "Bari (BA)" — non serve l'indirizzo completo
+  // Dati fiscali: SOLO in modalità 'partita-iva' (non vengono mostrati in modalità 'privato').
+  legalForm: '',             // es. "Ditta individuale", "Libero professionista" — solo dopo l'apertura della P.IVA
+  vatNumber: '',             // Partita IVA (11 cifre) — va pubblicata sul sito (art. 35 DPR 633/1972)
+  taxCode: '',               // Codice fiscale del titolare: NON compilarlo finché sei 'privato' (non va pubblicato)
   reaRegistration: '',       // es. "BA-123456" (se iscritti al Registro Imprese)
-  shareCapital: '',          // solo per società di capitali, es. "€ 10.000 i.v."
-  registeredOffice: '',      // indirizzo completo della sede legale
+  shareCapital: '',          // solo per società di capitali
+  registeredOffice: '',      // sede legale / domicilio fiscale
   businessAddress: '',       // sede operativa, solo se diversa
   // Contatti: le richieste arrivano nel database (pagina /contatti, tabella support_requests).
-  // Un indirizzo email di sola ricezione è comunque richiesto dalla legge per chi vende online
-  // (D.Lgs. 70/2003, art. 7): compilalo prima del lancio commerciale.
+  // Un indirizzo email di sola ricezione diventa necessario quando il servizio sarà a pagamento
+  // (D.Lgs. 70/2003, art. 7). Oggi è facoltativo.
   supportEmail: '',
   privacyEmail: '',
-  certifiedEmail: 'tenerellifrancesco@notificapostale.it',        // PEC
+  certifiedEmail: 'tenerellifrancesco@notificapostale.it', // PEC
   telephone: '+39 3389173386',
-  contactUrl: '',
   dpoContact: '',            // solo se un DPO è nominato
   // Infrastruttura e fornitori
   jurisdiction: 'Italia',
@@ -35,41 +50,46 @@ export const legalConfig = {
   databaseProvider: 'Supabase Inc.',
   serverRegion: 'UE — Francia (eu-west-3)', // verificare in Supabase → Project Settings → General
   // Conservazione dati
-  accountRetention: '',
-  tenantRetention: '',
-  logRetention: '',
-  legalRecordsRetention: '',
-  // Condizioni commerciali (da compilare prima di attivare i pagamenti)
-  pricesIncludeVat: null as boolean | null, // true = prezzi IVA inclusa, false = IVA esclusa
+  accountRetention: 'Finché l’account resta attivo; lo cancelli tu in qualsiasi momento',
+  tenantRetention: 'Finché il torneo esiste; lo cancelli tu in qualsiasi momento o insieme all’account',
+  logRetention: 'Secondo i tempi dei fornitori (Supabase e Cloudflare) indicati nei loro accordi sul trattamento dei dati',
+  requestRetention: 'Fino alla chiusura della richiesta e per il tempo necessario a gestire eventuali seguiti',
+  // Condizioni commerciali: da compilare SOLO prima di attivare i pagamenti (modalità 'partita-iva').
+  pricesIncludeVat: null as boolean | null,
   acceptedPaymentMethods: '',
   billingStartCondition: '',
   autoRenewal: '',
   refundContact: '',
   contractualCustomerTypes: '', // "B2B", "B2C" o "B2B e B2C"
-  supportResponsePolicy: '',
+  legalRecordsRetention: '',    // documenti fiscali: di norma 10 anni
   officialDomain: '',          // es. "https://italfut.it"
   lastReviewedOn: '',          // data ISO dell'ultima revisione professionale
 };
 
-/** Credito nel footer: "made with ♥ by …" verso il portfolio dell'azienda. */
+/** Credito nel footer: "made with ♥ by …" verso il portfolio. */
 export const madeBy = { label: 'FrankSitez', url: 'https://franksitez.com' };
 
-export const legalNeedsReview = !LEGAL_REVIEWED ||
-  !legalConfig.operatorName || !legalConfig.registeredOffice || !legalConfig.vatNumber;
+export const legalNeedsReview = !LEGAL_REVIEWED || !legalConfig.operatorName ||
+  (!isPrivate && (!legalConfig.registeredOffice || !legalConfig.vatNumber));
 
 /** Footer line built only from real, configured values. */
-export const businessLine = [
-  legalConfig.operatorName,
-  legalConfig.vatNumber && 'P. IVA ' + legalConfig.vatNumber,
-  legalConfig.registeredOffice,
-].filter(Boolean).join(' · ');
+export const businessLine = isPrivate
+  ? (legalConfig.operatorName ? 'Progetto personale di ' + legalConfig.operatorName : '')
+  : [legalConfig.operatorName, legalConfig.vatNumber && 'P. IVA ' + legalConfig.vatNumber, legalConfig.registeredOffice].filter(Boolean).join(' · ');
 
-export const vatNote = legalConfig.pricesIncludeVat === true ? 'IVA inclusa'
+/** Line shown next to prices (configurator, console). */
+export const vatNote = !paymentsActive ? 'nessun pagamento richiesto'
+  : legalConfig.pricesIncludeVat === true ? 'IVA inclusa'
   : legalConfig.pricesIncludeVat === false ? 'IVA esclusa (aggiunta al riepilogo prima di qualsiasi pagamento)'
   : 'Trattamento IVA da definire prima dell’attivazione dei pagamenti';
 
-export const requiredLegalFields: { key: keyof typeof legalConfig; label: string }[] = [
-  { key: 'operatorName', label: 'Titolare / ragione sociale' },
+type Field = { key: keyof typeof legalConfig; label: string };
+/** Identity fields shown on the operator page, depending on the mode. */
+export const requiredLegalFields: Field[] = isPrivate ? [
+  { key: 'operatorName', label: 'Titolare (persona fisica)' },
+  { key: 'operatorCity', label: 'Comune' },
+] : [
+  { key: 'operatorName', label: 'Titolare / denominazione' },
   { key: 'legalForm', label: 'Forma giuridica' },
   { key: 'vatNumber', label: 'Partita IVA' },
   { key: 'taxCode', label: 'Codice fiscale' },
