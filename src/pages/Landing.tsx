@@ -19,6 +19,7 @@ import { HeroPhonePreview } from '../components/HeroPhonePreview';
 import { roleHome, useAuth } from '../auth/AuthProvider';
 import { Reveal, WordReveal, trackSpotlight } from '../components/MarketingMotion';
 import { demoTeams, standings, teamById } from '../components/heroDemoData';
+import { paymentsEnabled } from '../lib/payments';
 
 const moduleIcons: Partial<Record<FeatureCode, ReactNode>> = {
   statistics: <QueryStatsRoundedIcon />, staff: <BadgeRoundedIcon />, awards: <WorkspacePremiumRoundedIcon />,
@@ -240,7 +241,7 @@ export function Landing() {
             {MODULES.filter(module => module.core).map(module => <li key={module.code}><CheckRoundedIcon />{module.name}</li>)}
           </ul>
           <RouterLink to="/configura" className="btn btn--primary">Configura i moduli<ArrowForwardRoundedIcon /></RouterLink>
-          <p className="modules__note">Prezzi indicativi mensili. Oggi nessun pagamento viene richiesto: i moduli extra si attivano solo dopo una conferma esplicita.</p>
+          <p className="modules__note">{paymentsEnabled ? 'Prezzi mensili. Paghi una volta per il periodo scelto su Stripe, senza rinnovo automatico.' : 'Prezzi indicativi mensili. Oggi nessun pagamento viene richiesto: i moduli extra si attivano solo dopo una conferma esplicita.'}</p>
         </Reveal>
         <ul className="modules__list">
           {EXTRA.map((module, index) => <Reveal as="li" key={module.code} delay={index * .04} className="module-tile glass">

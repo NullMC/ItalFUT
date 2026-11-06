@@ -17,9 +17,11 @@ Removed in this revision: `tailwindcss`, `@tailwindcss/vite` (one utility class 
 
 **Not present:** Google Analytics, Meta Pixel, Hotjar, Sentry, Stripe.js, social login SDKs, ad networks.
 
+**Server only (Supabase Edge Functions):** `npm:stripe@23.0.1` in `create-checkout-session` and `stripe-webhook`. The browser never loads Stripe code: payment is a redirect to Stripe's hosted Checkout page.
+
 ## Infrastructure
 
-Only two providers: **Cloudflare** (registrar, DNS, CDN, Pages hosting) and **Supabase** (Postgres, Auth, SQL functions, Storage for uploaded tournament images). No email service: users are username + password only, recovery uses one-time codes, requests are stored in `support_requests`. Cloudflare Web Analytics, Rocket Loader, Email Obfuscation and Zaraz must stay off. Stripe will be added at commercial launch (update CSP and policies then).
+Only two providers: **Cloudflare** (registrar, DNS, CDN, Pages hosting) and **Supabase** (Postgres, Auth, SQL functions, Storage for uploaded tournament images). No email service: users are username + password only, recovery uses one-time codes, requests are stored in `support_requests`. Cloudflare Web Analytics, Rocket Loader, Email Obfuscation and Zaraz must stay off. **Stripe** (payments) is integrated with hosted Checkout and switched on by `VITE_PAYMENTS_ENABLED=true`: card data is entered on `checkout.stripe.com` and never reaches ItalFUT; the `payments` table stores amount, status, period and Stripe ids. No CSP change is needed (top-level navigation, no Stripe.js). Stripe's own cookies live on Stripe's domain and are referenced in the cookie policy.
 
 ## Browser storage
 

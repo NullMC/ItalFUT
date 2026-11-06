@@ -2,7 +2,7 @@
  * Dati mostrati nelle pagine legali (src/pages/Legal.tsx).
  * Ogni campo vuoto viene semplicemente omesso: nessun segnaposto in pagina.
  */
-export const LEGAL_UPDATED = '5 novembre 2026';
+export const LEGAL_UPDATED = '6 novembre 2026';
 
 export const legalConfig = {
   /** Chi gestisce ItalFUT (pagina "Chi gestisce ItalFUT" e privacy policy). */

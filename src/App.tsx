@@ -17,6 +17,7 @@ const Tournament = lazyPage(() => import('./pages/Tournament').then(m => ({ defa
 const LegalPage = lazyPage(() => import('./pages/Legal').then(m => ({ default: m.LegalPage })));
 const Contact = lazyPage(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
 const AdminDashboard = lazyPage(() => import('./admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const PaymentResult = lazyPage(() => import('./pages/PaymentResult').then(m => ({ default: m.PaymentResult })));
 const AccountSettings = lazyPage(() => import('./pages/AccountSettings').then(m => ({ default: m.AccountSettings })));
 
 const Loading = () => <div className="center-screen" role="status" aria-live="polite"><CircularProgress aria-label="Caricamento" /></div>;
@@ -38,6 +39,7 @@ const titles: [RegExp, string][] = [
   [/^\/errore/, 'Errore · ItalFUT'],
   [/^\/admin/, 'Superadmin · ItalFUT'],
   [/^\/console/, 'Console · ItalFUT'],
+  [/^\/pagamento/, 'Esito del pagamento · ItalFUT'],
   [/^\/account/, 'Account e dati · ItalFUT'],
   [/^\/privacy-policy/, 'Privacy policy · ItalFUT'],
   [/^\/terms-of-service/, 'Termini di servizio · ItalFUT'],
@@ -76,6 +78,7 @@ export function App() {
           <Route path="/cookie-policy" element={<LegalPage page="cookies" />} />
           <Route path="/business" element={<LegalPage page="business" />} />
           <Route path="/account" element={<Private><AccountSettings /></Private>} />
+          <Route path="/pagamento/esito" element={<Private><PaymentResult /></Private>} />
           <Route path="/console" element={<Private><ConsoleHome /></Private>} />
           <Route path="/console/:slug" element={<Private><TenantConsole /></Private>} />
           <Route path="/console/:slug/:section" element={<Private><TenantConsole /></Private>} />

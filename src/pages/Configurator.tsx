@@ -8,6 +8,7 @@ import { BASE_MONTHLY, CORE, estimate, EXTRA, formatEuro, MODULES, TERMS } from 
 import type { FeatureCode } from '../lib/types';
 import { AnimatedAmount } from '../components/AnimatedAmount';
 import { vatNote } from '../config/legal';
+import { paymentsEnabled } from '../lib/payments';
 import { Reveal } from '../components/MarketingMotion';
 
 export function Configurator() {
@@ -75,7 +76,7 @@ export function Configurator() {
             <small>per {months} {months === 1 ? 'mese' : 'mesi'}{vatNote ? ' · ' + vatNote : ''}</small>
           </div>
           <Button variant="contained" size="large" fullWidth onClick={proceed} endIcon={<ArrowForwardRoundedIcon />}>Continua</Button>
-          <p className="quote__note">Preventivo indicativo. Oggi non è attivo alcun pagamento: proseguendo crei uno spazio in bozza e nessun importo viene addebitato. Rinnovo automatico non previsto.</p>
+          <p className="quote__note">{paymentsEnabled ? 'Proseguendo crei il torneo in bozza; poi paghi il piano in modo sicuro su Stripe e il sito si pubblica. Pagamento unico, nessun rinnovo automatico.' : 'Preventivo indicativo. Oggi non è attivo alcun pagamento: proseguendo crei uno spazio in bozza e nessun importo viene addebitato. Rinnovo automatico non previsto.'}</p>
         </aside>
       </div>
     </div>

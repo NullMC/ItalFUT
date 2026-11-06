@@ -60,7 +60,6 @@ export function UserMenu() {
 
   return <>
     <button type="button" className="user-chip" aria-haspopup="menu" aria-expanded={Boolean(anchor)} aria-controls={anchor ? menuId : undefined}
-      aria-label={`Menu account: ${name}, ${role ? roleLabel[role] : 'verifica del ruolo in corso'}`}
       onClick={event => setAnchor(event.currentTarget)}>
       <UserAvatar username={profile?.username} role={role} />
       <span className="user-chip__text">

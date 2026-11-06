@@ -145,8 +145,9 @@
   .nav__links, .nav__login, .nav__cta { display: none !important; }
   .nav__menu.MuiIconButton-root { display: inline-flex; }
   .nav__actions { margin-left: auto !important; }
-  .user-chip { padding-right: 5px; }
-  .user-chip__text, .user-chip__caret { display: none; }
+  .user-chip { padding-right: 5px; position: relative; }
+  .user-chip__caret { display: none; }
+  .user-chip__text { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
   .footer__grid { grid-template-columns: 1fr 1fr; }
   .footer__intro { grid-column: 1 / -1; }
 }

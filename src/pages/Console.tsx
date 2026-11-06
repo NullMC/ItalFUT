@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { useNavigate, useParams, Link as RouterLink, NavLink } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, Link as RouterLink, NavLink } from 'react-router-dom';
 import { Alert, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from '@mui/material';
 import { motion, useReducedMotion } from 'motion/react';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
@@ -39,6 +39,8 @@ import { ImageField } from '../components/ImageField';
 import { removeMedia } from '../lib/media';
 import { summarize, useTenantStats } from '../lib/useTenantStats';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import { PlanCheckout } from '../components/PlanCheckout';
+import { paymentsEnabled } from '../lib/payments';
 
 type Owned = { role: MemberRole; tenants: Tenant | null };
 type PlanDraft = { months: number; modules: FeatureCode[] };
@@ -113,7 +115,9 @@ export function ConsoleHome() {
       if (issue) throw issue;
       try { sessionStorage.removeItem('italfut_configuration'); } catch { /* ignore */ }
       setCreating(false);
-      navigate('/console/' + cleanSlug);
+      // With payments on, the new (draft) tournament goes straight to its plan page.
+      if (paymentsEnabled) navigate(`/console/${cleanSlug}/modules`, { state: { plan } });
+      else navigate('/console/' + cleanSlug);
     } catch (cause) {
       const text = friendlyError(cause);
       setError(/duplicate|unique/i.test(text) ? 'Questo indirizzo è già in uso: scegline un altro.' : text);
@@ -160,7 +164,7 @@ export function ConsoleHome() {
             onChange={e => { setSlugEdited(true); setSlug(formatSlug(e.target.value)); }}
             helperText={window.location.origin + '/t/' + (slug || 'nome-torneo')}
             slotProps={{ htmlInput: { maxLength: 42, pattern: '[a-z0-9][a-z0-9\\-]{2,41}' } }} />
-          <Alert severity="info">Configurazione scelta: {plan.months} {plan.months === 1 ? 'mese' : 'mesi'}, {plan.modules.length} moduli facoltativi. Preventivo indicativo {formatEuro(quote.total)}. Nessun addebito: i moduli extra restano da attivare.</Alert>
+          <Alert severity="info">Configurazione scelta: {plan.months} {plan.months === 1 ? 'mese' : 'mesi'}, {plan.modules.length} moduli facoltativi. Preventivo indicativo {formatEuro(quote.total)}. {paymentsEnabled ? 'Dopo la creazione potrai pagare il piano su Stripe: il sito si pubblica con il pagamento.' : 'Nessun addebito: i moduli extra restano da attivare.'}</Alert>
           {error && <Alert severity="error">{error}</Alert>}
         </Stack></DialogContent>
         <DialogActions sx={{ p: 3, pt: 1 }}><Button onClick={() => setCreating(false)} disabled={busy}>Annulla</Button><Button variant="contained" type="submit" disabled={busy}>{busy ? 'Creazione…' : 'Crea torneo'}</Button></DialogActions>
@@ -172,6 +176,7 @@ export function ConsoleHome() {
 export function TenantConsole() {
   const { slug, section = 'overview' } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { session, signOut } = useAuth();
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [role, setRole] = useState<MemberRole | null>(null);
@@ -216,6 +221,7 @@ export function TenantConsole() {
 
   const enabled = (code: FeatureCode) => features.some(f => f.code === code && f.enabled && (!f.ends_at || new Date(f.ends_at).getTime() > Date.now()));
   const editable = role === 'owner' || role === 'admin' || role === 'editor';
+  const canBuy = role === 'owner' || role === 'admin';
   const selectedEditor = EDITORS.find(item => item.key === section);
   const saveSettings = async (event: FormEvent) => {
     event.preventDefault(); if (!tenant) return;
@@ -284,7 +290,7 @@ export function TenantConsole() {
         <p className="side-nav__title">Piano</p>
         {navItem(base + '/modules', 'Moduli', <ExtensionRoundedIcon fontSize="small" />)}
       </ScrollRail>
-      {season && <RouterLink to={base + '/matches'} className="side-season" aria-label={`Stagione: ${season.finished} partite giocate su ${season.total}`}>
+      {season && <RouterLink to={base + '/matches'} className="side-season">
         <span className="side-season__head"><b>Stagione</b><em>{playedPct}%</em></span>
         <span className="side-season__bar" aria-hidden="true"><i style={{ width: playedPct + '%' }} /></span>
         <small>{season.total ? `${season.finished} di ${season.total} partite giocate` : 'Calendario ancora vuoto'}{season.upcoming[0]?.kickoff_at ? ' · prossima ' + new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'short' }).format(new Date(season.upcoming[0].kickoff_at)) : ''}</small>
@@ -318,8 +324,9 @@ export function TenantConsole() {
         </header>
         {tenant.status !== 'active' && <div className="banner glass" role="status">
           <span className="banner__icon" aria-hidden="true"><InfoOutlinedIcon /></span>
-          <div><b>Il torneo è in bozza.</b><p>Prepara squadre, rose e calendario: il sito pubblico resta visibile solo allo staff finché non viene pubblicato.</p></div>
-          <a className="btn btn--ghost btn--sm" href={'/t/' + tenant.slug} target="_blank" rel="noopener noreferrer">Vedi l’anteprima</a>
+          <div><b>Il torneo è in bozza.</b><p>Prepara squadre, rose e calendario: il sito pubblico resta visibile solo allo staff finché {paymentsEnabled ? 'non attivi il piano.' : 'non viene pubblicato.'}</p></div>
+          {paymentsEnabled && canBuy ? <RouterLink className="btn btn--primary btn--sm" to={base + '/modules'}>Attiva il piano</RouterLink>
+            : <a className="btn btn--ghost btn--sm" href={'/t/' + tenant.slug} target="_blank" rel="noopener noreferrer">Vedi l’anteprima</a>}
         </div>}
         <TenantAnalytics tenantId={tenant.id} base={base} />
         <h2 className="workspace__subhead">Gestione rapida</h2>
@@ -367,7 +374,11 @@ export function TenantConsole() {
         </div>
       </div>}
 
-      {section === 'modules' && <div>
+      {section === 'modules' && paymentsEnabled && <div>
+        <header className="ws-head"><div className="ws-head__text"><h1>Piano e moduli</h1><p>Scegli durata e moduli e paga in modo sicuro su Stripe. Le funzioni base sono sempre incluse.</p></div></header>
+        <PlanCheckout tenantId={tenant.id} tenantStatus={tenant.status} canBuy={canBuy} features={features} initial={(location.state as { plan?: PlanDraft } | null)?.plan} />
+      </div>}
+      {section === 'modules' && !paymentsEnabled && <div>
         <header className="ws-head"><div className="ws-head__text"><h1>Moduli</h1><p>Le funzioni base sono incluse. I moduli aggiuntivi si richiedono qui e si attivano solo dopo conferma.</p></div></header>
         <div className="grant-list">{MODULES.map(module => {
           const active = enabled(module.code);
@@ -392,7 +403,7 @@ export function TenantConsole() {
 
       {selectedEditor && (enabled(selectedEditor.feature)
         ? <CrudEditor tenantId={tenant.id} config={selectedEditor} editable={editable} />
-        : <div className="empty-state glass"><LockOutlinedIcon sx={{ fontSize: 36 }} /><h2>Modulo non ancora attivo</h2><p>“{selectedEditor.label}” fa parte dei moduli aggiuntivi. Puoi richiederne l’attivazione dalla sezione Moduli.</p><Button variant="contained" component={RouterLink} to={base + '/modules'}>Vai ai moduli</Button></div>)}
+        : <div className="empty-state glass"><LockOutlinedIcon sx={{ fontSize: 36 }} /><h2>Modulo non ancora attivo</h2><p>“{selectedEditor.label}” fa parte dei moduli aggiuntivi. {paymentsEnabled ? 'Puoi attivarlo dalla sezione Moduli.' : 'Puoi richiederne l’attivazione dalla sezione Moduli.'}</p><Button variant="contained" component={RouterLink} to={base + '/modules'}>Vai ai moduli</Button></div>)}
       {!['overview', 'settings', 'modules'].includes(section) && !selectedEditor && <div className="empty-state glass"><h2>Sezione non trovata</h2><Button component={RouterLink} to={base}>Torna alla panoramica</Button></div>}
     </div>
   </div>;

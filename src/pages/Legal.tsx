@@ -3,6 +3,7 @@ import { ScrollRail } from '../components/ScrollRail';
 import { Link as RouterLink, NavLink } from 'react-router-dom';
 import { LEGAL_UPDATED, legalConfig, madeBy, vatNote } from '../config/legal';
 import { useCookiePreferences } from '../components/CookieNotice';
+import { paymentsEnabled } from '../lib/payments';
 
 export type LegalPageId = 'privacy' | 'terms' | 'refund' | 'cookies' | 'business';
 type Section = { id: string; title: string; body: ReactNode };
@@ -50,6 +51,7 @@ function sections(page: LegalPageId, openPreferences: () => void): Section[] {
         <li><b>Richieste dal modulo Contatti:</b> argomento, messaggio e, solo se lo inserisci tu, un recapito per la risposta.</li>
         <li><b>Contenuti del torneo:</b> nomi di competizioni e squadre, nomi e cognomi dei giocatori, numero di maglia, ruolo, risultati, eventi di gara, immagini caricate dall’organizzatore (convertite in WebP e conservate su Supabase Storage, nella stessa regione del database) o link a immagini esterne.</li>
         <li><b>Minorenni:</b> fascia d’età (maggiorenne/minorenne) e la conferma dell’organizzatore di aver raccolto l’autorizzazione del genitore o tutore. Non raccogliamo date di nascita, documenti o dati dei genitori.</li>
+        {paymentsEnabled && <li><b>Pagamenti:</b> i dati della carta o di altri metodi di pagamento li inserisci sulla pagina di Stripe e li tratta solo Stripe: ItalFUT non li vede né li conserva. Noi registriamo torneo, durata e moduli acquistati, importo, stato del pagamento e i codici di riferimento Stripe (sessione, pagamento, cliente). Stripe ci comunica inoltre i dati che inserisci per la ricevuta, come nome e indirizzo di fatturazione.</li>}
         <li><b>Dati tecnici:</b> indirizzo IP e informazioni del browser nei log di sicurezza del fornitore di hosting e del database.</li>
       </ul> },
       { id: 'finalita', title: '3. Finalità e basi giuridiche', body: <div className="table-wrap"><table className="legal-table">
@@ -62,7 +64,9 @@ function sections(page: LegalPageId, openPreferences: () => void): Section[] {
           <tr><td>Gestione dei pagamenti</td><td>Esecuzione del contratto e obblighi di legge (art. 6.1.b e 6.1.c GDPR)</td></tr>
         </tbody></table></div> },
       { id: 'destinatari', title: '4. Fornitori e trasferimenti', body: <>
-        <p>Usiamo solo due fornitori, entrambi necessari al funzionamento: {c.databaseProvider} per database e autenticazione (regione {c.serverRegion}) e {c.hostingProvider} per dominio, DNS, rete di distribuzione e hosting del sito. Agiscono come responsabili del trattamento. Nessun altro servizio esterno riceve i tuoi dati.</p>
+        {paymentsEnabled
+          ? <p>Usiamo tre fornitori, tutti necessari al funzionamento: {c.databaseProvider} per database e autenticazione (regione {c.serverRegion}), {c.hostingProvider} per dominio, DNS, rete di distribuzione e hosting del sito, che agiscono come responsabili del trattamento, e Stripe per i pagamenti, che per i dati di pagamento agisce come titolare autonomo secondo la propria <a href="https://stripe.com/it/privacy" target="_blank" rel="noopener noreferrer">informativa privacy</a>. Nessun altro servizio esterno riceve i tuoi dati.</p>
+          : <p>Usiamo solo due fornitori, entrambi necessari al funzionamento: {c.databaseProvider} per database e autenticazione (regione {c.serverRegion}) e {c.hostingProvider} per dominio, DNS, rete di distribuzione e hosting del sito. Agiscono come responsabili del trattamento. Nessun altro servizio esterno riceve i tuoi dati.</p>}
         <p>Alcuni fornitori hanno sede negli Stati Uniti: eventuali trasferimenti avvengono sulla base delle Clausole Contrattuali Standard della Commissione europea o del Data Privacy Framework, ove applicabile. Non vendiamo dati e non usiamo strumenti pubblicitari o di profilazione.</p>
       </> },
       { id: 'conservazione', title: '5. Per quanto tempo', body: <ul>
@@ -70,6 +74,7 @@ function sections(page: LegalPageId, openPreferences: () => void): Section[] {
         <li>Dati dei tornei: {c.tenantRetention}.</li>
         <li>Richieste dal modulo Contatti: {c.requestRetention}.</li>
         <li>Log tecnici: {c.logRetention}.</li>
+        {paymentsEnabled && <li>Registro dei pagamenti: per il tempo previsto dagli obblighi fiscali e contabili, anche dopo la cancellazione del torneo o dell’account.</li>}
         <li>Puoi cancellare in autonomia tornei e account dalla pagina <RouterLink to="/account">Account e dati</RouterLink>. Le copie di backup del fornitore vengono sovrascritte secondo i suoi cicli di rotazione.</li>
       </ul> },
       { id: 'diritti', title: '6. I tuoi diritti', body: <>
@@ -97,7 +102,13 @@ function sections(page: LegalPageId, openPreferences: () => void): Section[] {
       </ul> },
       { id: 'prezzi', title: '4. Prezzi e attivazioni', body: <>
         <p>Il configuratore mostra prezzi mensili per la piattaforma base e per ogni modulo, gli sconti per durata e il totale, senza voci nascoste.{vatNote ? ' Prezzi ' + vatNote + '.' : ''}</p>
-        <p>Allo stato attuale non è attivo alcun pagamento online e nessun importo viene addebitato. Le richieste di moduli aggiuntivi non attivano né addebitano nulla. Prima di qualsiasi acquisto riceverai il riepilogo definitivo con prezzo totale, metodo di pagamento e durata. Gli abbonamenti non si rinnovano automaticamente.</p>
+        {paymentsEnabled ? <ul>
+          <li>Il pagamento avviene sulla pagina sicura di Stripe (carta e altri metodi proposti da Stripe). Prima di pagare vedi durata, moduli e prezzo totale; l’importo addebitato è sempre quello calcolato dalla piattaforma e mostrato da Stripe.</li>
+          <li>È un pagamento unico per il periodo scelto (1, 3, 6 o 12 mesi): <b>non c’è rinnovo automatico</b> e nessun addebito successivo senza un tuo nuovo pagamento.</li>
+          <li>Il piano e i moduli acquistati si attivano appena Stripe conferma il pagamento. Il primo pagamento pubblica il sito del torneo; un nuovo pagamento prolunga il piano dalla scadenza in corso.</li>
+          <li>Alla scadenza il sito pubblico torna visibile solo allo staff e i moduli aggiuntivi si disattivano; i dati restano nella console finché non li cancelli.</li>
+          <li>La ricevuta del pagamento viene emessa da Stripe.</li>
+        </ul> : <p>Allo stato attuale non è attivo alcun pagamento online e nessun importo viene addebitato. Le richieste di moduli aggiuntivi non attivano né addebitano nulla. Prima di qualsiasi acquisto riceverai il riepilogo definitivo con prezzo totale, metodo di pagamento e durata. Gli abbonamenti non si rinnovano automaticamente.</p>}
       </> },
       { id: 'disponibilita', title: '5. Disponibilità e responsabilità', body: <p>Ci impegniamo a mantenere il servizio disponibile e sicuro, ma possono verificarsi interruzioni per manutenzione o cause esterne. Nei limiti consentiti dalla legge non rispondiamo di danni indiretti; restano salvi i casi di dolo o colpa grave e i diritti inderogabili dei consumatori.</p> },
       { id: 'recesso', title: '6. Durata, recesso e chiusura', body: <p>Il servizio dura per il periodo scelto. Le regole su recesso e rimborsi sono descritte nella pagina <RouterLink to="/refund-policy">Rimborsi e diritto di recesso</RouterLink>. Alla chiusura puoi esportare i dati e poi cancellarli.</p> },
@@ -105,7 +116,9 @@ function sections(page: LegalPageId, openPreferences: () => void): Section[] {
       { id: 'contatti', title: '8. Contatti', body: <p>Assistenza tramite il {contactForm}{orMail(c.supportEmail)}.</p> },
     ];
     case 'refund': return [
-      { id: 'stato', title: '1. Situazione attuale', body: <p>ItalFUT oggi non effettua addebiti: il configuratore produce un preventivo e i moduli aggiuntivi si richiedono senza pagamento. Le regole qui sotto si applicano a ogni acquisto.</p> },
+      { id: 'stato', title: paymentsEnabled ? '1. Pagamenti' : '1. Situazione attuale', body: paymentsEnabled
+        ? <p>I piani si pagano una sola volta per il periodo scelto tramite Stripe, senza rinnovo automatico. Le regole qui sotto si applicano a ogni acquisto. Se rimborsiamo un pagamento, l’importo torna sullo stesso metodo usato su Stripe; i tempi di accredito dipendono dalla banca o dal circuito.</p>
+        : <p>ItalFUT oggi non effettua addebiti: il configuratore produce un preventivo e i moduli aggiuntivi si richiedono senza pagamento. Le regole qui sotto si applicano a ogni acquisto.</p> },
       { id: 'recesso', title: '2. Diritto di recesso (consumatori)', body: <>
         <p>Se sei un consumatore, puoi recedere entro 14 giorni dalla conclusione del contratto senza indicarne il motivo, comunicandolo tramite il {contactForm} (argomento “Pagamenti e rimborsi”){orMail(c.supportEmail)}.</p>
         <p>Se chiedi espressamente che il servizio inizi prima della fine dei 14 giorni, in caso di recesso pagherai solo la quota proporzionale al servizio già fornito. Non useremo caselle preselezionate per questa richiesta.</p>
@@ -125,7 +138,10 @@ function sections(page: LegalPageId, openPreferences: () => void): Section[] {
           <tbody>{storageRows.map(row => <tr key={row[0]}>{row.map((cell, index) => <td key={index}>{index === 0 ? <code>{cell}</code> : cell}</td>)}</tr>)}</tbody>
         </table></div>
       </> },
-      { id: 'terzi', title: '2. Contenuti di terze parti', body: <p>Le pagine pubbliche dei tornei possono mostrare immagini ospitate su siti esterni indicati dagli organizzatori: il browser le scarica direttamente da quei siti, che ricevono l’indirizzo IP. Non inviamo il referrer a questi siti.</p> },
+      { id: 'terzi', title: '2. Contenuti di terze parti', body: <>
+        <p>Le pagine pubbliche dei tornei possono mostrare immagini ospitate su siti esterni indicati dagli organizzatori: il browser le scarica direttamente da quei siti, che ricevono l’indirizzo IP. Non inviamo il referrer a questi siti.</p>
+        {paymentsEnabled && <p>Quando paghi vieni portato sulla pagina di pagamento di Stripe (checkout.stripe.com): quella pagina usa i propri cookie tecnici e antifrode sul dominio di Stripe, descritti nella <a href="https://stripe.com/it/legal/cookies-policy" target="_blank" rel="noopener noreferrer">cookie policy di Stripe</a>. Sulle pagine di ItalFUT non carichiamo script di Stripe.</p>}
+      </> },
       { id: 'scelte', title: '3. Le tue scelte', body: <>
         <p>Gli strumenti tecnici non richiedono consenso. Se in futuro introdurremo strumenti facoltativi, resteranno bloccati finché non li accetti e potrai rifiutarli con la stessa facilità.</p>
         <p><button type="button" className="link-button" onClick={openPreferences}>Apri le preferenze cookie</button> · Puoi anche cancellare i dati salvati dalle impostazioni del browser.</p>
@@ -169,6 +185,7 @@ export function LegalPage({ page }: { page: LegalPageId }) {
           <dl className="legal__dl">
             <dt>Dominio, DNS e hosting</dt><dd>{c.hostingProvider}</dd>
             <dt>Database e autenticazione</dt><dd>{c.databaseProvider} · {c.serverRegion}</dd>
+            {paymentsEnabled && <><dt>Pagamenti</dt><dd>Stripe (pagina di pagamento ospitata da Stripe)</dd></>}
             {c.officialDomain && <><dt>Dominio ufficiale</dt><dd>{c.officialDomain}</dd></>}
           </dl>
         </section> : list.map(section => <section className="legal__section" id={section.id} key={section.id}>

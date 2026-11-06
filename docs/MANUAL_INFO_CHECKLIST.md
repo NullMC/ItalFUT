@@ -104,13 +104,16 @@ Il credito “made with ♥ by FrankSitez” si modifica in `madeBy`, nello stes
 Accetta i **DPA** di Supabase e Cloudflare dalle rispettive dashboard.
 
 ### 9. Pagamenti (Stripe)
+L’integrazione è pronta nel codice e **spenta** finché `VITE_PAYMENTS_ENABLED` non vale `true`. Tutti i passaggi (account e sandbox Stripe, Stripe Tax, migrazione `202611070001_stripe_payments.sql`, secret, deploy delle due Edge Functions, webhook, test, passaggio al live) sono in **`STRIPE_INTEGRATION_TODO.md`** nella radice del progetto.
+
 | Campo / file | Cosa fare |
 | --- | --- |
-| `pricesIncludeVat` | `true` (IVA inclusa), `false` (IVA esclusa) o `null` per non mostrare nulla accanto ai prezzi |
-| `src/pages/Legal.tsx` | Termini (sezione 4) e Rimborsi: metodo di pagamento, decorrenza e rinnovo quando attivi i pagamenti |
+| `pricesIncludeVat` | `true` (IVA inclusa), `false` (IVA esclusa) o `null` per non mostrare nulla accanto ai prezzi. Gli importi inviati a Stripe sono “tasse incluse” (`tax_behavior: inclusive`). |
+| `src/pages/Legal.tsx` | Con i pagamenti attivi privacy, termini (sezione 4), rimborsi e cookie mostrano già i testi su Stripe: rileggili e completali. |
+| Rimborsi | Si fanno dalla Dashboard Stripe (Pagamenti → Rimborsa). Il webhook segna il pagamento come `refunded`; se vuoi anche spegnere i moduli, modifica `tenant_features` / `subscriptions` dalla scheda Superadmin. |
 
-Prezzi: `src/lib/catalog.ts` **e** tabella `feature_catalog` / funzione `quote_plan` nel database (devono coincidere).
-Con Stripe andranno aggiunti alla CSP in `public/_headers` i domini di Stripe, e aggiornate privacy e cookie policy.
+Prezzi: `src/lib/catalog.ts` **e** tabella `feature_catalog` / funzione `quote_plan` nel database (devono coincidere: l’importo addebitato è sempre quello del database).
+La CSP non va cambiata: il pagamento è un reindirizzamento alla pagina di Stripe, nessuno script Stripe viene caricato sul sito.
 
 ### 10. Testi legali (`src/pages/Legal.tsx`)
 - Accordo con gli organizzatori sui dati dei partecipanti (art. 28 GDPR).
