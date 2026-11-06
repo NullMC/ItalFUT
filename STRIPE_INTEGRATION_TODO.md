@@ -15,7 +15,7 @@ The following values are placeholders and must be updated before going live.
 
 | Field | Current Value | What to Set |
 |-------|--------------|-------------|
-| mode | payment | Set to "payment" for one-time charges or "subscription" for recurring billing. `payment` is what ItalFUT sells: 1/3/6/12 months paid once, no automatic renewal. Changing it needs a different fulfillment. |
+| mode | payment | Set to "payment" for one-time charges or "subscription" for recurring billing. `payment` is what ItalFUT sells: 1 to 24 months (presets 1/3/6/12 or a custom number) paid once, no automatic renewal. Changing it needs a different fulfillment. |
 | STRIPE_SECRET_KEY | sk_test_... | Secret key of your Stripe sandbox (later the live key). Supabase secret only: never `VITE_`, never in git, never in chat. |
 | STRIPE_WEBHOOK_SECRET | whsec_... | Signing secret of the webhook destination (Setup step 6). |
 | DOMAIN | http://localhost:5173 | Public address of the site without a trailing slash, e.g. `https://italfut.it`. Used for `success_url`, `cancel_url` and as the allowed CORS origin. |

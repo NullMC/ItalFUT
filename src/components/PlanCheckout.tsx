@@ -9,7 +9,8 @@ import { useSearchParams } from 'react-router-dom';
 import { Alert, Button, CircularProgress } from '@mui/material';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
-import { BASE_MONTHLY, estimate, EXTRA, formatEuro, MODULES, TERMS } from '../lib/catalog';
+import { BASE_MONTHLY, estimate, EXTRA, formatEuro, MODULES, TERMS, validMonths } from '../lib/catalog';
+import { DurationStepper } from './DurationStepper';
 import { client, friendlyError } from '../lib/supabase';
 import { PAYMENT_STATUS, startCheckout, type Payment } from '../lib/payments';
 import type { FeatureCode, TenantFeature } from '../lib/types';
@@ -23,7 +24,7 @@ const date = (value: string | null | undefined) => value ? new Intl.DateTimeForm
 
 export function PlanCheckout({ tenantId, tenantStatus, canBuy, features, initial }: Props) {
   const [params, setParams] = useSearchParams();
-  const [months, setMonths] = useState(TERMS.some(t => t.months === initial?.months) ? Number(initial?.months) : 1);
+  const [months, setMonths] = useState(validMonths(initial?.months) ? Number(initial?.months) : 1);
   const [picked, setPicked] = useState<FeatureCode[]>(() => (initial?.modules ?? []).filter((code): code is FeatureCode => EXTRA.some(m => m.code === code)));
   const [sub, setSub] = useState<Sub | null>(null);
   const [payments, setPayments] = useState<Payment[] | null>(null);
@@ -86,6 +87,7 @@ export function PlanCheckout({ tenantId, tenantStatus, canBuy, features, initial
             <small>{term.discount ? `−${Math.round(term.discount * 100)}%` : 'Tariffa base'}</small>
           </button>)}
         </div>
+        <DurationStepper months={months} onChange={setMonths} disabled={!canBuy} className="plan-custom" />
 
         <h2>Moduli</h2>
         <ul className="plan-modules">

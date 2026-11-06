@@ -26,7 +26,8 @@ import CollectionsRoundedIcon from '@mui/icons-material/CollectionsRounded';
 import PlaylistAddCheckRoundedIcon from '@mui/icons-material/PlaylistAddCheckRounded';
 import ManageAccountsRoundedIcon from '@mui/icons-material/ManageAccountsRounded';
 import { useAuth } from '../auth/AuthProvider';
-import { MODULES, EXTRA, estimate, formatEuro } from '../lib/catalog';
+import { MODULES, EXTRA, estimate, formatEuro, validMonths } from '../lib/catalog';
+import { DurationStepper } from '../components/DurationStepper';
 import { client, friendlyError } from '../lib/supabase';
 import type { FeatureCode, MemberRole, Tenant, TenantFeature } from '../lib/types';
 import { CrudEditor, EDITORS } from '../components/CrudEditor';
@@ -63,7 +64,7 @@ export const EDITOR_ICONS: Record<string, ReactNode> = {
 function draft(): PlanDraft {
   try {
     const value = JSON.parse(sessionStorage.getItem('italfut_configuration') ?? '{}') as Partial<PlanDraft>;
-    return { months: [1, 3, 6, 12].includes(Number(value.months)) ? Number(value.months) : 1, modules: (Array.isArray(value.modules) ? value.modules : []).filter(code => EXTRA.some(m => m.code === code)) };
+    return { months: validMonths(Number(value.months)) ? Number(value.months) : 1, modules: (Array.isArray(value.modules) ? value.modules : []).filter(code => EXTRA.some(m => m.code === code)) };
   } catch { return { months: 1, modules: [] }; }
 }
 function formatSlug(text: string) {
@@ -395,6 +396,7 @@ export function TenantConsole() {
           <h2>Richiedi attivazione</h2>
           <div className="upgrade__terms" role="radiogroup" aria-label="Durata">{[1, 3, 6, 12].map(months => <button key={months} type="button" role="radio" aria-checked={upgradeMonths === months}
             className={'chip-link' + (upgradeMonths === months ? ' is-active' : '')} onClick={() => setUpgradeMonths(months)}>{months} {months === 1 ? 'mese' : 'mesi'}</button>)}</div>
+          <DurationStepper months={upgradeMonths} onChange={setUpgradeMonths} />
           <p>Stima per i moduli selezionati: <b>{formatEuro(estimate(upgradeMonths, upgrade).total - estimate(upgradeMonths, []).total)}</b> per {upgradeMonths} {upgradeMonths === 1 ? 'mese' : 'mesi'}.</p>
           <p className="muted">Inviando la richiesta non attivi nulla e non paghi nulla: verrai ricontattato con le condizioni definitive.</p>
           <Button variant="contained" disabled={upgrading} onClick={() => void askUpgrade()}>{upgrading ? 'Invio…' : 'Invia richiesta'}</Button>

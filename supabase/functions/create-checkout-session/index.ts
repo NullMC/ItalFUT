@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
   const tenantId = String(input.tenant_id ?? '');
   const months = Number(input.months);
   const features = Array.isArray(input.features) ? input.features.map(String).slice(0, 20) : [];
-  if (!UUID.test(tenantId) || ![1, 3, 6, 12].includes(months) || features.some(code => !/^[a-z_]{1,40}$/.test(code))) {
+  if (!UUID.test(tenantId) || !(Number.isInteger(months) && months >= 1 && months <= 24) || features.some(code => !/^[a-z_]{1,40}$/.test(code))) {
     return json({ error: 'Richiesta non valida.' }, 400);
   }
 

@@ -104,7 +104,7 @@ function sections(page: LegalPageId, openPreferences: () => void): Section[] {
         <p>Il configuratore mostra prezzi mensili per la piattaforma base e per ogni modulo, gli sconti per durata e il totale, senza voci nascoste.{vatNote ? ' Prezzi ' + vatNote + '.' : ''}</p>
         {paymentsEnabled ? <ul>
           <li>Il pagamento avviene sulla pagina sicura di Stripe (carta e altri metodi proposti da Stripe). Prima di pagare vedi durata, moduli e prezzo totale; l’importo addebitato è sempre quello calcolato dalla piattaforma e mostrato da Stripe.</li>
-          <li>È un pagamento unico per il periodo scelto (1, 3, 6 o 12 mesi): <b>non c’è rinnovo automatico</b> e nessun addebito successivo senza un tuo nuovo pagamento.</li>
+          <li>È un pagamento unico per il periodo scelto (da 1 a 24 mesi): <b>non c’è rinnovo automatico</b> e nessun addebito successivo senza un tuo nuovo pagamento.</li>
           <li>Il piano e i moduli acquistati si attivano appena Stripe conferma il pagamento. Il primo pagamento pubblica il sito del torneo; un nuovo pagamento prolunga il piano dalla scadenza in corso.</li>
           <li>Alla scadenza il sito pubblico torna visibile solo allo staff e i moduli aggiuntivi si disattivano; i dati restano nella console finché non li cancelli.</li>
           <li>La ricevuta del pagamento viene emessa da Stripe.</li>

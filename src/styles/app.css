@@ -240,7 +240,6 @@
 .plan-status.is-active .plan-status__dot { background: var(--ok); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ok) 18%, transparent); }
 .plan-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 340px); gap: 22px; align-items: start; }
 .plan-config { min-width: 0; }
-.plan-config h2 + .plan-terms { margin-bottom: 24px; }
 .plan-terms { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .plan-term { display: grid; justify-items: center; gap: 2px; padding: 14px 8px; border-radius: 16px; font: inherit; color: var(--ink); cursor: pointer; border: 1px solid var(--glass-border); transition: border-color .2s, transform .2s var(--ease-out); }
 .plan-term:hover { transform: translateY(-2px); }

@@ -10,6 +10,7 @@ import { AnimatedAmount } from '../components/AnimatedAmount';
 import { vatNote } from '../config/legal';
 import { paymentsEnabled } from '../lib/payments';
 import { Reveal } from '../components/MarketingMotion';
+import { DurationStepper } from '../components/DurationStepper';
 
 export function Configurator() {
   const navigate = useNavigate();
@@ -44,6 +45,7 @@ export function Configurator() {
                 <small>{term.discount ? '−' + Math.round(term.discount * 100) + '%' : 'Tariffa base'}</small>
               </button>)}
             </div>
+            <DurationStepper months={months} onChange={setMonths} />
           </section>
           <section className="panel glass" aria-labelledby="core-title">
             <header className="panel__head"><span className="panel__step display-num">2</span><div><h2 id="core-title">Sempre incluso</h2><p>Le {CORE.length} funzioni essenziali, a {formatEuro(BASE_MONTHLY)} al mese.</p></div></header>
