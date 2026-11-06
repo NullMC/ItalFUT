@@ -58,6 +58,14 @@ VITE_AUTH_EMAIL_DOMAIN=users.italfut.invalid
 
 Dalla dashboard gestisci tutte le tabelle (aggiungi, modifica, elimina, cerca). Ogni operazione finisce nel **Registro attività**. Altri superadmin si aggiungono dalla scheda “Superadmin”; l’ultimo non può essere rimosso.
 
+### 6b. Caricamento immagini dal computer (loghi, foto, copertine)
+1. SQL Editor → esegui `supabase/migrations/202611060001_tenant_media.sql` (rieseguibile).
+   Crea in **Storage** il bucket pubblico `tenant-media`: solo file `.webp`, massimo 2 MB, cartelle `<id torneo>/<campo>/<file>.webp`.
+2. Verifica in Supabase → Storage che il bucket compaia con “Allowed MIME types: image/webp”.
+3. Fatto: in console ogni campo immagine ha “Carica dal computer” (anche trascinando il file). Il browser converte JPG/PNG/AVIF in WebP e li ridimensiona prima dell’invio; resta possibile incollare un link.
+
+Solo lo staff del torneo (proprietario, amministratore, editor) e i superadmin possono caricare o eliminare file. Le immagini sostituite, rimosse o caricate e poi annullate vengono cancellate automaticamente; eliminando un torneo vengono cancellati tutti i suoi file.
+
 ---
 
 ## B. Gestione quotidiana (tutto dalla Dashboard Supabase)

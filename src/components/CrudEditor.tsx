@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Alert, Button, Checkbox, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { cleanText, HEX_COLOR, safeUrl } from '../lib/validation';
 import { Link as RouterLink } from 'react-router-dom';
@@ -9,8 +9,10 @@ import { client, friendlyError } from '../lib/supabase';
 import type { FeatureCode, Option, Row } from '../lib/types';
 import { DataTable, type Column, type Filter } from './DataTable';
 import { invalidateTenantStats } from '../lib/useTenantStats';
+import { ImageField } from './ImageField';
+import { removeMedia, type MediaKind } from '../lib/media';
 
-type Field = { key: string; label: string; type?: 'number' | 'date' | 'datetime-local' | 'textarea' | 'select' | 'color' | 'url'; required?: boolean; values?: string[]; ref?: string; min?: number; max?: number; maxLength?: number };
+type Field = { key: string; label: string; type?: 'number' | 'date' | 'datetime-local' | 'textarea' | 'select' | 'color' | 'url' | 'image'; media?: MediaKind; required?: boolean; values?: string[]; ref?: string; min?: number; max?: number; maxLength?: number };
 export type EditorDefinition = { key: string; label: string; table: string; feature: FeatureCode; summary: string; fields: Field[] };
 export const EDITORS: EditorDefinition[] = [
   { key: 'competitions', feature: 'competitions', label: 'Competizioni', table: 'competitions', summary: 'Crea stagioni, gironi e tornei indipendenti.', fields: [
@@ -20,7 +22,7 @@ export const EDITORS: EditorDefinition[] = [
     { key: 'start_date', label: 'Data inizio', type: 'date' }, { key: 'end_date', label: 'Data fine', type: 'date' },
   ] },
   { key: 'teams', feature: 'teams', label: 'Squadre', table: 'teams', summary: 'Gestisci l’identità delle squadre del tuo torneo.', fields: [
-    { key: 'name', label: 'Nome squadra', required: true }, { key: 'logo_url', label: 'URL logo', type: 'url' },
+    { key: 'name', label: 'Nome squadra', required: true }, { key: 'logo_url', label: 'Logo', type: 'image', media: 'logo' },
     { key: 'accent_hex', label: 'Colore squadra (es. #198f61)', type: 'color' },
   ] },
   { key: 'enrollments', feature: 'teams', label: 'Iscrizioni ai tornei', table: 'competition_teams', summary: 'Assegna le squadre alle competizioni, anche a più tornei contemporaneamente.', fields: [
@@ -33,7 +35,7 @@ export const EDITORS: EditorDefinition[] = [
     { key: 'first_name', label: 'Nome', required: true }, { key: 'last_name', label: 'Cognome', required: true },
     { key: 'shirt_number', label: 'Numero maglia', type: 'number', min: 0, max: 99 },
     { key: 'position', label: 'Ruolo', type: 'select', values: ['P', 'D', 'C', 'A'] },
-    { key: 'profile_image_url', label: 'URL foto profilo', type: 'url' },
+    { key: 'profile_image_url', label: 'Foto profilo', type: 'image', media: 'photo' },
   ] },
   { key: 'matches', feature: 'matches', label: 'Partite', table: 'matches', summary: 'Programma incontri, campi, date e risultati.', fields: [
     { key: 'competition_id', label: 'Competizione', ref: 'competitions', required: true },
@@ -54,7 +56,7 @@ export const EDITORS: EditorDefinition[] = [
   ] },
   { key: 'staff', feature: 'staff', label: 'Staff', table: 'staff_members', summary: 'Anagrafica staff, foto e statistiche.', fields: [
     { key: 'name', label: 'Nome completo', required: true },
-    { key: 'role', label: 'Ruolo / incarico' }, { key: 'photo_url', label: 'URL foto', type: 'url' },
+    { key: 'role', label: 'Ruolo / incarico' }, { key: 'photo_url', label: 'Foto', type: 'image', media: 'photo' },
     { key: 'goals', label: 'Gol staff', type: 'number', min: 0, max: 999 },
   ] },
   { key: 'awards', feature: 'awards', label: 'Premi', table: 'awards', summary: 'Premia giocatori e membri staff con riconoscimenti dedicati.', fields: [
@@ -63,12 +65,12 @@ export const EDITORS: EditorDefinition[] = [
     { key: 'month_label', label: 'Mese / periodo' },
     { key: 'player_id', label: 'Giocatore premiato', ref: 'players' },
     { key: 'staff_id', label: 'Membro staff premiato', ref: 'staff_members' },
-    { key: 'image_url', label: 'URL immagine', type: 'url' },
+    { key: 'image_url', label: 'Immagine', type: 'image', media: 'image' },
   ] },
   { key: 'sponsors', feature: 'sponsors', label: 'Sponsor e partner', table: 'sponsors', summary: 'Partner commerciali, loghi e collegamenti.', fields: [
     { key: 'name', label: 'Nome sponsor', required: true },
     { key: 'description', label: 'Descrizione', type: 'textarea' },
-    { key: 'logo_url', label: 'URL logo', type: 'url' }, { key: 'image_url', label: 'URL immagine attività', type: 'url' },
+    { key: 'logo_url', label: 'Logo', type: 'image', media: 'logo' }, { key: 'image_url', label: 'Immagine attività', type: 'image', media: 'image' },
     { key: 'image_alt', label: 'Descrizione accessibile immagine' },
     { key: 'website_url', label: 'Sito web', type: 'url' }, { key: 'sort_order', label: 'Ordine', type: 'number' },
   ] },
@@ -76,7 +78,7 @@ export const EDITORS: EditorDefinition[] = [
     { key: 'title', label: 'Titolo', required: true },
     { key: 'summary', label: 'Introduzione', type: 'textarea' },
     { key: 'body', label: 'Testo articolo', type: 'textarea', maxLength: 20000 },
-    { key: 'image_url', label: 'URL immagine', type: 'url' },
+    { key: 'image_url', label: 'Immagine', type: 'image', media: 'image' },
     { key: 'image_alt', label: 'Descrizione accessibile immagine' },
     { key: 'sort_order', label: 'Ordine di visualizzazione', type: 'number' },
   ] },
@@ -84,7 +86,7 @@ export const EDITORS: EditorDefinition[] = [
     { key: 'team_id', label: 'Squadra', ref: 'teams', required: true },
     { key: 'slot_number', label: 'Slot (1–6)', type: 'number', required: true, min: 1, max: 6 },
     { key: 'player_name', label: 'Nome giocatore', required: true },
-    { key: 'photo_url', label: 'URL foto', type: 'url' }, { key: 'notes', label: 'Note', type: 'textarea' },
+    { key: 'photo_url', label: 'Foto', type: 'image', media: 'photo' }, { key: 'notes', label: 'Note', type: 'textarea' },
   ] },
   { key: 'gallery', feature: 'gallery', label: 'Foto gallery', table: 'galleries', summary: 'Link liberi: cartelle Drive, album, piattaforme esterne.', fields: [
     { key: 'match_id', label: 'Partita', ref: 'matches', required: true },
@@ -185,7 +187,17 @@ export function CrudEditor({ tenantId, config, editable }: { tenantId: string; c
     return () => { live = false; };
   }, [tenantId, config, refTables]);
 
+  // Files uploaded while the form is open: deleted again if the form is cancelled,
+  // and the replaced/removed images are deleted after a successful save.
+  const pending = useRef(new Set<string>());
+  const imageKeys = config.fields.filter(f => f.type === 'image').map(f => f.key);
+  const closeDialog = () => {
+    void removeMedia([...pending.current]);
+    pending.current.clear();
+    setDialog(false);
+  };
   const open = (row?: Row) => {
+    pending.current.clear();
     setEditing(row ?? null); setError('');
     setGuardianDeclaration(Boolean(row?.guardian_authorization_confirmed));
     setMinorPhotoDeclaration(Boolean(row?.minor_photo_authorized));
@@ -219,7 +231,7 @@ export function CrudEditor({ tenantId, config, editable }: { tenantId: string; c
         if (!Number.isInteger(number) || (field.min != null && number < field.min) || (field.max != null && number > field.max))
           throw new Error(`“${field.label}” deve essere un numero intero${field.min != null ? ` tra ${field.min} e ${field.max}` : ''}.`);
         payload[field.key] = number;
-      } else if (field.type === 'url') {
+      } else if (field.type === 'url' || field.type === 'image') {
         const url = safeUrl(input);
         if (!url) throw new Error(`“${field.label}” deve essere un indirizzo che inizia con https://`);
         payload[field.key] = url;
@@ -252,6 +264,10 @@ export function CrudEditor({ tenantId, config, editable }: { tenantId: string; c
         ? await sb.from(config.table).update(payload).eq('id', editing.id).eq('tenant_id', tenantId)
         : await sb.from(config.table).insert({ ...payload, tenant_id: tenantId });
       if (result.error) throw result.error;
+      const kept = new Set(imageKeys.map(key => String(payload[key] ?? '')));
+      void removeMedia([...pending.current].filter(url => !kept.has(url)));
+      if (editing) void removeMedia(imageKeys.map(key => editing[key]).filter(old => old && !kept.has(String(old))));
+      pending.current.clear();
       setDialog(false); await load();
     } catch (cause) { setError(friendlyError(cause)); }
     finally { setSaving(false); }
@@ -262,6 +278,7 @@ export function CrudEditor({ tenantId, config, editable }: { tenantId: string; c
     try {
       const { error: issue } = await client().from(config.table).delete().eq('id', toDelete.id).eq('tenant_id', tenantId);
       if (issue) throw issue;
+      void removeMedia(imageKeys.map(key => toDelete[key]));
       setToDelete(null);
       await load();
     } catch (cause) { setError(friendlyError(cause)); setToDelete(null); }
@@ -270,7 +287,13 @@ export function CrudEditor({ tenantId, config, editable }: { tenantId: string; c
   const teamColor = (id: unknown) => { const hex = String(references.teams_colors?.find(o => o.id === String(id))?.name ?? ''); return HEX_COLOR.test(hex) ? hex : undefined; };
   const time = (value: unknown) => { const d = new Date(String(value ?? '')); return Number.isNaN(d.getTime()) ? null : d.getTime(); };
   const statusPill = (value: unknown) => value ? <span className={'pill pill--' + String(value)}>{label(value)}</span> : <span className="muted">—</span>;
-  const avatar = (row: Row, color?: string) => <span className="cell-avatar" style={color ? { ['--c' as string]: color } : undefined} aria-hidden="true">{labelFor(row).charAt(0).toUpperCase()}</span>;
+  const thumbKey = config.fields.find(f => f.type === 'image' && (f.media === 'logo' || f.media === 'photo'))?.key;
+  const avatar = (row: Row, color?: string) => {
+    const src = thumbKey ? safeUrl(row[thumbKey]) : '';
+    return <span className={'cell-avatar' + (src ? ' has-image' : '')} style={color ? { ['--c' as string]: color } : undefined} aria-hidden="true">
+      {src ? <img src={src} alt="" loading="lazy" referrerPolicy="no-referrer" /> : labelFor(row).charAt(0).toUpperCase()}
+    </span>;
+  };
   const primary: Column<Row> = { key: 'name', title: config.key === 'players' ? 'Giocatore' : config.key === 'matches' ? 'Partita' : 'Nome', primary: true,
     value: row => labelFor(row),
     render: row => <span className="cell-main">{avatar(row, config.key === 'teams' ? (HEX_COLOR.test(String(row.accent_hex)) ? String(row.accent_hex) : undefined)
@@ -323,11 +346,15 @@ export function CrudEditor({ tenantId, config, editable }: { tenantId: string; c
             <IconButton size="small" aria-label={'Elimina ' + labelFor(row)} color="error" onClick={() => setToDelete(row)}><DeleteOutlineRoundedIcon fontSize="small" /></IconButton>
           </span> : undefined} />}
 
-    <Dialog open={dialog} onClose={() => !saving && setDialog(false)} maxWidth="sm" fullWidth aria-labelledby="crud-dialog-title">
+    <Dialog open={dialog} onClose={() => !saving && closeDialog()} maxWidth="sm" fullWidth aria-labelledby="crud-dialog-title">
       <form onSubmit={save} noValidate><DialogTitle id="crud-dialog-title">{editing ? 'Modifica' : 'Nuovo'} · {config.label}</DialogTitle>
         <DialogContent><Stack spacing={2.5} sx={{ pt: 1 }}>
           {error && <Alert severity="error" role="alert">{error}</Alert>}
-          {config.fields.map(field => field.ref || field.values ? <TextField key={field.key} label={field.label} select required={field.required} value={values[field.key] ?? ''} onChange={e => setValues(old => ({ ...old, [field.key]: e.target.value }))}>
+          {config.fields.map(field => field.type === 'image' ? <ImageField key={field.key} label={field.label} required={field.required}
+            value={values[field.key] ?? ''} onChange={url => setValues(old => ({ ...old, [field.key]: url }))}
+            tenantId={tenantId} field={config.table + '_' + field.key.replace(/_url$/, '')} kind={field.media ?? 'image'}
+            onUploaded={url => pending.current.add(url)} />
+          : field.ref || field.values ? <TextField key={field.key} label={field.label} select required={field.required} value={values[field.key] ?? ''} onChange={e => setValues(old => ({ ...old, [field.key]: e.target.value }))}>
             {field.key === 'age_category' && <MenuItem value="" disabled>Seleziona la fascia di età</MenuItem>}
             {!field.required && <MenuItem value="">Non assegnato</MenuItem>}
             {(field.values ? field.values.map(id => ({ id, name: label(id) })) : references[field.ref ?? ''] ?? []).map(option => <MenuItem value={option.id} key={option.id}>{option.name}</MenuItem>)}
@@ -350,7 +377,7 @@ export function CrudEditor({ tenantId, config, editable }: { tenantId: string; c
             </>}
           </>}
         </Stack></DialogContent>
-        <DialogActions sx={{ p: 2.5 }}><Button onClick={() => setDialog(false)} disabled={saving}>Annulla</Button><Button type="submit" variant="contained" disabled={saving}>{saving ? 'Salvataggio…' : 'Salva'}</Button></DialogActions>
+        <DialogActions sx={{ p: 2.5 }}><Button onClick={closeDialog} disabled={saving}>Annulla</Button><Button type="submit" variant="contained" disabled={saving}>{saving ? 'Salvataggio…' : 'Salva'}</Button></DialogActions>
       </form>
     </Dialog>
     <Dialog open={Boolean(toDelete)} onClose={() => !saving && setToDelete(null)} maxWidth="xs" fullWidth aria-labelledby="delete-title">

@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useNavigate, useParams, Link as RouterLink, NavLink } from 'react-router-dom';
 import { Alert, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from '@mui/material';
 import { motion, useReducedMotion } from 'motion/react';
@@ -35,6 +35,8 @@ import { cleanText, HEX_COLOR, safeUrl, SLUG_PATTERN } from '../lib/validation';
 import { trackSpotlight } from '../components/MarketingMotion';
 import { ErrorView } from './ErrorPage';
 import { ScrollRail } from '../components/ScrollRail';
+import { ImageField } from '../components/ImageField';
+import { removeMedia } from '../lib/media';
 import { summarize, useTenantStats } from '../lib/useTenantStats';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
@@ -183,6 +185,9 @@ export function TenantConsole() {
   const [fields, setFields] = useState({ name: '', tagline: '', brand_color: '#173d32', logo_url: '', cover_url: '' });
   const [saving, setSaving] = useState(false);
   const { data: stats } = useTenantStats(tenant?.id);
+  const settingsUploads = useRef(new Set<string>());
+  // Uploads never saved (page left without saving) are deleted.
+  useEffect(() => () => { void removeMedia([...settingsUploads.current]); }, []);
   const season = stats ? summarize(stats) : null;
   const refresh = async () => {
     if (!slug || !session) return;
@@ -226,6 +231,10 @@ export function TenantConsole() {
     try {
       const { error: issue } = await client().from('tenants').update(payload).eq('id', tenant.id);
       if (issue) throw issue;
+      // Delete uploads that did not end up in the saved settings and the images they replaced.
+      const kept = new Set([payload.logo_url, payload.cover_url].filter(Boolean));
+      void removeMedia([...settingsUploads.current, tenant.logo_url, tenant.cover_url].filter(url => url && !kept.has(url)));
+      settingsUploads.current.clear();
       await refresh();
       setNotice('Impostazioni salvate.');
     } catch (cause) { setError(friendlyError(cause)); }
@@ -343,8 +352,10 @@ export function TenantConsole() {
               </div>
             </fieldset>
             <TextField label="Colore (#RRGGBB)" value={fields.brand_color} onChange={e => setFields(f => ({ ...f, brand_color: e.target.value }))} disabled={!editable} slotProps={{ htmlInput: { pattern: '#[0-9a-fA-F]{6}', maxLength: 7 } }} />
-            <TextField label="URL logo (https://…)" type="url" value={fields.logo_url} onChange={e => setFields(f => ({ ...f, logo_url: e.target.value }))} disabled={!editable} slotProps={{ htmlInput: { maxLength: 2048 } }} />
-            <TextField label="URL immagine di copertina (https://…)" type="url" value={fields.cover_url} onChange={e => setFields(f => ({ ...f, cover_url: e.target.value }))} disabled={!editable} slotProps={{ htmlInput: { maxLength: 2048 } }} />
+            <ImageField label="Logo del torneo" kind="logo" tenantId={tenant.id} field="tenant_logo" value={fields.logo_url} disabled={!editable}
+              onChange={url => setFields(f => ({ ...f, logo_url: url }))} onUploaded={url => settingsUploads.current.add(url)} />
+            <ImageField label="Immagine di copertina" kind="cover" tenantId={tenant.id} field="tenant_cover" value={fields.cover_url} disabled={!editable}
+              onChange={url => setFields(f => ({ ...f, cover_url: url }))} onUploaded={url => settingsUploads.current.add(url)} />
             {editable && <Button variant="contained" type="submit" disabled={saving} sx={{ alignSelf: 'flex-start' }}>{saving ? 'Salvataggio…' : 'Salva impostazioni'}</Button>}
           </Stack></form>
           <div className="settings__preview" aria-label="Anteprima intestazione">

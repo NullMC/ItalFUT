@@ -6,6 +6,7 @@ import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
 import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
+import { removeMedia, removeTenantMedia } from '../lib/media';
 import { DataTable } from '../components/DataTable';
 import { client, friendlyError } from '../lib/supabase';
 import { checkPassword } from '../lib/validation';
@@ -164,6 +165,9 @@ export function AdminTable({ table, schema }: { table: string; schema: AdminSche
     try {
       const { error: issue } = await client().rpc('admin_delete', { p_table: table, p_key: keyOf(def.pk, toDelete) });
       if (issue) throw issue;
+      // Uploaded images referenced by the record (and, for a tournament, all its files).
+      void removeMedia(Object.values(toDelete));
+      if (table === 'tenants' && typeof toDelete.id === 'string') void removeTenantMedia(toDelete.id);
       setToDelete(null); setNotice(table === 'profiles' ? 'Account eliminato.' : 'Record eliminato.');
       await load();
     } catch (cause) { setError(friendlyError(cause)); setToDelete(null); }

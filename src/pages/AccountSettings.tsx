@@ -9,6 +9,7 @@ import { client, friendlyError } from '../lib/supabase';
 import { checkPassword, isInternalEmail } from '../lib/validation';
 import { PasswordField, StrengthMeter } from './Access';
 import { RecoveryCode } from '../components/RecoveryCode';
+import { removeTenantMedia } from '../lib/media';
 
 type OwnedTenant = { id: string; name: string; slug: string; status: string };
 type SupportRequest = { id: string; kind: string; message: string; status: string; reply: string | null; created_at: string };
@@ -132,6 +133,7 @@ export function AccountSettings() {
         p_tenant_id: tenantToDelete.id, p_confirm_slug: confirmationSlug,
       });
       if (issue) throw issue;
+      await removeTenantMedia(tenantToDelete.id); // uploaded logos and photos
       setTenantToDelete(null); setConfirmationSlug('');
       await fetchOwned();
       setMessage('Il torneo e i relativi dati sono stati eliminati. Questa operazione non è reversibile.');

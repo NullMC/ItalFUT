@@ -48,7 +48,7 @@ function sections(page: LegalPageId, openPreferences: () => void): Section[] {
       { id: 'dati', title: '2. Dati che trattiamo', body: <ul>
         <li><b>Account organizzatore:</b> username e password (conservata solo in forma cifrata con hash), codice di recupero (anch’esso cifrato), data di creazione e ultimi accessi. Non chiediamo né conserviamo indirizzi email.</li>
         <li><b>Richieste dal modulo Contatti:</b> argomento, messaggio e, solo se lo inserisci tu, un recapito per la risposta.</li>
-        <li><b>Contenuti del torneo:</b> nomi di competizioni e squadre, nomi e cognomi dei giocatori, numero di maglia, ruolo, risultati, eventi di gara, immagini o link inseriti dall’organizzatore.</li>
+        <li><b>Contenuti del torneo:</b> nomi di competizioni e squadre, nomi e cognomi dei giocatori, numero di maglia, ruolo, risultati, eventi di gara, immagini caricate dall’organizzatore (convertite in WebP e conservate su Supabase Storage, nella stessa regione del database) o link a immagini esterne.</li>
         <li><b>Minorenni:</b> fascia d’età (maggiorenne/minorenne) e la conferma dell’organizzatore di aver raccolto l’autorizzazione del genitore o tutore. Non raccogliamo date di nascita, documenti o dati dei genitori.</li>
         <li><b>Dati tecnici:</b> indirizzo IP e informazioni del browser nei log di sicurezza del fornitore di hosting e del database.</li>
       </ul> },
