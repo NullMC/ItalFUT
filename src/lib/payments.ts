@@ -3,7 +3,7 @@
  * checkout for a tournament: the price is computed in the database and the plan is
  * activated by the Stripe webhook, never by the browser.
  */
-import { FunctionsHttpError } from '@supabase/supabase-js';
+import { FunctionsFetchError, FunctionsHttpError, FunctionsRelayError } from '@supabase/supabase-js';
 import { client } from './supabase';
 
 /** Turn on in Cloudflare Pages (VITE_PAYMENTS_ENABLED=true) once Stripe is set up. */
@@ -22,7 +22,15 @@ export async function startCheckout(tenantId: string, months: number, features: 
   if (error) {
     let message = 'Impossibile avviare il pagamento. Riprova più tardi.';
     if (error instanceof FunctionsHttpError) {
-      try { const body = await error.context.json(); if (body?.error) message = String(body.error); } catch { /* keep default */ }
+      const response = error.context as Response;
+      let body: { error?: unknown; code?: unknown } | null = null;
+      try { body = await response.json(); } catch { /* not JSON */ }
+      if (body?.error) message = String(body.error);
+      // Supabase answers 404 NOT_FOUND when the Edge Function has not been deployed.
+      else if (response.status === 404 || body?.code === 'NOT_FOUND') message = 'Pagamenti non ancora attivi: la funzione create-checkout-session non è pubblicata su Supabase.';
+      else if (response.status === 401) message = 'Sessione scaduta o funzione pubblicata senza --no-verify-jwt: accedi di nuovo o ripubblica la funzione.';
+    } else if (error instanceof FunctionsFetchError || error instanceof FunctionsRelayError) {
+      message = 'Servizio di pagamento non raggiungibile: controlla la connessione e il valore DOMAIN su Supabase (deve essere l’indirizzo da cui apri il sito).';
     }
     throw new Error(message);
   }

@@ -85,7 +85,7 @@ src/admin/adminConfig.ts             # superadmin “Pagamenti” tab (read only
 
 ## How it works
 
-1. An owner/admin opens **Console → Moduli** (new tournaments land there right after creation), picks duration and modules and clicks **Paga**. The app calls the function with the user's session:
+1. An owner/admin opens **Console → Moduli** (new tournaments land there right after creation). The plan chosen in the configurator is saved with the tournament (`plan_quotes`, created by `create_tenant`) and every change of duration or modules is saved again (`save_plan`, migration `202611080001`). They adjust it if needed and click **Paga**. The app calls the function with the user's session:
    ```ts
    const { data } = await client().functions.invoke('create-checkout-session', { body: { tenant_id, months, features } });
    window.location.assign(data.url);
@@ -96,6 +96,16 @@ src/admin/adminConfig.ts             # superadmin “Pagamenti” tab (read only
 5. The public site of a tournament is visible to visitors only while its paid period is active (tournaments published manually and never paid stay visible). Staff always see it.
 
 Refunds are made from the Stripe Dashboard. A refund marks the payment `refunded` but does not switch modules off: do that from the superadmin if needed.
+
+## Troubleshooting
+
+| Message in the app | Cause |
+|---|---|
+| “Pagamenti non ancora attivi: la funzione create-checkout-session non è pubblicata su Supabase.” | Setup step 5 not done (Supabase answers 404). |
+| “Pagamenti non configurati: manca il secret …” | Setup step 4: `STRIPE_SECRET_KEY` or `DOMAIN` missing. |
+| “Servizio di pagamento non raggiungibile…” | Network error or CORS: `DOMAIN` must be exactly the address the site is opened from (e.g. `http://localhost:5173`). |
+| “Impossibile avviare il pagamento… Dettaglio Stripe (modalità test): …” | Stripe refused the session; the detail (test keys only) says why, e.g. Stripe Tax origin address missing (step 2). |
+| “Durata non supportata” / “Configurazione: Non salvata” | Migration `202611080001_custom_duration.sql` not run yet. |
 
 ## Testing
 

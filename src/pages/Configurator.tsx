@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Checkbox } from '@mui/material';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import { motion, useReducedMotion } from 'motion/react';
-import { BASE_MONTHLY, CORE, estimate, EXTRA, formatEuro, MODULES, TERMS } from '../lib/catalog';
+import { BASE_MONTHLY, CORE, estimate, EXTRA, formatEuro, MODULES, TERMS, validMonths } from '../lib/catalog';
 import type { FeatureCode } from '../lib/types';
 import { AnimatedAmount } from '../components/AnimatedAmount';
 import { vatNote } from '../config/legal';
@@ -12,11 +12,30 @@ import { paymentsEnabled } from '../lib/payments';
 import { Reveal } from '../components/MarketingMotion';
 import { DurationStepper } from '../components/DurationStepper';
 
+/** The configuration survives going back and forth between configurator and console (same tab). */
+function savedDraft(): { months: number; modules: FeatureCode[] } {
+  try {
+    const value = JSON.parse(sessionStorage.getItem('italfut_configuration') ?? 'null');
+    if (!value) return { months: 1, modules: [] };
+    return {
+      months: validMonths(Number(value.months)) ? Number(value.months) : 1,
+      modules: (Array.isArray(value.modules) ? value.modules : []).filter((code: unknown): code is FeatureCode => EXTRA.some(m => m.code === code)),
+    };
+  } catch { return { months: 1, modules: [] }; }
+}
+
 export function Configurator() {
   const navigate = useNavigate();
   const reduce = useReducedMotion();
-  const [months, setMonths] = useState(1);
-  const [selected, setSelected] = useState<FeatureCode[]>([]);
+  const [draft] = useState(savedDraft);
+  const [months, setMonths] = useState(draft.months);
+  const [selected, setSelected] = useState<FeatureCode[]>(draft.modules);
+  // Saved while choosing (after the first change), not only on “Continua”.
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) { first.current = false; return; }
+    try { sessionStorage.setItem('italfut_configuration', JSON.stringify({ months, modules: selected })); } catch { /* storage unavailable */ }
+  }, [months, selected]);
   const quote = estimate(months, selected);
   const chosen = MODULES.filter(m => selected.includes(m.code) && !m.core);
   const toggle = (code: FeatureCode) => setSelected(old => old.includes(code) ? old.filter(x => x !== code) : [...old, code]);

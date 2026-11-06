@@ -260,6 +260,11 @@
 .plan-module__check svg { font-size: 18px; }
 .plan-module__price { font-size: .84rem; color: var(--ink-2); white-space: nowrap; }
 .plan-summary { position: sticky; top: calc(var(--nav-h) + 16px); display: grid; gap: 14px; padding: 20px; border-radius: 22px; }
+.plan-summary__head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.plan-summary__head h2 { margin: 0; }
+.plan-save { font-size: .76rem; color: var(--ink-2); }
+.plan-save.is-saved { color: var(--ok); }
+.plan-save.is-error { color: var(--danger); }
 .plan-summary dl { margin: 0; display: grid; gap: 8px; }
 .plan-summary dl > div { display: flex; justify-content: space-between; gap: 12px; font-size: .88rem; }
 .plan-summary dt { color: var(--ink-2); min-width: 0; }

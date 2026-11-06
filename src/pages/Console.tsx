@@ -165,7 +165,7 @@ export function ConsoleHome() {
             onChange={e => { setSlugEdited(true); setSlug(formatSlug(e.target.value)); }}
             helperText={window.location.origin + '/t/' + (slug || 'nome-torneo')}
             slotProps={{ htmlInput: { maxLength: 42, pattern: '[a-z0-9][a-z0-9\\-]{2,41}' } }} />
-          <Alert severity="info">Configurazione scelta: {plan.months} {plan.months === 1 ? 'mese' : 'mesi'}, {plan.modules.length} moduli facoltativi. Preventivo indicativo {formatEuro(quote.total)}. {paymentsEnabled ? 'Dopo la creazione potrai pagare il piano su Stripe: il sito si pubblica con il pagamento.' : 'Nessun addebito: i moduli extra restano da attivare.'}</Alert>
+          <Alert severity="info">Configurazione scelta: {plan.months} {plan.months === 1 ? 'mese' : 'mesi'}, {plan.modules.length} moduli facoltativi. Preventivo indicativo {formatEuro(quote.total)}. {paymentsEnabled ? 'Dopo la creazione la trovi salvata in Moduli: puoi cambiarla prima di pagare su Stripe.' : 'Nessun addebito: i moduli extra restano da attivare.'} <RouterLink to="/configura">Modifica</RouterLink></Alert>
           {error && <Alert severity="error">{error}</Alert>}
         </Stack></DialogContent>
         <DialogActions sx={{ p: 3, pt: 1 }}><Button onClick={() => setCreating(false)} disabled={busy}>Annulla</Button><Button variant="contained" type="submit" disabled={busy}>{busy ? 'Creazione…' : 'Crea torneo'}</Button></DialogActions>

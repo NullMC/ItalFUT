@@ -28,6 +28,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   if (req.method !== 'POST') return json({ error: 'Metodo non consentito.' }, 405);
+  const stripeKey = Deno.env.get('STRIPE_SECRET_KEY') ?? '';
+  if (!stripeKey.startsWith('sk_') && !stripeKey.startsWith('rk_')) return json({ error: 'Pagamenti non configurati: manca il secret STRIPE_SECRET_KEY su Supabase.' }, 500);
+  if (!domain) return json({ error: 'Pagamenti non configurati: manca il secret DOMAIN su Supabase.' }, 500);
 
   const authorization = req.headers.get('Authorization') ?? '';
   if (!authorization.startsWith('Bearer ')) return json({ error: 'Accedi per continuare.' }, 401);
@@ -96,6 +99,9 @@ Deno.serve(async (req) => {
     return json({ url: session.url });
   } catch (error) {
     console.error('Checkout Session creation failed:', error);
-    return json({ error: 'Impossibile avviare il pagamento. Riprova più tardi.' }, 500);
+    // In test mode Stripe's reason is shown to help the setup (e.g. Stripe Tax origin address missing).
+    const testMode = (Deno.env.get('STRIPE_SECRET_KEY') ?? '').includes('_test_');
+    const detail = testMode && error instanceof Error ? ` Dettaglio Stripe (modalità test): ${error.message}` : '';
+    return json({ error: 'Impossibile avviare il pagamento. Riprova più tardi.' + detail }, 500);
   }
 });

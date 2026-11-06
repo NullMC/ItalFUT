@@ -1,5 +1,6 @@
--- Custom plan duration (any whole number of months from 1 to 24, not only 1/3/6/12) and
--- new Foto gallery price (1 €/month). The discount is the one of the highest standard
+-- Custom plan duration (any whole number of months from 1 to 24, not only 1/3/6/12),
+-- new Foto gallery price (1 €/month) and the tournament's saved plan configuration
+-- (save_plan: the plan chosen in the configurator stays editable until payment). The discount is the one of the highest standard
 -- tier reached: 3+ months −8%, 6+ months −15%, 12+ months −25%.
 -- Safe to run more than once.
 begin;
@@ -82,5 +83,44 @@ end;
 $$;
 revoke all on function public.request_upgrade(uuid,integer,text[]) from public, anon;
 grant execute on function public.request_upgrade(uuid,integer,text[]) to authenticated;
+
+-- Saved plan configuration of a tournament (duration + extra modules). The configurator
+-- stores it at creation (create_tenant → plan_quotes); the plan page edits it with save_plan
+-- and starts the payment from it. Only owners and administrators can change it.
+create or replace function public.save_plan(p_tenant_id uuid, p_months integer, p_features text[] default '{}')
+returns jsonb language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_features text[];
+  v_quote jsonb;
+  v_id uuid;
+begin
+  if auth.uid() is null then raise exception 'Accesso richiesto' using errcode = '42501'; end if;
+  if not exists (
+    select 1 from public.tenant_members m
+    where m.tenant_id = p_tenant_id and m.user_id = auth.uid() and m.role in ('owner', 'admin')
+  ) then raise exception 'Solo il proprietario o un amministratore può modificare il piano' using errcode = '42501'; end if;
+  select coalesce(array_agg(distinct f order by f), '{}') into v_features
+    from unnest(coalesce(p_features, '{}')) f;
+  if exists (
+    select 1 from unnest(v_features) f(code)
+    left join public.feature_catalog c on c.code = f.code
+    where c.code is null or c.is_core
+  ) then raise exception 'Uno o più moduli non sono acquistabili'; end if;
+  v_quote := public.quote_plan(p_months, v_features);
+  select id into v_id from public.plan_quotes
+    where tenant_id = p_tenant_id and status = 'pending' order by created_at desc limit 1 for update;
+  if v_id is null then
+    insert into public.plan_quotes(tenant_id, months, selected_features, total_cents)
+      values (p_tenant_id, p_months, v_features, (v_quote->>'total_cents')::integer);
+  else
+    update public.plan_quotes set months = p_months, selected_features = v_features,
+      total_cents = (v_quote->>'total_cents')::integer where id = v_id;
+  end if;
+  return v_quote;
+end;
+$$;
+revoke all on function public.save_plan(uuid, integer, text[]) from public, anon;
+grant execute on function public.save_plan(uuid, integer, text[]) to authenticated;
 
 commit;

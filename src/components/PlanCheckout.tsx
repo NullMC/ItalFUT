@@ -4,7 +4,7 @@
  * duration and modules with a live total, one clear pay button, payment history.
  * Prices here are an estimate: the amount charged is computed in the database.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Alert, Button, CircularProgress } from '@mui/material';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
@@ -30,6 +30,10 @@ export function PlanCheckout({ tenantId, tenantStatus, canBuy, features, initial
   const [payments, setPayments] = useState<Payment[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  // Saved configuration: loaded from the tournament (plan_quotes), saved again on every change.
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const edited = useRef(false);
+  const [ready, setReady] = useState(false);
   const cancelled = params.get('pagamento') === 'annullato';
 
   useEffect(() => {
@@ -37,13 +41,38 @@ export function PlanCheckout({ tenantId, tenantStatus, canBuy, features, initial
     void Promise.all([
       client().from('subscriptions').select('status,period_start,period_end').eq('tenant_id', tenantId).order('period_end', { ascending: false, nullsFirst: false }).limit(1).maybeSingle(),
       client().from('payments').select('id,status,months,features,amount_cents,amount_paid_cents,paid_at,period_start,period_end,created_at').eq('tenant_id', tenantId).order('created_at', { ascending: false }).limit(8),
-    ]).then(([s, p]) => {
+      client().from('plan_quotes').select('months,selected_features').eq('tenant_id', tenantId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    ]).then(([s, p, q]) => {
       if (!live) return;
       setSub((s.data as Sub | null) ?? null);
       setPayments(p.error ? [] : (p.data ?? []) as Payment[]);
+      const saved = q.data as { months: number; selected_features: string[] } | null;
+      // The saved plan wins over the one passed at creation (it may have been edited since).
+      if (!edited.current) {
+        if (saved && validMonths(saved.months)) {
+          setMonths(saved.months);
+          setPicked(saved.selected_features.filter((code): code is FeatureCode => EXTRA.some(m => m.code === code)));
+        } else if (!initial) {
+          // No saved plan yet: start from the extras that are active now (renewal).
+          setPicked(EXTRA.filter(m => features.some(f => f.code === m.code && f.enabled && f.ends_at && new Date(f.ends_at).getTime() > Date.now())).map(m => m.code));
+        }
+      }
+      setReady(true);
     });
     return () => { live = false; };
-  }, [tenantId]);
+  }, [tenantId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Autosave (debounced) after the user changes duration or modules.
+  useEffect(() => {
+    if (!ready || !edited.current || !canBuy) return;
+    setSaveState('saving');
+    const timer = window.setTimeout(() => {
+      void client().rpc('save_plan', { p_tenant_id: tenantId, p_months: months, p_features: picked })
+        .then(({ error: issue }) => setSaveState(issue ? 'error' : 'saved'));
+    }, 600);
+    return () => window.clearTimeout(timer);
+  }, [months, picked, ready, canBuy, tenantId]);
+  const changeMonths = (value: number) => { edited.current = true; setMonths(value); };
 
   const activeUntil = (code: string) => {
     const f = features.find(item => item.code === code && item.enabled);
@@ -53,11 +82,15 @@ export function PlanCheckout({ tenantId, tenantStatus, canBuy, features, initial
   };
   const planActive = Boolean(sub?.status === 'active' && sub.period_end && new Date(sub.period_end).getTime() > Date.now());
   const quote = useMemo(() => estimate(months, picked), [months, picked]);
-  const toggle = (code: FeatureCode) => setPicked(prev => prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code]);
+  const toggle = (code: FeatureCode) => { edited.current = true; setPicked(prev => prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code]); };
 
   const pay = async () => {
     setError(''); setBusy(true);
-    try { await startCheckout(tenantId, months, picked); }
+    try {
+      // Keep the saved configuration identical to what is being paid.
+      await client().rpc('save_plan', { p_tenant_id: tenantId, p_months: months, p_features: picked });
+      await startCheckout(tenantId, months, picked);
+    }
     catch (cause) { setError(friendlyError(cause)); setBusy(false); }
   };
 
@@ -82,12 +115,12 @@ export function PlanCheckout({ tenantId, tenantStatus, canBuy, features, initial
         <h2 id="plan-duration">Durata</h2>
         <div className="plan-terms" role="radiogroup" aria-label="Durata del piano">
           {TERMS.map(term => <button key={term.months} type="button" role="radio" aria-checked={months === term.months}
-            className={'plan-term glass' + (months === term.months ? ' is-active' : '')} onClick={() => setMonths(term.months)}>
+            className={'plan-term glass' + (months === term.months ? ' is-active' : '')} onClick={() => changeMonths(term.months)}>
             <b className="display-num">{term.months}</b><span>{term.months === 1 ? 'mese' : 'mesi'}</span>
             <small>{term.discount ? `−${Math.round(term.discount * 100)}%` : 'Tariffa base'}</small>
           </button>)}
         </div>
-        <DurationStepper months={months} onChange={setMonths} disabled={!canBuy} className="plan-custom" />
+        <DurationStepper months={months} onChange={changeMonths} disabled={!canBuy} className="plan-custom" />
 
         <h2>Moduli</h2>
         <ul className="plan-modules">
@@ -108,7 +141,10 @@ export function PlanCheckout({ tenantId, tenantStatus, canBuy, features, initial
       </section>
 
       <aside className="plan-summary glass" aria-label="Riepilogo">
-        <h2>Riepilogo</h2>
+        <div className="plan-summary__head">
+          <h2>Riepilogo</h2>
+          {canBuy && saveState !== 'idle' && <span className={'plan-save is-' + saveState} role="status">{saveState === 'saving' ? 'Salvataggio…' : saveState === 'saved' ? 'Configurazione salvata' : 'Non salvata'}</span>}
+        </div>
         <dl>
           <div><dt>Piattaforma base</dt><dd>{formatEuro(BASE_MONTHLY)}/mese</dd></div>
           {EXTRA.filter(m => picked.includes(m.code)).map(m => <div key={m.code}><dt>{m.name}</dt><dd>+ {formatEuro(m.monthly)}/mese</dd></div>)}
@@ -116,7 +152,7 @@ export function PlanCheckout({ tenantId, tenantStatus, canBuy, features, initial
         </dl>
         <div className="plan-summary__total"><span>Totale</span><strong className="display-num">{formatEuro(quote.total)}</strong></div>
         {error && <Alert severity="error" role="alert">{error}</Alert>}
-        <Button variant="contained" size="large" fullWidth disabled={!canBuy || busy} onClick={() => void pay()}
+        <Button variant="contained" size="large" fullWidth disabled={!canBuy || busy || !ready} onClick={() => void pay()}
           startIcon={busy ? <CircularProgress size={18} color="inherit" /> : <LockRoundedIcon />}>
           {busy ? 'Apertura pagamento…' : `Paga ${formatEuro(quote.total)}`}
         </Button>
