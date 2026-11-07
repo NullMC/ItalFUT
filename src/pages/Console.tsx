@@ -42,6 +42,8 @@ import { removeMedia } from '../lib/media';
 import { summarize, useTenantStats } from '../lib/useTenantStats';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { PlanCheckout } from '../components/PlanCheckout';
+import { ContactFields } from '../components/ContactFields';
+import { contactErrors, EMPTY_CONTACT, hasErrors, isComplete, isContactRequired, loadMyContact, saveMyContact, type Contact } from '../lib/contact';
 import { EventClosed, EventDateField, EventModules, EventStatus, EventWindowNote } from '../components/EventPanel';
 import { paymentsEnabled } from '../lib/payments';
 
@@ -84,7 +86,17 @@ export function ConsoleHome() {
   const [eventDate, setEventDate] = useState(saved?.eventDate ?? '');
   const plan = { months: saved?.kind === 'season' ? saved.months : 1, modules: saved?.kind === kind ? saved.modules : [] as FeatureCode[] };
   const quote = estimate(plan.months, plan.modules);
-  const openCreate = () => { const d = readDraft(); setSaved(d); setKind(d?.kind ?? 'event'); setEventDate(d?.eventDate ?? ''); setCreating(true); };
+  // Contact details are required to create a tournament: asked in the dialog when missing.
+  const [contact, setContact] = useState<Contact>(EMPTY_CONTACT);
+  const [needsContact, setNeedsContact] = useState(false);
+  const [contactTouched, setContactTouched] = useState(false);
+  const loadContact = async () => {
+    if (!session) return;
+    try { const found = await loadMyContact(session.user.id); setContact(found ?? EMPTY_CONTACT); setNeedsContact(!isComplete(found)); }
+    catch { setNeedsContact(false); } // table missing: the database check will explain
+  };
+  const openCreate = () => { const d = readDraft(); setSaved(d); setKind(d?.kind ?? 'event'); setEventDate(d?.eventDate ?? ''); setContactTouched(false); void loadContact(); setCreating(true); };
+  const contactIssues = contactErrors(contact, true);
 
   useEffect(() => {
     let live = true;
@@ -111,8 +123,13 @@ export function ConsoleHome() {
     if (cleanName.length < 3) { setError('Il nome deve avere almeno 3 caratteri.'); return; }
     if (!SLUG_PATTERN.test(cleanSlug)) { setError('Indirizzo non valido: usa da 3 a 42 caratteri tra lettere minuscole, numeri e trattini.'); return; }
     if (kind === 'event' && !validEventDate(eventDate)) { setError('Scegli la data del torneo: da oggi a due anni da oggi.'); return; }
+    if (needsContact) {
+      setContactTouched(true);
+      if (hasErrors(contactIssues)) { setError('Completa nome e cognome, email e telefono.'); return; }
+    }
     setBusy(true);
     try {
+      if (needsContact) { setContact(await saveMyContact(contact)); setNeedsContact(false); }
       const { error: issue } = await client().rpc('create_tenant', {
         p_name: cleanName, p_slug: cleanSlug, p_months: plan.months, p_features: plan.modules,
         p_kind: kind, p_event_date: kind === 'event' ? eventDate : null,
@@ -126,6 +143,7 @@ export function ConsoleHome() {
       else if (paymentsEnabled) navigate(`/console/${cleanSlug}/modules`, { state: { plan } });
       else navigate('/console/' + cleanSlug);
     } catch (cause) {
+      if (isContactRequired(cause)) { setNeedsContact(true); setContactTouched(true); }
       const text = friendlyError(cause);
       setError(/duplicate|unique/i.test(text) ? 'Questo indirizzo è già in uso: scegline un altro.' : text);
     } finally { setBusy(false); }
@@ -161,7 +179,7 @@ export function ConsoleHome() {
         </div>}
     </div>
     <Dialog open={creating} onClose={() => !busy && setCreating(false)} fullWidth maxWidth="sm" aria-labelledby="create-title">
-      <form onSubmit={create}>
+      <form onSubmit={create} noValidate>
         <DialogTitle id="create-title">Dai un nome al tuo torneo</DialogTitle>
         <DialogContent><Stack spacing={2.5} sx={{ pt: 1 }}>
           <TextField label="Nome del torneo" value={name} required autoFocus
@@ -186,6 +204,11 @@ export function ConsoleHome() {
             : saved?.kind === 'season'
               ? <Alert severity="info">Configurazione scelta: {plan.months} {plan.months === 1 ? 'mese' : 'mesi'}, {plan.modules.length} moduli facoltativi. Preventivo indicativo {formatEuro(quote.total)}. {paymentsEnabled ? 'Dopo la creazione la trovi salvata in Moduli: puoi cambiarla prima di pagare su Stripe.' : 'Nessun addebito: i moduli extra restano da attivare.'} <RouterLink to="/configura?formato=stagione">Modifica</RouterLink></Alert>
               : <Alert severity="info">Piano da {formatEuro(BASE_MONTHLY)} al mese: durata e moduli li scegli dopo la creazione, in Moduli. <RouterLink to="/configura?formato=stagione">Configura ora</RouterLink></Alert>}
+          {needsContact && <fieldset className="create-contact">
+            <legend>I tuoi recapiti</legend>
+            <p className="muted">Obbligatori per creare un torneo: servono solo per contattarti in caso di assistenza. Li vedete solo tu e il gestore; li puoi cambiare in <RouterLink to="/account#recapiti">Account e dati</RouterLink>.</p>
+            <ContactFields value={contact} onChange={setContact} errors={contactTouched ? contactIssues : {}} required disabled={busy} idPrefix="create" />
+          </fieldset>}
           {error && <Alert severity="error">{error}</Alert>}
         </Stack></DialogContent>
         <DialogActions sx={{ p: 3, pt: 1 }}><Button onClick={() => setCreating(false)} disabled={busy}>Annulla</Button><Button variant="contained" type="submit" disabled={busy}>{busy ? 'Creazione…' : 'Crea torneo'}</Button></DialogActions>

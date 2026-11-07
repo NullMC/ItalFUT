@@ -11,6 +11,8 @@ import { checkPassword, normalizeUsername, PASSWORD_MAX, RECOVERY_CODE_PATTERN, 
 import { Backdrop } from '../components/fx/Backdrop';
 import { Football3D } from '../components/fx/Football3D';
 import { RecoveryCode } from '../components/RecoveryCode';
+import { ContactFields } from '../components/ContactFields';
+import { contactErrors, EMPTY_CONTACT, hasErrors, isEmpty, saveMyContact, type Contact } from '../lib/contact';
 
 type Mode = 'login' | 'register' | 'recover';
 
@@ -51,6 +53,8 @@ export function Access({ register = false }: { register?: boolean }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [contact, setContact] = useState<Contact>(EMPTY_CONTACT);
+  const [contactNote, setContactNote] = useState('');
   const failures = useRef(0);
   const [cooldown, setCooldown] = useState(0);
   const from = routeState?.from;
@@ -80,7 +84,8 @@ export function Access({ register = false }: { register?: boolean }) {
 
   const strength = checkPassword(password, username);
   const usernameValid = USERNAME_PATTERN.test(normalizeUsername(username));
-  const canRegister = usernameValid && available !== false && strength.ok && password === confirm && acceptTerms && confirmAdult;
+  const contactIssues = contactErrors(contact);
+  const canRegister = usernameValid && available !== false && strength.ok && password === confirm && acceptTerms && confirmAdult && !hasErrors(contactIssues);
   const canRecover = usernameValid && RECOVERY_CODE_PATTERN.test(code.trim().toUpperCase()) && strength.ok && password === confirm;
   const switchTo = (next: Mode) => { setMode(next); setError(''); setMessage(''); setPassword(''); setConfirm(''); };
 
@@ -96,6 +101,11 @@ export function Access({ register = false }: { register?: boolean }) {
         if (!canRegister) throw new Error('Controlla i campi evidenziati e i consensi obbligatori.');
         const generated = await signUp({ username, password });
         setPassword(''); setConfirm('');
+        // Optional contact details: a failure here never blocks the new account.
+        if (!isEmpty(contact)) {
+          try { await saveMyContact(contact); setContactNote(''); }
+          catch { setContactNote('Account creato, ma i recapiti non sono stati salvati: aggiungili dalla pagina Account e dati.'); }
+        }
         setRecoveryCode(generated);
       } else {
         if (!canRecover) throw new Error('Controlla username, codice e nuova password.');
@@ -118,7 +128,7 @@ export function Access({ register = false }: { register?: boolean }) {
 
   const titles: Record<Mode, [string, string]> = {
     login: ['Bentornato in campo.', 'Accedi con username e password per gestire i tuoi tornei.'],
-    register: ['Crea il tuo account.', 'Solo username e password: nessuna email, nessun dato superfluo.'],
+    register: ['Crea il tuo account.', 'Si accede con username e password. Nome, email e telefono sono facoltativi ora: serviranno per creare un torneo.'],
     recover: ['Recupera l’accesso.', 'Usa il codice di recupero ricevuto alla registrazione per scegliere una nuova password.'],
   };
 
@@ -135,6 +145,7 @@ export function Access({ register = false }: { register?: boolean }) {
         {recoveryCode ? <>
           <h1 className="auth__title">Account creato.</h1>
           <p className="auth__subtitle">Ecco il tuo codice di recupero personale.</p>
+          {contactNote && <Alert severity="warning" role="status">{contactNote}</Alert>}
           <RecoveryCode code={recoveryCode} username={normalizeUsername(username)} doneLabel="Vai alla console" onDone={() => navigate('/console', { replace: true })} />
         </> : <>
           {mode !== 'recover' && <div className="auth__switch" role="tablist" aria-label="Scegli accesso o registrazione">
@@ -173,13 +184,19 @@ export function Access({ register = false }: { register?: boolean }) {
                 error={confirm.length > 0 && confirm !== password} helperText={confirm.length > 0 && confirm !== password ? 'Le password non coincidono.' : undefined} />
             </>}
 
+            {mode === 'register' && <fieldset className="contact-optional">
+              <legend>Recapiti <span>facoltativi</span></legend>
+              <p className="consents__note">Servono solo per contattarti in caso di assistenza e sono obbligatori quando crei un torneo. Li vedi solo tu e il gestore della piattaforma; non inviamo email.</p>
+              <ContactFields value={contact} onChange={setContact} errors={contactIssues} idPrefix="signup" />
+            </fieldset>}
+
             {mode === 'register' && <fieldset className="consents">
               <legend className="sr-only">Consensi obbligatori</legend>
               <FormControlLabel control={<Checkbox checked={acceptTerms} onChange={(_, checked) => setAcceptTerms(checked)} required />}
                 label={<span>Accetto i <RouterLink to="/terms-of-service" target="_blank" rel="noopener">termini di servizio</RouterLink> e dichiaro di aver letto l’<RouterLink to="/privacy-policy" target="_blank" rel="noopener">informativa privacy</RouterLink>. <em className="req">Obbligatorio</em></span>} />
               <FormControlLabel control={<Checkbox checked={confirmAdult} onChange={(_, checked) => setConfirmAdult(checked)} required />}
                 label={<span>Dichiaro di avere almeno 18 anni. <em className="req">Obbligatorio</em></span>} />
-              <p className="consents__note">Gli account organizzatore sono riservati ai maggiorenni. Non chiediamo email, data di nascita né documenti. Nessun consenso di marketing.</p>
+              <p className="consents__note">Gli account organizzatore sono riservati ai maggiorenni. Non chiediamo data di nascita né documenti. Nessun consenso di marketing e nessuna email automatica.</p>
             </fieldset>}
 
             {mode === 'login' && <button type="button" className="link-button auth__forgot" onClick={() => switchTo('recover')}>Password dimenticata?</button>}

@@ -145,7 +145,7 @@ export function AdminTable({ table, schema }: { table: string; schema: AdminSche
         if (isNew && column.name === 'id' && column.default) continue;
         const raw = values[column.name] ?? '';
         if (isNew && raw.trim() === '') {
-          if (!column.nullable && !column.default) throw new Error(`Il campo “${columnLabel(column.name)}” è obbligatorio.`);
+          if (!column.nullable && !column.default) throw new Error(`Il campo “${columnLabel(column.name, table)}” è obbligatorio.`);
           continue; // let the database default apply
         }
         payload[column.name] = fromFormValue(column, raw);
@@ -192,13 +192,13 @@ export function AdminTable({ table, schema }: { table: string; schema: AdminSche
   const display = meta.display.filter(column => def.columns.some(c => c.name === column));
 
   const field = (column: AdminColumn) => {
-    const label = columnLabel(column.name) + (!column.nullable && !column.default ? ' *' : '');
+    const label = columnLabel(column.name, table) + (!column.nullable && !column.default ? ' *' : '');
     const value = values[column.name] ?? '';
     const set = (next: string) => setValues(old => ({ ...old, [column.name]: next }));
     const locked = editing !== 'new' && def.pk.includes(column.name);
     const ref = refs[column.name];
     const allowed = enumValues(def, column.name);
-    if (inputKind(column) === 'boolean') return <FormControlLabel key={column.name} control={<Switch checked={value === 'true'} onChange={(_, checked) => set(checked ? 'true' : 'false')} disabled={locked} />} label={columnLabel(column.name)} />;
+    if (inputKind(column) === 'boolean') return <FormControlLabel key={column.name} control={<Switch checked={value === 'true'} onChange={(_, checked) => set(checked ? 'true' : 'false')} disabled={locked} />} label={columnLabel(column.name, table)} />;
     if (ref || allowed) return <TextField key={column.name} select label={label} value={value} onChange={e => set(e.target.value)} disabled={locked}>
       {column.nullable && <MenuItem value="">—</MenuItem>}
       {(ref ? options[ref] ?? [] : allowed!.map(id => ({ id, label: valueLabel(id) }))).map(option => <MenuItem key={option.id} value={option.id}>{option.label}</MenuItem>)}
@@ -224,7 +224,7 @@ export function AdminTable({ table, schema }: { table: string; schema: AdminSche
     <DataTable<AdminRow> rows={rows} rowKey={row => keyString(def.pk, row)} caption={'Tabella ' + meta.label} pageSize={PAGE}
       searchLabel="Cerca in tutti i campi" noun={['record', 'record']}
       remote={{ total, page, onPage: setPage, query: search, onQuery: setSearch, loading }}
-      columns={display.map((column, index) => ({ key: column, title: columnLabel(column), primary: index === 0, render: (row: AdminRow) => cell(column, row[column]) }))}
+      columns={display.map((column, index) => ({ key: column, title: columnLabel(column, table), primary: index === 0, render: (row: AdminRow) => cell(column, row[column]) }))}
       actions={row => <span className="row-actions">
         <IconButton size="small" aria-label="Dettagli" onClick={() => setViewing(row)}><VisibilityRoundedIcon fontSize="small" /></IconButton>
         {table === 'profiles' && <IconButton size="small" aria-label={'Imposta password per ' + recordLabel(table, row)} onClick={() => { setPasswordFor(row); setNewPassword(''); setFormError(''); }}><KeyRoundedIcon fontSize="small" /></IconButton>}
@@ -247,7 +247,7 @@ export function AdminTable({ table, schema }: { table: string; schema: AdminSche
       <DialogTitle id="admin-view-title">Dettagli · {viewing ? recordLabel(table, viewing, names) : ''}</DialogTitle>
       <DialogContent>
         <dl className="admin-detail">{viewing && def.columns.map(column => <div key={column.name}>
-          <dt>{columnLabel(column.name)}</dt>
+          <dt>{columnLabel(column.name, table)}</dt>
           <dd>{typeof viewing[column.name] === 'object' && viewing[column.name] !== null ? <pre>{JSON.stringify(viewing[column.name], null, 2)}</pre> : cell(column.name, viewing[column.name])}</dd>
         </div>)}</dl>
       </DialogContent>

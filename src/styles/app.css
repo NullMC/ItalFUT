@@ -651,3 +651,12 @@
 @media (max-width: 560px) { .promo-form__row { grid-template-columns: 1fr; } }
 .promo-mode { color: var(--ink); box-shadow: inset 0 0 0 1px var(--line-strong); }
 .promo-mode.is-live { color: var(--ok); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ok) 40%, transparent); }
+
+/* Organizer contact details */
+.contact-fields__row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 560px) { .contact-fields__row { grid-template-columns: 1fr; } }
+.contact-optional, .create-contact { border: 0; margin: 0; padding: 0; display: grid; gap: 12px; }
+.contact-optional legend, .create-contact legend { font-weight: 600; font-size: .95rem; margin-bottom: 4px; }
+.contact-optional legend span { font-weight: 500; color: var(--ink-2); font-size: .82rem; margin-left: 6px; }
+.create-contact p { margin: 0; font-size: .86rem; }
+#recapiti { scroll-margin-top: calc(var(--nav-h) + 30px); }

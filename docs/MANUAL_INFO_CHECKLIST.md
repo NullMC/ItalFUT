@@ -20,6 +20,7 @@ Esegui, in quest’ordine, i file non ancora applicati:
 5. `supabase/migrations/202611080001_custom_duration.sql`
 6. `supabase/migrations/202611090001_event_tournaments.sql` (tornei di un giorno gratuiti: **obbligatoria** con il codice attuale, la console legge le colonne `kind`, `event_date`, `published_at`)
 7. `supabase/migrations/202611100001_promotion_codes.sql` (codici sconto Stripe: sconto registrato su ogni pagamento)
+8. `supabase/migrations/202611110001_organizer_contacts.sql` (recapiti degli organizzatori: nome, email, telefono; obbligatori per creare un torneo o pagare)
 
 Sono rieseguibili senza errori.
 

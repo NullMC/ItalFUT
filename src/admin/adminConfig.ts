@@ -12,6 +12,7 @@ export const TABLES: Record<string, TableMeta> = {
   profiles: { label: 'Utenti', group: 'platform', display: ['username', 'created_at'], noCreate: true, noEdit: true, hint: 'Gli account si creano dalla registrazione. Da qui puoi reimpostare la password o eliminare un account.' },
   platform_admins: { label: 'Superadmin', group: 'platform', display: ['user_id', 'note', 'created_at'], hint: 'Account con accesso completo a questa dashboard.' },
   support_requests: { label: 'Richieste di supporto', group: 'platform', display: ['kind', 'message', 'status', 'user_id', 'contact', 'created_at'], hint: 'Rispondi compilando “Risposta” e impostando lo stato su “Risposta inviata”: l’utente la legge nella sua pagina Account.' },
+  organizer_contacts: { label: 'Recapiti organizzatori', group: 'platform', display: ['user_id', 'full_name', 'email', 'phone', 'updated_at'], hint: 'Nome, email e telefono degli organizzatori: facoltativi alla registrazione, obbligatori per creare un torneo o pagare. Riservati: usali solo per assistenza e questioni sul servizio. Nessuna email viene inviata dalla piattaforma.' },
   admin_audit_log: { label: 'Registro attività', group: 'platform', display: ['created_at', 'admin_id', 'action', 'table_name'], readOnly: true, hint: 'Ogni operazione fatta da questa dashboard, con i dati prima e dopo.' },
   tenants: { label: 'Tornei', group: 'business', display: ['name', 'slug', 'kind', 'event_date', 'status', 'owner_id', 'created_at'], hint: 'Imposta lo stato su “Online” per pubblicare un torneo. Un torneo di un giorno (kind = event) si chiude da solo 48 ore dopo published_at: per riaprirla, imposta published_at all’ora attuale (altre 48 ore).' },
   tenant_members: { label: 'Membri dei tornei', group: 'business', display: ['tenant_id', 'user_id', 'role', 'created_at'] },
@@ -59,7 +60,11 @@ const COLUMN_LABELS: Record<string, string> = {
   contact: 'Recapito', reply: 'Risposta', answered_at: 'Risposto il', admin_id: 'Admin', action: 'Azione', table_name: 'Scheda', row_key: 'Chiave',
   before: 'Prima', after: 'Dopo',
 };
-export const columnLabel = (name: string) => COLUMN_LABELS[name] ?? name.replace(/_/g, ' ');
+/** Labels that differ by table (same column name, different meaning). */
+const TABLE_COLUMN_LABELS: Record<string, Record<string, string>> = {
+  organizer_contacts: { user_id: 'Utente', full_name: 'Nome e cognome', email: 'Email di contatto', phone: 'Telefono' },
+};
+export const columnLabel = (name: string, table?: string) => (table && TABLE_COLUMN_LABELS[table]?.[name]) ?? COLUMN_LABELS[name] ?? name.replace(/_/g, ' ');
 
 const EXTRA_LABELS: Record<string, string> = {
   event: 'Un giorno', season: 'Stagione',

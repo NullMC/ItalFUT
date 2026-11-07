@@ -161,7 +161,7 @@ export function EventModules({ tenant, features, canBuy, onChanged }: { tenant: 
           {EXTRA.filter(m => toBuy.includes(m.code)).map(m => <div key={m.code}><dt>{m.name}</dt><dd>+ {formatEuro(m.monthly)}</dd></div>)}
         </dl>
         <div className="plan-summary__total"><span>Totale</span><strong className="display-num">{formatEuro(total)}</strong></div>
-        {error && <Alert severity="error" role="alert">{error}</Alert>}
+        {error && <Alert severity="error" role="alert">{error}{/nome e cognome/i.test(error) && <> <RouterLink to="/account#recapiti">Completa i recapiti</RouterLink></>}</Alert>}
         {notice && <Alert severity="success" role="status">{notice}</Alert>}
         <Button variant="contained" size="large" fullWidth disabled={!canBuy || busy || toBuy.length === 0} onClick={() => void buy()}
           startIcon={busy ? <CircularProgress size={18} color="inherit" /> : <LockRoundedIcon />}>

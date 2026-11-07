@@ -48,7 +48,8 @@ function sections(page: LegalPageId, openPreferences: () => void): Section[] {
         <p>Per i dati di giocatori, staff e partecipanti inseriti in un torneo, l’organizzatore che li carica agisce come titolare autonomo e deve informare gli interessati. ItalFUT tratta tali dati per suo conto come fornitore della piattaforma.</p>
       </> },
       { id: 'dati', title: '2. Dati che trattiamo', body: <ul>
-        <li><b>Account organizzatore:</b> username e password (conservata solo in forma cifrata con hash), codice di recupero (anch’esso cifrato), data di creazione e ultimi accessi. Non chiediamo né conserviamo indirizzi email.</li>
+        <li><b>Account organizzatore:</b> username e password (conservata solo in forma cifrata con hash), codice di recupero (anch’esso cifrato), data di creazione e ultimi accessi. L’accesso avviene con username e password, senza email.</li>
+        <li><b>Recapiti dell’organizzatore:</b> nome e cognome, indirizzo email e numero di telefono. Sono facoltativi alla registrazione e obbligatori per creare un torneo o acquistare un piano. Li usiamo solo per contattarti per assistenza e per questioni relative al servizio: non inviamo email automatiche, newsletter o comunicazioni promozionali. Sono visibili solo a te e al gestore della piattaforma, mai pubblicati né mostrati allo staff dei tuoi tornei; puoi modificarli in qualsiasi momento dalla pagina <RouterLink to="/account">Account e dati</RouterLink>.</li>
         <li><b>Richieste dal modulo Contatti:</b> argomento, messaggio e, solo se lo inserisci tu, un recapito per la risposta.</li>
         <li><b>Contenuti del torneo:</b> nomi di competizioni e squadre, nomi e cognomi dei giocatori, numero di maglia, ruolo, risultati, eventi di gara, immagini caricate dall’organizzatore (convertite in WebP e conservate su Supabase Storage, nella stessa regione del database) o link a immagini esterne.</li>
         <li><b>Minorenni:</b> fascia d’età (maggiorenne/minorenne) e la conferma dell’organizzatore di aver raccolto l’autorizzazione del genitore o tutore. Non raccogliamo date di nascita, documenti o dati dei genitori.</li>
@@ -60,6 +61,7 @@ function sections(page: LegalPageId, openPreferences: () => void): Section[] {
         <tbody>
           <tr><td>Creare e gestire l’account, erogare la piattaforma</td><td>Esecuzione del contratto (art. 6.1.b GDPR)</td></tr>
           <tr><td>Pubblicare i contenuti del torneo scelti dall’organizzatore</td><td>Esecuzione del contratto con l’organizzatore; per i dati dei partecipanti, la base giuridica individuata dall’organizzatore</td></tr>
+          <tr><td>Contattare l’organizzatore per assistenza e questioni relative al servizio (recapiti)</td><td>Esecuzione del contratto (art. 6.1.b GDPR)</td></tr>
           <tr><td>Rispondere alle richieste inviate dal modulo Contatti</td><td>Esecuzione del contratto o misure precontrattuali (art. 6.1.b GDPR); legittimo interesse per le richieste senza account</td></tr>
           <tr><td>Sicurezza, prevenzione abusi, log tecnici</td><td>Legittimo interesse (art. 6.1.f GDPR)</td></tr>
           <tr><td>Gestione dei pagamenti</td><td>Esecuzione del contratto e obblighi di legge (art. 6.1.b e 6.1.c GDPR)</td></tr>
@@ -71,7 +73,7 @@ function sections(page: LegalPageId, openPreferences: () => void): Section[] {
         <p>Alcuni fornitori hanno sede negli Stati Uniti: eventuali trasferimenti avvengono sulla base delle Clausole Contrattuali Standard della Commissione europea o del Data Privacy Framework, ove applicabile. Non vendiamo dati e non usiamo strumenti pubblicitari o di profilazione.</p>
       </> },
       { id: 'conservazione', title: '5. Per quanto tempo', body: <ul>
-        <li>Account: {c.accountRetention}.</li>
+        <li>Account e recapiti: {c.accountRetention}.</li>
         <li>Dati dei tornei: {c.tenantRetention}.</li>
         <li>Richieste dal modulo Contatti: {c.requestRetention}.</li>
         <li>Log tecnici: {c.logRetention}.</li>

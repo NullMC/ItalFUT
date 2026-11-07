@@ -10,6 +10,8 @@ import { checkPassword, isInternalEmail } from '../lib/validation';
 import { PasswordField, StrengthMeter } from './Access';
 import { RecoveryCode } from '../components/RecoveryCode';
 import { removeTenantMedia } from '../lib/media';
+import { ContactFields } from '../components/ContactFields';
+import { contactErrors, EMPTY_CONTACT, hasErrors, isComplete, loadMyContact, saveMyContact, type Contact } from '../lib/contact';
 
 type OwnedTenant = { id: string; name: string; slug: string; status: string };
 type SupportRequest = { id: string; kind: string; message: string; status: string; reply: string | null; created_at: string };
@@ -39,6 +41,36 @@ export function AccountSettings() {
   const [password, setPassword] = useState('');
   const [accountDialog, setAccountDialog] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [contact, setContact] = useState<Contact>(EMPTY_CONTACT);
+  const [savedContact, setSavedContact] = useState<Contact | null>(null);
+  const [contactBusy, setContactBusy] = useState(false);
+  const [contactMsg, setContactMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [contactTouched, setContactTouched] = useState(false);
+  useEffect(() => {
+    if (!session) return;
+    let alive = true;
+    void loadMyContact(session.user.id).then(found => { if (!alive) return; setSavedContact(found); setContact(found ?? EMPTY_CONTACT); })
+      .catch(() => { if (alive) setContactMsg({ ok: false, text: 'Recapiti non disponibili: hai eseguito la migrazione 202611110001_organizer_contacts.sql?' }); });
+    return () => { alive = false; };
+  }, [session?.user.id]);
+  // Links to /account#recapiti (tournament creation, checkout) land on the contact form.
+  useEffect(() => {
+    if (window.location.hash !== '#recapiti') return;
+    const timer = window.setTimeout(() => document.getElementById('recapiti')?.scrollIntoView({ block: 'start' }), 150);
+    return () => window.clearTimeout(timer);
+  }, []);
+  const contactIssues = contactErrors(contact);
+  const saveContact = async (event: FormEvent) => {
+    event.preventDefault(); setContactTouched(true); setContactMsg(null);
+    if (hasErrors(contactIssues)) return;
+    setContactBusy(true);
+    try {
+      const saved = await saveMyContact(contact);
+      setSavedContact(saved); setContact(saved);
+      setContactMsg({ ok: true, text: isComplete(saved) ? 'Recapiti salvati.' : 'Recapiti salvati. Per creare un torneo servono nome, email e telefono.' });
+    } catch (cause) { setContactMsg({ ok: false, text: errorText(cause) }); }
+    finally { setContactBusy(false); }
+  };
 
   const fetchOwned = async () => {
     if (!session) return;
@@ -68,9 +100,10 @@ export function AccountSettings() {
     try {
       const sb = client();
       const tables = ['competitions', 'teams', 'competition_teams', 'players', 'matches', 'match_events', 'staff_members', 'awards', 'sponsors', 'articles', 'market_slots', 'galleries'];
-      const [me, memberships] = await Promise.all([
+      const [me, memberships, contacts] = await Promise.all([
         sb.from('profiles').select('id,username,created_at').eq('id', session.user.id).maybeSingle(),
         sb.from('tenant_members').select('tenant_id,role,created_at').eq('user_id', session.user.id),
+        sb.from('organizer_contacts').select('full_name,email,phone,updated_at').eq('user_id', session.user.id).maybeSingle(),
       ]);
       if (me.error) throw me.error;
       if (memberships.error) throw memberships.error;
@@ -81,7 +114,7 @@ export function AccountSettings() {
         if (failed?.error) throw failed.error;
         tournaments.push({ ...tenant, data: Object.fromEntries(tables.map((table, index) => [table, rows[index].data ?? []])) });
       }
-      const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), account: me.data, memberships: memberships.data, requests, tournaments }, null, 2)], { type: 'application/json' });
+      const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), account: me.data, contact: contacts.error ? null : contacts.data, memberships: memberships.data, requests, tournaments }, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url; link.download = 'italfut-dati-' + new Date().toISOString().slice(0, 10) + '.json';
@@ -175,8 +208,19 @@ export function AccountSettings() {
           {!isInternalEmail(session?.user.email) && session?.user.email && <div><dt>Email (account precedente)</dt><dd>{session.user.email}</dd></div>}
           <div><dt>Iscritto dal</dt><dd>{session?.user.created_at ? new Date(session.user.created_at).toLocaleDateString('it-IT') : '—'}</dd></div>
         </dl>
-        <p className="muted">Conserviamo solo username e password (cifrata), più i contenuti dei tuoi tornei. Nessuna email, nessun dato di contatto.</p>
+        <p className="muted">Conserviamo username e password (cifrata), i recapiti qui sotto e i contenuti dei tuoi tornei.</p>
         <Button variant="outlined" startIcon={exporting ? <CircularProgress size={16} color="inherit" /> : <DownloadRoundedIcon />} disabled={exporting || loading} onClick={() => void exportData()}>Scarica una copia dei dati (JSON)</Button>
+      </section>
+
+      <section className="panel glass" aria-labelledby="contact-title" id="recapiti">
+        <h2 id="contact-title">Recapiti</h2>
+        <p className="muted">Nome e cognome, email e telefono servono solo per contattarti in caso di assistenza e sono <b>obbligatori per creare un torneo</b> o pagare un piano. Li vedete solo tu e il gestore della piattaforma: non sono mai pubblici né visibili allo staff dei tuoi tornei. Non inviamo email automatiche.</p>
+        {savedContact !== null && !isComplete(savedContact) && <Alert severity="info" sx={{ mb: 2 }}>Completa i recapiti per poter creare un torneo.</Alert>}
+        <form onSubmit={saveContact} className="stack-form" noValidate>
+          <ContactFields value={contact} onChange={next => { setContact(next); setContactMsg(null); }} errors={contactTouched ? contactIssues : {}} disabled={contactBusy} idPrefix="account" />
+          {contactMsg && <Alert severity={contactMsg.ok ? 'success' : 'error'} role={contactMsg.ok ? 'status' : 'alert'}>{contactMsg.text}</Alert>}
+          <Button type="submit" variant="contained" disabled={contactBusy} sx={{ justifySelf: 'start' }}>{contactBusy ? 'Salvataggio…' : 'Salva recapiti'}</Button>
+        </form>
       </section>
 
       <section className="panel glass" aria-labelledby="security-title">

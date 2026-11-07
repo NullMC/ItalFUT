@@ -5,7 +5,7 @@
  * Prices here are an estimate: the amount charged is computed in the database.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link as RouterLink, useSearchParams } from 'react-router-dom';
 import { Alert, Button, CircularProgress } from '@mui/material';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
@@ -151,7 +151,7 @@ export function PlanCheckout({ tenantId, tenantStatus, canBuy, features, initial
           <div className="plan-summary__sep"><dt>Durata</dt><dd>{months} {months === 1 ? 'mese' : 'mesi'}{quote.discount ? ` · −${Math.round(quote.discount * 100)}%` : ''}</dd></div>
         </dl>
         <div className="plan-summary__total"><span>Totale</span><strong className="display-num">{formatEuro(quote.total)}</strong></div>
-        {error && <Alert severity="error" role="alert">{error}</Alert>}
+        {error && <Alert severity="error" role="alert">{error}{/nome e cognome/i.test(error) && <> <RouterLink to="/account#recapiti">Completa i recapiti</RouterLink></>}</Alert>}
         <Button variant="contained" size="large" fullWidth disabled={!canBuy || busy || !ready} onClick={() => void pay()}
           startIcon={busy ? <CircularProgress size={18} color="inherit" /> : <LockRoundedIcon />}>
           {busy ? 'Apertura pagamento…' : `Paga ${formatEuro(quote.total)}`}
