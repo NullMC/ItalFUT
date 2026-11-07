@@ -226,11 +226,12 @@ export function Landing() {
       <div className="container hero__grid">
         <motion.div className="hero__copy" style={reduce ? undefined : { y: copyY, opacity: copyOpacity }}>
           <h1 id="hero-title" className="hero__title">
-            <WordReveal>Il tuo torneo di un giorno,</WordReveal>{' '}
-            <WordReveal delay={.3} className="serif-accent" wordClassName="serif-accent serif-accent--glow">gratis.</WordReveal>
+            <WordReveal>Ogni torneo merita</WordReveal>{' '}
+            <WordReveal delay={.2} className="serif-accent" wordClassName="serif-accent serif-accent--glow">un grande</WordReveal>{' '}
+            <WordReveal delay={.3}>palcoscenico.</WordReveal>
           </h1>
           <motion.p className="lead hero__lead" initial={reduce ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .55, duration: .8, ease: [.16, 1, .3, 1] }}>
-            Dal 12 ore al quadrangolare: squadre, calendario, risultati e classifiche in tempo reale, con un sito pubblico da condividere. Lo prepari quando vuoi e lo pubblichi il giorno della gara.
+            Competizioni, squadre, partite e classifiche in un unico spazio. Organizza il tuo torneo dalla console e fallo seguire a tutti dal suo sito pubblico.
           </motion.p>
           <motion.div className="hero__actions" initial={reduce ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .7, duration: .8, ease: [.16, 1, .3, 1] }}>
             {signedIn
