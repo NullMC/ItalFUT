@@ -24,8 +24,9 @@ export async function startCheckout(tenantId: string, months: number, features: 
   window.location.assign(String(data.url));
 }
 
-/** Readable message for an Edge Function error (body.error, not deployed, network/CORS). */
+/** Readable message for an Edge Function error. Setup details only in development builds. */
 export async function functionErrorMessage(error: unknown, name: string, fallback: string) {
+  const dev = import.meta.env.DEV;
   let message = fallback;
   if (error instanceof FunctionsHttpError) {
     const response = error.context as Response;
@@ -33,10 +34,10 @@ export async function functionErrorMessage(error: unknown, name: string, fallbac
     try { body = await response.json(); } catch { /* not JSON */ }
     if (body?.error) message = String(body.error);
     // Supabase answers 404 NOT_FOUND when the Edge Function has not been deployed.
-    else if (response.status === 404 || body?.code === 'NOT_FOUND') message = `Funzione ${name} non pubblicata su Supabase: esegui il deploy (vedi STRIPE_INTEGRATION_TODO.md).`;
-    else if (response.status === 401) message = 'Sessione scaduta o funzione pubblicata senza --no-verify-jwt: accedi di nuovo o ripubblica la funzione.';
+    else if (response.status === 404 || body?.code === 'NOT_FOUND') message = dev ? `Funzione ${name} non pubblicata su Supabase: esegui il deploy (vedi STRIPE_INTEGRATION_TODO.md).` : 'Servizio momentaneamente non disponibile. Riprova più tardi.';
+    else if (response.status === 401) message = dev ? 'Sessione scaduta o funzione pubblicata senza --no-verify-jwt.' : 'Sessione scaduta: accedi di nuovo e riprova.';
   } else if (error instanceof FunctionsFetchError || error instanceof FunctionsRelayError) {
-    message = 'Servizio non raggiungibile: controlla la connessione e il valore DOMAIN su Supabase (deve essere l’indirizzo da cui apri il sito).';
+    message = dev ? 'Servizio non raggiungibile: controlla la connessione e il valore DOMAIN su Supabase.' : 'Servizio non raggiungibile: controlla la connessione e riprova.';
   }
   return message;
 }

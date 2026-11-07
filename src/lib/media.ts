@@ -63,7 +63,7 @@ export async function uploadTenantImage(tenantId: string, field: string, file: F
   const { error } = await storage.upload(path, webp, { contentType: 'image/webp', cacheControl: '31536000', upsert: false });
   if (error) {
     const text = error.message.toLowerCase();
-    if (text.includes('bucket not found')) throw new Error('Caricamento non ancora configurato: esegui la migrazione 202611060001_tenant_media.sql.');
+    if (text.includes('bucket not found')) throw new Error(import.meta.env.DEV ? 'Caricamento non ancora configurato: esegui la migrazione 202611060001_tenant_media.sql.' : 'Caricamento delle immagini non disponibile al momento. Riprova più tardi.');
     if (text.includes('row-level security') || text.includes('unauthorized')) throw new Error('Non hai i permessi per caricare immagini in questo torneo.');
     if (text.includes('exceeded') || text.includes('too large')) throw new Error('Immagine troppo pesante (max 2 MB).');
     throw new Error('Caricamento non riuscito. Riprova.');

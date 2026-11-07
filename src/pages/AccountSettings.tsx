@@ -50,7 +50,7 @@ export function AccountSettings() {
     if (!session) return;
     let alive = true;
     void loadMyContact(session.user.id).then(found => { if (!alive) return; setSavedContact(found); setContact(found ?? EMPTY_CONTACT); })
-      .catch(() => { if (alive) setContactMsg({ ok: false, text: 'Recapiti non disponibili: hai eseguito la migrazione 202611110001_organizer_contacts.sql?' }); });
+      .catch(() => { if (alive) setContactMsg({ ok: false, text: import.meta.env.DEV ? 'Recapiti non disponibili: hai eseguito la migrazione 202611110001_organizer_contacts.sql?' : 'Recapiti non disponibili al momento. Riprova più tardi.' }); });
     return () => { alive = false; };
   }, [session?.user.id]);
   // Links to /account#recapiti (tournament creation, checkout) land on the contact form.

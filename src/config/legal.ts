@@ -14,7 +14,7 @@ export const legalConfig = {
   hostingProvider: 'Cloudflare, Inc. (Cloudflare Pages)', // dominio, DNS, CDN e hosting
   databaseProvider: 'Supabase Inc.',
   serverRegion: 'UE — Francia (eu-west-3)', // verificare in Supabase → Project Settings → General
-  officialDomain: '',          // es. "https://italfut.it"
+  officialDomain: 'https://italfut.it',
   // Conservazione dei dati (privacy policy)
   accountRetention: 'Finché l’account resta attivo; lo cancelli tu in qualsiasi momento',
   tenantRetention: 'Finché il torneo esiste; lo cancelli tu in qualsiasi momento o insieme all’account',

@@ -3,19 +3,61 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>ItalFUT — Il tuo torneo di calcio, tutto in campo</title>
+    <meta name="description" content="ItalFUT è la piattaforma per organizzare tornei di calcio: competizioni, squadre, calendario, risultati e classifiche automatiche, con un sito pubblico per ogni torneo. Il torneo di un giorno è gratis." />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://italfut.it/" />
     <meta name="theme-color" content="#050a08" />
     <meta name="color-scheme" content="dark light" />
-    <meta name="description" content="ItalFUT: la piattaforma per organizzare tornei di calcio. Competizioni, squadre, calendari, risultati e classifiche in un unico spazio, con un sito pubblico per ogni torneo." />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
-    <meta property="og:title" content="ItalFUT — Il tuo torneo, tutto in campo" />
-    <meta property="og:description" content="Organizza il tuo torneo di calcio e fallo seguire a tutti." />
+    <meta name="application-name" content="ItalFUT" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <meta property="og:site_name" content="ItalFUT" />
+    <meta property="og:locale" content="it_IT" />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://italfut.it/" />
+    <meta property="og:title" content="ItalFUT — Il tuo torneo di calcio, tutto in campo" />
+    <meta property="og:description" content="Organizza il tuo torneo di calcio e fallo seguire a tutti: calendario, risultati e classifiche con un sito pubblico. Il torneo di un giorno è gratis." />
+    <meta property="og:image" content="https://italfut.it/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="ItalFUT — Il tuo torneo di calcio, tutto in campo" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ItalFUT — Il tuo torneo di calcio, tutto in campo" />
+    <meta name="twitter:description" content="Calendario, risultati e classifiche con un sito pubblico per ogni torneo. Il torneo di un giorno è gratis." />
+    <meta name="twitter:image" content="https://italfut.it/og-image.png" />
+
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <title>ItalFUT — Il tuo torneo, tutto in campo</title>
+    <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="preconnect" href="https://abehoquivbewvumbgqrp.supabase.co" crossorigin />
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        { "@type": "Organization", "@id": "https://italfut.it/#organization", "name": "ItalFUT", "url": "https://italfut.it/", "logo": "https://italfut.it/icon-512.png" },
+        { "@type": "WebSite", "@id": "https://italfut.it/#website", "name": "ItalFUT", "url": "https://italfut.it/", "inLanguage": "it-IT", "publisher": { "@id": "https://italfut.it/#organization" } },
+        { "@type": "SoftwareApplication", "name": "ItalFUT", "url": "https://italfut.it/", "applicationCategory": "SportsApplication", "operatingSystem": "Web", "inLanguage": "it-IT",
+          "description": "Piattaforma per organizzare tornei di calcio: competizioni, squadre, calendario, risultati e classifiche automatiche, con un sito pubblico per ogni torneo.",
+          "offers": [
+            { "@type": "Offer", "name": "Torneo di un giorno", "price": "0", "priceCurrency": "EUR", "description": "Funzioni base gratuite per i tornei che si svolgono in una giornata." },
+            { "@type": "Offer", "name": "Campionati e tornei lunghi", "price": "19", "priceCurrency": "EUR", "description": "Piattaforma base al mese, pagamento unico per il periodo scelto, senza rinnovo automatico." }
+          ],
+          "publisher": { "@id": "https://italfut.it/#organization" } }
+      ]
+    }
+    </script>
     <script src="/theme-init.js"></script>
   </head>
   <body>
-    <noscript>ItalFUT richiede JavaScript per funzionare.</noscript>
+    <noscript>
+      <h1>ItalFUT — Il tuo torneo di calcio, tutto in campo</h1>
+      <p>ItalFUT è la piattaforma per organizzare tornei di calcio: competizioni, squadre, calendario, risultati e classifiche automatiche, con un sito pubblico per ogni torneo. Il torneo di un giorno è gratis; i campionati partono da 19 € al mese, senza rinnovo automatico.</p>
+      <p>Per usare ItalFUT attiva JavaScript nel browser. <a href="/privacy-policy">Privacy</a> · <a href="/terms-of-service">Termini</a> · <a href="/contatti">Contatti</a></p>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

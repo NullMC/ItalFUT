@@ -16,3 +16,26 @@
 
 /index.html
   Cache-Control: no-cache
+
+# Private areas: never indexed (also disallowed in robots.txt).
+/console
+  X-Robots-Tag: noindex, nofollow
+/console/*
+  X-Robots-Tag: noindex, nofollow
+/admin
+  X-Robots-Tag: noindex, nofollow
+/admin/*
+  X-Robots-Tag: noindex, nofollow
+/account
+  X-Robots-Tag: noindex, nofollow
+/accesso
+  X-Robots-Tag: noindex, nofollow
+/pagamento/*
+  X-Robots-Tag: noindex, nofollow
+/errore/*
+  X-Robots-Tag: noindex, nofollow
+
+# Social preview image: readable by link previews on other sites.
+/og-image.png
+  Cross-Origin-Resource-Policy: cross-origin
+  Cache-Control: public, max-age=86400

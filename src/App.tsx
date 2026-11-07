@@ -7,6 +7,7 @@ import { SiteLayout } from './components/SiteLayout';
 import { CookieSettingsProvider } from './components/CookieNotice';
 import { ErrorBoundary, lazyPage } from './components/ErrorBoundary';
 import { ErrorRoute, NotFound } from './pages/ErrorPage';
+import { applySeo, ROUTES } from './lib/seo';
 
 // Route-level code splitting keeps the landing bundle small.
 const Configurator = lazyPage(() => import('./pages/Configurator').then(m => ({ default: m.Configurator })));
@@ -30,31 +31,15 @@ function Private({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-const titles: [RegExp, string][] = [
-  [/^\/$/, 'ItalFUT — Il tuo torneo, tutto in campo'],
-  [/^\/configura/, 'Configura il torneo · ItalFUT'],
-  [/^\/accesso/, 'Accedi · ItalFUT'],
-  [/^\/registrati/, 'Crea un account · ItalFUT'],
-  [/^\/contatti/, 'Contatti · ItalFUT'],
-  [/^\/errore/, 'Errore · ItalFUT'],
-  [/^\/admin/, 'Superadmin · ItalFUT'],
-  [/^\/console/, 'Console · ItalFUT'],
-  [/^\/pagamento/, 'Esito del pagamento · ItalFUT'],
-  [/^\/account/, 'Account e dati · ItalFUT'],
-  [/^\/privacy-policy/, 'Privacy policy · ItalFUT'],
-  [/^\/terms-of-service/, 'Termini di servizio · ItalFUT'],
-  [/^\/refund-policy/, 'Rimborsi e recesso · ItalFUT'],
-  [/^\/cookie-policy/, 'Cookie policy · ItalFUT'],
-  [/^\/business/, 'Chi gestisce ItalFUT · ItalFUT'],
-];
-
-/** Restores scroll on navigation and keeps document titles meaningful for assistive tech. */
+/** Restores scroll on navigation; title, description, canonical and robots per route. */
 function RouteEffects() {
   const { pathname, hash } = useLocation();
   useEffect(() => {
     if (!hash) window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
-    const match = titles.find(([pattern]) => pattern.test(pathname));
-    if (match) document.title = match[1];
+    // Tournament sites (/t/…) set their own tags once the tournament is loaded.
+    if (pathname.startsWith('/t/')) return;
+    const match = ROUTES.find(([pattern]) => pattern.test(pathname));
+    applySeo(match ? { ...match[1], path: pathname } : { title: 'Pagina non trovata · ItalFUT', noindex: true });
   }, [pathname, hash]);
   return null;
 }

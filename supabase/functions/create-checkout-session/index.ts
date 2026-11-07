@@ -29,8 +29,10 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   if (req.method !== 'POST') return json({ error: 'Metodo non consentito.' }, 405);
   const stripeKey = Deno.env.get('STRIPE_SECRET_KEY') ?? '';
-  if (!stripeKey.startsWith('sk_') && !stripeKey.startsWith('rk_')) return json({ error: 'Pagamenti non configurati: manca il secret STRIPE_SECRET_KEY su Supabase.' }, 500);
-  if (!domain) return json({ error: 'Pagamenti non configurati: manca il secret DOMAIN su Supabase.' }, 500);
+  if ((!stripeKey.startsWith('sk_') && !stripeKey.startsWith('rk_')) || !domain) {
+    console.error('Payments not configured: STRIPE_SECRET_KEY or DOMAIN secret missing');
+    return json({ error: 'Pagamenti non disponibili al momento. Riprova più tardi.' }, 500);
+  }
 
   const authorization = req.headers.get('Authorization') ?? '';
   if (!authorization.startsWith('Bearer ')) return json({ error: 'Accedi per continuare.' }, 401);
@@ -54,7 +56,7 @@ Deno.serve(async (req) => {
   if (quoteError || !quote) return json({ error: quoteError?.message ?? 'Impossibile preparare il pagamento.' }, 400);
 
   try {
-    // TODO: set mode to "subscription" if selling recurring products.
+    // One-time payment per period (no automatic renewal).
     const mode = 'payment' as 'payment' | 'subscription';
 
     // fixed_by_ui parameters (Checkout Studio) + this app's values. payment_method_collection

@@ -143,3 +143,16 @@ Procedura esterna per raccogliere e conservare i consensi firmati dei genitori. 
 5. **SSL/TLS:** *Full (strict)* e *Always Use HTTPS*.
 6. **Supabase:** aggiorna Site URL con il dominio definitivo.
 7. Se attivi la protezione anti-bot può comparire il cookie tecnico `__cf_bm`: è già nella cookie policy.
+
+---
+
+## Pubblicazione live (italfut.it)
+
+1. **Cloudflare Pages → Settings → Variables (Production):** `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_PAYMENTS_ENABLED=true` (e `VITE_AUTH_EMAIL_DOMAIN` se lo usi). Build command `npm run build`, output `dist`.
+2. **Dominio:** collega `italfut.it` al progetto Pages e reindirizza `www.italfut.it` → `https://italfut.it` (Redirect Rules), così canonical, sitemap e CORS coincidono.
+3. **Supabase → Authentication → URL Configuration:** Site URL `https://italfut.it`. Password: minimo 10 caratteri. “Confirm email” disattivato (già così).
+4. **Supabase → Edge Functions → Secrets:** `DOMAIN=https://italfut.it`, `STRIPE_SECRET_KEY` live (`sk_live_…`), `STRIPE_WEBHOOK_SECRET` del webhook live.
+5. **Stripe live:** attivazione account, Stripe Tax live, webhook live verso `https://abehoquivbewvumbgqrp.supabase.co/functions/v1/stripe-webhook` con i 5 eventi, codici sconto ricreati in live.
+6. **Pulizia dati di prova:** elimina dal superadmin tornei, account e pagamenti di test (es. il torneo pubblico `test`).
+7. **SEO:** Google Search Console → aggiungi la proprietà `italfut.it` → invia `https://italfut.it/sitemap.xml`. Anteprima social: https://www.opengraph.xyz/url/https%3A%2F%2Fitalfut.it
+8. **Repository:** se è pubblico, valuta di renderlo privato (cronologia con dati personali e cartella `marketing/` con file audio/video).

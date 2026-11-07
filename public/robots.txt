@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /console
+Disallow: /admin
+Disallow: /account
+Disallow: /accesso
+Disallow: /pagamento
+Disallow: /errore
+
+Sitemap: https://italfut.it/sitemap.xml

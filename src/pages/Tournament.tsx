@@ -18,6 +18,7 @@ import { MadeBy } from '../components/SiteLayout';
 import { ErrorView } from './ErrorPage';
 import { ScrollRail } from '../components/ScrollRail';
 import { useCookiePreferences } from '../components/CookieNotice';
+import { applySeo, SITE_URL } from '../lib/seo';
 
 type Data = Record<string, Row[]>;
 const tables = ['competitions', 'teams', 'competition_teams', 'players', 'matches', 'match_events', 'staff_members', 'awards', 'sponsors', 'articles', 'market_slots', 'galleries'];
@@ -120,7 +121,7 @@ export function Tournament() {
     const run = async () => {
       try {
         const sb = client();
-        const { data: found, error: issue } = await sb.from('tenants').select('id,slug,name,tagline,logo_url,cover_url,brand_color,status,created_at').eq('slug', slug).maybeSingle();
+        const { data: found, error: issue } = await sb.from('tenants').select('id,slug,name,tagline,logo_url,cover_url,brand_color,status,created_at,kind,event_date').eq('slug', slug).maybeSingle();
         if (issue) throw issue;
         if (!found) { if (live) setTenant(null); return; }
         const [grantResponse, ...rows] = await Promise.all([
@@ -159,6 +160,37 @@ export function Tournament() {
   const teamMap = new Map(teams.map(t => [t.id, t]));
   const playerMap = new Map(players.map(p => [p.id, p]));
   const byId = (table: string, id: string | undefined) => (data[table] ?? []).find(row => row.id === id);
+  // SEO of the tournament site: one title/description per section, cover as social image,
+  // structured data for one-day events. Drafts (staff preview) and missing sites are noindex.
+  useEffect(() => {
+    if (loading) return;
+    if (!tenant) { applySeo({ title: 'Torneo non trovato · ItalFUT', noindex: true }); return; }
+    const section = navigation.find(nav => nav.slug === page)?.label;
+    const isEvent = tenant.kind === 'event' && tenant.event_date;
+    const day = isEvent ? new Intl.DateTimeFormat('it-IT', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(tenant.event_date + 'T12:00:00Z')) : '';
+    const about = tenant.tagline?.trim() || (isEvent ? `Torneo di calcio del ${day}` : 'Torneo di calcio');
+    applySeo({
+      title: section ? `${section} · ${tenant.name}` : `${tenant.name} — risultati, calendario e classifiche`,
+      description: `${about}. ${section ? section + ' di ' + tenant.name : 'Partite, risultati, classifiche e squadre di ' + tenant.name} su ItalFUT.`.slice(0, 300),
+      path: location.pathname,
+      image: safeUrl(tenant.cover_url ?? '') || safeUrl(tenant.logo_url ?? '') || undefined,
+      noindex: tenant.status !== 'active',
+    });
+    const id = 'ld-tournament';
+    document.getElementById(id)?.remove();
+    if (tenant.status === 'active' && isEvent) {
+      const script = document.createElement('script');
+      script.type = 'application/ld+json'; script.id = id;
+      script.textContent = JSON.stringify({
+        '@context': 'https://schema.org', '@type': 'SportsEvent', name: tenant.name, sport: 'Calcio',
+        startDate: tenant.event_date, eventStatus: 'https://schema.org/EventScheduled', url: SITE_URL + base,
+        description: about, ...(safeUrl(tenant.cover_url ?? '') ? { image: [safeUrl(tenant.cover_url ?? '')] } : {}),
+        organizer: { '@type': 'Organization', name: tenant.name, url: SITE_URL + base },
+      });
+      document.head.appendChild(script);
+    }
+    return () => { document.getElementById(id)?.remove(); };
+  }, [loading, tenant, page, location.pathname, base]);
   const containerStyle = tenant ? ({ '--tenant-accent': /^#[0-9a-f]{6}$/i.test(tenant.brand_color) ? tenant.brand_color : '#174638' } as CSSProperties) : undefined;
 
   if (loading) return <div className="center-screen"><CircularProgress /></div>;
