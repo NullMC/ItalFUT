@@ -637,7 +637,7 @@
   .image-field__drop { gap: 10px; padding: 10px; align-items: flex-start; }
   .image-field__preview { width: 56px; height: 56px; }
   .image-field__preview--cover, .image-field__preview--image { width: 72px; }
-  .image-field__pick { padding: 0 12px; font-size: .82rem; }
+  .image-field__pick { padding: 6px 12px; font-size: .82rem; white-space: normal; text-align: left; max-width: 100%; }
 }
 /* Table avatars show the uploaded logo/photo when there is one. */
 .cell-avatar.has-image { overflow: hidden; background: var(--surface-solid); }
@@ -660,3 +660,60 @@
 .contact-optional legend span { font-weight: 500; color: var(--ink-2); font-size: .82rem; margin-left: 6px; }
 .create-contact p { margin: 0; font-size: .86rem; }
 #recapiti { scroll-margin-top: calc(var(--nav-h) + 30px); }
+
+/* ── Responsive pass ─────────────────────────────────────────────────────────
+   Layouts inside the console react to the width actually available next to the
+   sidebar (container queries), not to the window: at 1024 px the main column is
+   only ~700 px wide. */
+.workspace__main { container: main / inline-size; }
+@container main (max-width: 780px) {
+  .settings__grid, .plan-grid { grid-template-columns: minmax(0, 1fr); }
+  .settings__preview { position: static; order: -1; }
+  .plan-summary { position: static; }
+}
+@container main (max-width: 520px) {
+  .plan-terms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
+  .settings__grid { grid-template-columns: minmax(0, 1fr); }
+  /* Section chips and the "open site" shortcut share one row. */
+  .workspace__top { flex-wrap: nowrap; }
+  .workspace__chips { order: 0; flex: 1 1 auto; }
+  .workspace__top .workspace__site { width: 40px; height: 40px; padding: 0; justify-content: center; }
+  .workspace__site-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+/* Status banners: text gets the full width, the action goes below it. */
+@media (max-width: 700px) {
+  .banner { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+  .banner .btn { grid-column: 2; justify-self: start; }
+}
+/* KPI cards on narrow phones: icon above the label so long labels fit. */
+@media (max-width: 420px) {
+  .kpis { gap: 10px; }
+  .kpi { padding: 14px; border-radius: 18px; }
+  .kpi__head { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .kpi__icon { width: 28px; height: 28px; border-radius: 9px; }
+  .kpi strong { font-size: 2rem; }
+}
+/* Stacked table rows: two fields per line on phones and touch-sized actions. */
+.data-card.is-stacked .data-table tbody tr { grid-template-columns: repeat(auto-fill, minmax(min(112px, 100%), 1fr)); }
+.data-card.is-stacked .row-actions .MuiIconButton-root { width: 40px; height: 40px; }
+.data-card.is-stacked .data-table td.is-primary { padding-right: 96px; }
+/* Public match cards: on phones logo above the name, score centred, nothing overlaps. */
+.match-teams { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+.match-teams > div { overflow-wrap: anywhere; }
+.match-meta { flex-wrap: wrap; row-gap: 6px; }
+.match-meta > span { white-space: nowrap; }
+@media (max-width: 480px) {
+  .public-match { padding: 14px; }
+  .public-match .match-teams { gap: 8px; }
+  .public-match .match-teams > div { flex-direction: column; justify-content: center; text-align: center; gap: 6px; font-size: .86rem; line-height: 1.25; }
+  .public-match .match-teams > div:last-child { flex-direction: column-reverse; justify-content: center; text-align: center; }
+  .public-match .match-teams strong { font-size: 1.6rem; }
+}
+.stats-grid { align-items: start; }
+/* Touch targets on phones */
+@media (max-width: 640px) {
+  .text-link { min-height: 40px; }
+  .nav-wrap .brand { padding-block: 7px; }
+}

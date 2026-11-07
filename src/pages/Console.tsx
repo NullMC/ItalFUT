@@ -353,7 +353,7 @@ export function TenantConsole() {
           {[{ key: 'overview', label: 'Panoramica', to: base }, { key: 'settings', label: 'Aspetto', to: base + '/settings' }, ...EDITORS.map(e => ({ key: e.key, label: e.label, to: base + '/' + e.key })), { key: 'modules', label: 'Moduli', to: base + '/modules' }]
             .map(item => <RouterLink key={item.key} to={item.to} className={'chip-link' + (section === item.key ? ' is-active' : '')} aria-current={section === item.key ? 'page' : undefined}>{item.label}</RouterLink>)}
         </ScrollRail>
-        {section !== 'overview' && <a className="btn btn--ghost btn--sm glass workspace__site" href={'/t/' + tenant.slug} target="_blank" rel="noopener noreferrer">{tenant.status === 'active' ? 'Apri il sito' : 'Anteprima'}<ArrowOutwardRoundedIcon /></a>}
+        {section !== 'overview' && <a className="btn btn--ghost btn--sm glass workspace__site" href={'/t/' + tenant.slug} target="_blank" rel="noopener noreferrer"><span className="workspace__site-label">{tenant.status === 'active' ? 'Apri il sito' : 'Anteprima'}</span><ArrowOutwardRoundedIcon /></a>}
       </div>
       {error && <Alert severity="error" sx={{ mb: 3 }} role="alert">{error}</Alert>}
       {notice && <Alert severity="success" sx={{ mb: 3 }} role="status" onClose={() => setNotice('')}>{notice}</Alert>}

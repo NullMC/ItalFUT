@@ -218,3 +218,8 @@
 .btn.is-disabled { opacity: .45; pointer-events: none; }
 @media (max-width: 560px) { .error-page__actions .btn { flex: 1 1 100%; } }
 .legal__section p + h2, .legal__section ul + h2 { margin-top: 28px; }
+/* Account requests: on phones the status chip goes under the text, which keeps the full width. */
+.row--request { flex-wrap: wrap; }
+.row--request .row__text { flex: 1 1 240px; }
+.row--request .row__text strong { white-space: normal; }
+.row--request .request-reply { justify-self: start; max-width: 100%; }

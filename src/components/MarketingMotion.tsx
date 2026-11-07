@@ -15,10 +15,12 @@ export function Reveal({ children, className = '', delay = 0, y = 26, as = 'div'
   const Tag = motion[as];
   return <Tag
     className={className}
-    initial={reduce ? false : { opacity: 0, y, filter: 'blur(8px)' }}
+    initial={reduce ? false : { opacity: 0, y, filter: 'blur(6px)' }}
     whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-    viewport={{ once: true, amount: .2 }}
-    transition={{ duration: .8, delay, ease }}
+    // Trigger on the element's top edge, not on a share of its height: tall cards on
+    // phones would otherwise stay faded while already on screen.
+    viewport={{ once: true, amount: 'some', margin: '0px 0px -10% 0px' }}
+    transition={{ duration: .7, delay, ease }}
   >{children}</Tag>;
 }
 
