@@ -20,8 +20,13 @@ import { useAuth } from '../auth/AuthProvider';
 import { ErrorView } from '../pages/ErrorPage';
 import { trackSpotlight } from '../components/MarketingMotion';
 import { AdminTable } from './AdminTable';
+import { PromoCodes } from './PromoCodes';
+import LocalOfferRoundedIcon from '@mui/icons-material/LocalOfferRounded';
 import { ScrollRail } from '../components/ScrollRail';
 import { GROUPS, TABLES, valueLabel, type AdminSchema } from './adminConfig';
+
+/** Route of the Stripe discount codes tab (not a database table). */
+const PROMOS = 'codici-sconto';
 
 type Stats = {
   users: number; users_7d: number; tenants: number; tenants_by_status: Record<string, number>;
@@ -79,7 +84,11 @@ function Overview() {
     <div className="quick-grid">{Object.entries(TABLES).map(([key, meta]) => <RouterLink key={key} to={'/admin/' + key} className="quick-card glass spotlight" onPointerMove={trackSpotlight}>
       <span className="quick-card__text"><b>{meta.label}</b><small>{GROUPS.find(g => g.id === meta.group)?.label}</small></span>
       <ArrowForwardRoundedIcon className="quick-card__arrow" />
-    </RouterLink>)}</div>
+    </RouterLink>)}
+      <RouterLink to={'/admin/' + PROMOS} className="quick-card glass spotlight" onPointerMove={trackSpotlight}>
+        <span className="quick-card__text"><b>Codici sconto</b><small>Stripe</small></span>
+        <ArrowForwardRoundedIcon className="quick-card__arrow" />
+      </RouterLink></div>
   </>;
 }
 
@@ -99,7 +108,8 @@ export function AdminDashboard() {
 
   if (isAdmin === null) return <div className="center-screen"><CircularProgress aria-label="Verifica permessi" /></div>;
   if (!isAdmin) return <ErrorView code="403" compact detail="Questa area è riservata al superadmin della piattaforma." />;
-  if (table && !TABLES[table]) return <ErrorView code="404" compact detail="Questa scheda non esiste." />;
+  const promos = table === PROMOS;
+  if (table && !TABLES[table] && !promos) return <ErrorView code="404" compact detail="Questa scheda non esiste." />;
 
   return <div className="workspace workspace--admin">
     <aside className="workspace__side glass" aria-label="Schede superadmin">
@@ -113,6 +123,7 @@ export function AdminDashboard() {
           <p className="side-nav__title">{group.label}</p>
           {Object.entries(TABLES).filter(([, meta]) => meta.group === group.id).map(([key, meta]) =>
             <NavLink key={key} to={'/admin/' + key} className={({ isActive }) => 'side-link' + (isActive ? ' is-active' : '')}><span className="side-link__dot" aria-hidden="true" /><span>{meta.label}</span></NavLink>)}
+          {group.id === 'business' && <NavLink to={'/admin/' + PROMOS} className={({ isActive }) => 'side-link' + (isActive ? ' is-active' : '')}><LocalOfferRoundedIcon fontSize="small" /><span>Codici sconto</span></NavLink>}
         </div>)}
       </ScrollRail>
     </aside>
@@ -121,11 +132,12 @@ export function AdminDashboard() {
         <TextField select size="small" label="Scheda" value={table ?? 'overview'} onChange={event => navigate(event.target.value === 'overview' ? '/admin' : '/admin/' + event.target.value)}>
           <MenuItem value="overview">Panoramica</MenuItem>
           {Object.entries(TABLES).map(([key, meta]) => <MenuItem key={key} value={key}>{meta.label}</MenuItem>)}
+          <MenuItem value={PROMOS}>Codici sconto</MenuItem>
         </TextField>
       </div>
       {error ? <Alert severity="error">{error} — hai eseguito la migrazione 202611030001_superadmin.sql?</Alert>
         : !schema ? <div className="center-min"><CircularProgress aria-label="Caricamento schema" /></div>
-        : table ? <AdminTable key={table} table={table} schema={schema} /> : <Overview />}
+        : promos ? <PromoCodes /> : table ? <AdminTable key={table} table={table} schema={schema} /> : <Overview />}
     </div>
   </div>;
 }

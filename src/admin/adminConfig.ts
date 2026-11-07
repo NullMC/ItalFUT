@@ -20,7 +20,7 @@ export const TABLES: Record<string, TableMeta> = {
   plan_quotes: { label: 'Preventivi', group: 'business', display: ['tenant_id', 'months', 'selected_features', 'total_cents', 'status', 'created_at'] },
   upgrade_requests: { label: 'Richieste moduli', group: 'business', display: ['tenant_id', 'requested_features', 'months', 'total_cents', 'status', 'created_at'], hint: 'Dopo aver approvato, attiva i moduli nella scheda “Moduli attivi”.' },
   subscriptions: { label: 'Abbonamenti', group: 'business', display: ['tenant_id', 'status', 'period_start', 'period_end'] },
-  payments: { label: 'Pagamenti', group: 'business', display: ['tenant_id', 'amount_cents', 'months', 'features', 'status', 'paid_at', 'period_end', 'created_at'], noCreate: true, hint: 'Pagamenti Stripe registrati dal webhook. Lo stato cambia da solo (pagato, scaduto, rimborsato); i rimborsi si fanno dal pannello Stripe. Un rimborso non disattiva i moduli: fallo da “Moduli attivi” se serve.' },
+  payments: { label: 'Pagamenti', group: 'business', display: ['tenant_id', 'amount_cents', 'discount_cents', 'promotion_code', 'status', 'paid_at', 'period_end', 'created_at'], noCreate: true, hint: 'Pagamenti Stripe registrati dal webhook. Lo stato cambia da solo (pagato, scaduto, rimborsato); i rimborsi si fanno dal pannello Stripe. Un rimborso non disattiva i moduli: fallo da “Moduli attivi” se serve.' },
   competitions: { label: 'Competizioni', group: 'content', display: ['name', 'tenant_id', 'season_label', 'status'] },
   teams: { label: 'Squadre', group: 'content', display: ['name', 'tenant_id', 'accent_hex'] },
   competition_teams: { label: 'Iscrizioni', group: 'content', display: ['competition_id', 'team_id', 'tenant_id'] },
@@ -39,9 +39,10 @@ export const GROUPS: { id: TableMeta['group']; label: string }[] = [
 ];
 
 const COLUMN_LABELS: Record<string, string> = {
+  discount_cents: 'Sconto', promotion_code: 'Codice sconto',
   event_date: 'Data evento', published_at: 'Pubblicato il',
   id: 'ID', username: 'Username', email: 'Email interna', created_at: 'Creato il', updated_at: 'Aggiornato il', name: 'Nome', slug: 'Indirizzo', status: 'Stato',
-  amount_cents: 'Importo (cent.)', amount_paid_cents: 'Pagato (cent.)', paid_at: 'Pagato il', features: 'Moduli', stripe_session_id: 'Sessione Stripe', stripe_payment_intent: 'Pagamento Stripe', created_by: 'Creato da', currency: 'Valuta',
+  amount_cents: 'Importo di listino', amount_paid_cents: 'Pagato', paid_at: 'Pagato il', features: 'Moduli', stripe_session_id: 'Sessione Stripe', stripe_payment_intent: 'Pagamento Stripe', created_by: 'Creato da', currency: 'Valuta',
   owner_id: 'Proprietario', tenant_id: 'Torneo', user_id: 'Utente', role: 'Ruolo', tagline: 'Slogan', logo_url: 'URL logo', cover_url: 'URL copertina',
   brand_color: 'Colore', code: 'Codice', monthly_cents: 'Prezzo mensile (cent.)', is_core: 'Incluso nella base', enabled: 'Abilitato', source: 'Fonte',
   starts_at: 'Inizio', ends_at: 'Scadenza', months: 'Mesi', selected_features: 'Moduli scelti', total_cents: 'Totale (cent.)', requested_by: 'Richiesto da',

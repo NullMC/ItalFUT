@@ -642,3 +642,12 @@
 /* Table avatars show the uploaded logo/photo when there is one. */
 .cell-avatar.has-image { overflow: hidden; background: var(--surface-solid); }
 .cell-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Superadmin · discount codes */
+.promo-code { display: grid; }
+.promo-code b { font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace); letter-spacing: .04em; }
+.promo-code small { color: var(--ink-2); font-size: .8rem; }
+.promo-form__row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 560px) { .promo-form__row { grid-template-columns: 1fr; } }
+.promo-mode { color: var(--ink); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.promo-mode.is-live { color: var(--ok); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ok) 40%, transparent); }

@@ -27,6 +27,24 @@ async function fulfill(session: Stripe.Checkout.Session) {
   });
   if (error) throw error;
   console.log('fulfill_payment', session.id, data);
+  await recordDiscount(session);
+}
+
+// Discount code used in Checkout (codes are managed from the superadmin "Codici sconto").
+// Best effort: a failure here never makes Stripe retry an already fulfilled payment.
+async function recordDiscount(session: Stripe.Checkout.Session) {
+  const amount = session.total_details?.amount_discount ?? 0;
+  if (!amount) return;
+  try {
+    const ref = session.discounts?.find(d => d.promotion_code)?.promotion_code ?? null;
+    let code: string | null = null;
+    if (typeof ref === 'string') code = (await stripe.promotionCodes.retrieve(ref)).code;
+    else if (ref) code = ref.code;
+    const { error } = await admin.from('payments').update({ discount_cents: amount, promotion_code: code }).eq('stripe_session_id', session.id);
+    if (error) throw error;
+  } catch (error) {
+    console.error('Discount not recorded for', session.id, error);
+  }
 }
 async function mark(sessionId: string | null, paymentIntent: string | null, status: 'expired' | 'failed' | 'refunded') {
   const { data, error } = await admin.rpc('mark_payment', { p_session_id: sessionId, p_payment_intent: paymentIntent, p_status: status });

@@ -50,7 +50,7 @@ These parameters were configured in Checkout Studio and are already set correctl
 
 1. **Stripe account and sandbox.** In the Stripe Dashboard open the account picker → **Sandboxes** → create one. Copy its secret key (Developers → API keys, `sk_test_...`). The publishable key is not used: Checkout is a redirect.
 2. **Stripe Tax.** `automatic_tax` is on: in the sandbox go to Settings → Tax, set the origin (head office) address and the registrations you have. Without it, Checkout Session creation fails. Stripe Tax has its own fee: https://stripe.com/tax/pricing
-3. **Database.** Supabase → SQL Editor, in this order (skip those already run): `202611060001_tenant_media.sql`, `202611070001_stripe_payments.sql` (payments table, `start_checkout`, `fulfill_payment`, `mark_payment`, publication tied to the paid period), `202611080001_custom_duration.sql` (1–24 months, `save_plan`), `202611090001_event_tournaments.sql` (free one-day tournaments, see below).
+3. **Database.** Supabase → SQL Editor, in this order (skip those already run): `202611060001_tenant_media.sql`, `202611070001_stripe_payments.sql` (payments table, `start_checkout`, `fulfill_payment`, `mark_payment`, publication tied to the paid period), `202611080001_custom_duration.sql` (1–24 months, `save_plan`), `202611090001_event_tournaments.sql` (free one-day tournaments, see below), `202611100001_promotion_codes.sql` (discount recorded on each payment, audit of the discount-code actions).
 4. **Secrets in Supabase** (Dashboard → Edge Functions → Secrets, or the CLI):
    ```bash
    supabase secrets set STRIPE_SECRET_KEY=sk_test_... DOMAIN=https://your-domain
@@ -60,6 +60,7 @@ These parameters were configured in Checkout Studio and are already set correctl
    ```bash
    supabase functions deploy create-checkout-session --no-verify-jwt   # verifies the user's session in code
    supabase functions deploy stripe-webhook --no-verify-jwt            # Stripe sends no Supabase JWT; the signature is verified in code
+   supabase functions deploy admin-promotions --no-verify-jwt          # superadmin “Codici sconto”; checks am_i_admin() in code
    ```
 6. **Webhook destination.** Stripe Dashboard → Workbench → Webhooks → Add destination → “Your account”:
    URL `https://<project-ref>.supabase.co/functions/v1/stripe-webhook`, events:
@@ -81,6 +82,8 @@ src/lib/payments.ts                  # paymentsEnabled flag, startCheckout(), st
 src/components/PlanCheckout.tsx      # console → Moduli: plan status, duration, modules, total, pay button, history
 src/pages/PaymentResult.tsx          # /pagamento/esito: waits for the webhook and shows the outcome
 src/admin/adminConfig.ts             # superadmin “Pagamenti” tab (read only)
+src/admin/PromoCodes.tsx             # superadmin “Codici sconto” (Stripe promotion codes)
+supabase/functions/admin-promotions/ # list / create / switch off discount codes in Stripe (admins only)
 ```
 
 ## How it works
@@ -100,6 +103,12 @@ Refunds are made from the Stripe Dashboard. A refund marks the payment `refunded
 ## One-day tournaments (free)
 
 Tournaments with `tenants.kind = 'event'` (migration `202611090001`) use the core platform for free. Only extra modules are paid, through the same Checkout flow: `start_checkout` prices them at their 1-month price each (no base fee, modules already active are skipped), and `fulfill_payment` turns them on with no end date. No subscription is created and the tournament is not published by the payment: the organizer publishes it for free from the event day (`publish_event`), then has 48 hours to edit before the console closes.
+
+## Discount codes (superadmin → “Codici sconto”)
+
+`allow_promotion_codes` is on, so Stripe Checkout shows the “Aggiungi codice promozionale” field. The superadmin tab creates codes in Stripe through the `admin-promotions` Edge Function (platform admins only): a **coupon** (percent or fixed € amount, `duration: once`, applied to the whole order) and a **promotion code** (the text customers type) with optional maximum uses, expiry date and minimum order amount. Codes can be switched off and on again; deleting them for good is done in the Stripe Dashboard. Codes created in the Dashboard also appear in the tab.
+
+Fulfillment is unaffected: the amount check uses the subtotal before discounts, so discounted (even 100 %) payments are accepted. The webhook stores `discount_cents` and `promotion_code` on the payment (superadmin → Pagamenti). Test and live modes have separate codes: recreate them after switching to live keys.
 
 ## Troubleshooting
 

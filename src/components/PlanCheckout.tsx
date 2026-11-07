@@ -157,7 +157,7 @@ export function PlanCheckout({ tenantId, tenantStatus, canBuy, features, initial
           {busy ? 'Apertura pagamento…' : `Paga ${formatEuro(quote.total)}`}
         </Button>
         <p className="plan-summary__note">{canBuy
-          ? 'Pagamento unico e sicuro su Stripe, nessun rinnovo automatico. Il piano si attiva appena Stripe conferma il pagamento.'
+          ? 'Pagamento unico e sicuro su Stripe, nessun rinnovo automatico. Il piano si attiva appena Stripe conferma il pagamento. Hai un codice sconto? Lo inserisci nella pagina di pagamento.'
           : 'Solo il proprietario o un amministratore del torneo può acquistare.'}</p>
       </aside>
     </div>

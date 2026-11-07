@@ -168,7 +168,7 @@ export function EventModules({ tenant, features, canBuy, onChanged }: { tenant: 
           {busy ? (paymentsEnabled ? 'Apertura pagamento…' : 'Invio…') : toBuy.length === 0 ? 'Seleziona un modulo' : paymentsEnabled ? `Paga ${formatEuro(total)}` : 'Richiedi attivazione'}
         </Button>
         <p className="plan-summary__note">{!canBuy ? 'Solo il proprietario o un amministratore del torneo può acquistare.'
-          : paymentsEnabled ? 'Pagamento unico e sicuro su Stripe. Nessun abbonamento.' : 'Nessun addebito ora: i moduli si attivano dopo la conferma.'}</p>
+          : paymentsEnabled ? 'Pagamento unico e sicuro su Stripe. Nessun abbonamento. Hai un codice sconto? Lo inserisci nella pagina di pagamento.' : 'Nessun addebito ora: i moduli si attivano dopo la conferma.'}</p>
       </aside>
     </div>
   </div>;
