@@ -1,0 +1,74 @@
+ItalFUT — Video di presentazione 45 s (9:16) — Copione voiceover
+Due formati: torneo di un giorno gratis e campionati a pagamento.
+Tono: moderno, chiaro, premium, ottimista. Ritmo ~150 parole/minuto, sorriso nella voce.
+Pronuncia del nome: "ìtal-fùt" (in ElevenLabs puoi scrivere "Ital Fut" se legge male).
+
+TEMPI E BATTUTE (allineati alle scritte a schermo)
+
+00.2 – 02.8  HOOK
+  Ogni torneo merita un grande palcoscenico.
+
+03.0 – 05.9  PROBLEMA
+  Fogli di calcolo, chat, appunti sparsi ovunque?
+
+06.0 – 08.6  PROBLEMA
+  E classifiche da aggiornare a mano?
+
+08.9 – 11.4  SOLUZIONE (logo)
+  Ecco ItalFUT. Il tuo torneo, tutto in campo.
+
+11.6 – 14.3  DUE FORMATI
+  Due formati, un'unica piattaforma.
+
+14.4 – 16.6  TORNEO DI UN GIORNO
+  Il torneo di un giorno è gratis.
+
+16.8 – 19.5  PREPARAZIONE
+  Lo prepari quando vuoi: squadre, rose e calendario.
+
+19.8 – 22.5  PUBBLICAZIONE
+  E lo pubblichi il giorno della gara.
+
+22.8 – 25.5  48 ORE
+  Da lì hai quarantotto ore per aggiornare i risultati.
+
+25.8 – 28.6  SITO ONLINE
+  Poi la console si chiude, e il sito resta online.
+
+29.0 – 31.6  MODULI EXTRA
+  Moduli extra? Li paghi una volta sola.
+
+32.0 – 34.5  CAMPIONATI
+  Per campionati e tornei lunghi: da diciannove euro al mese.
+
+34.8 – 37.5  DURATA
+  Da uno a ventiquattro mesi, senza rinnovo automatico.
+
+37.8 – 40.5  CLASSIFICHE
+  Classifiche automatiche, aggiornate in tempo reale.
+
+40.8 – 44.5  CTA
+  Prova ItalFUT: il torneo di un giorno è gratis. Link nella bio del profilo.
+
+
+TESTO DA INCOLLARE IN ELEVENLABS (pause già inserite)
+
+Ogni torneo merita un grande palcoscenico. <break time="0.3s" />
+Fogli di calcolo, chat, appunti sparsi ovunque? <break time="0.2s" />
+E classifiche da aggiornare a mano? <break time="0.4s" />
+Ecco ItalFUT. Il tuo torneo, tutto in campo. <break time="0.3s" />
+Due formati, un'unica piattaforma. <break time="0.3s" />
+Il torneo di un giorno è gratis. <break time="0.3s" />
+Lo prepari quando vuoi: squadre, rose e calendario. <break time="0.3s" />
+E lo pubblichi il giorno della gara. <break time="0.3s" />
+Da lì hai quarantotto ore per aggiornare i risultati. <break time="0.3s" />
+Poi la console si chiude, e il sito resta online. <break time="0.4s" />
+Moduli extra? Li paghi una volta sola. <break time="0.4s" />
+Per campionati e tornei lunghi: da diciannove euro al mese. <break time="0.3s" />
+Da uno a ventiquattro mesi, senza rinnovo automatico. <break time="0.3s" />
+Classifiche automatiche, aggiornate in tempo reale. <break time="0.3s" />
+Prova ItalFUT: il torneo di un giorno è gratis. Link nella bio del profilo.
+
+Consiglio di montaggio: genera ogni battuta come clip separata e posizionala sul suo
+tempo d'inizio; se una clip è più lunga della sua finestra, accelera al massimo del 5-8%
+o accorcia la pausa che segue. La traccia effetti (WAV) è separata per il mix.

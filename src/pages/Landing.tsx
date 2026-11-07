@@ -237,7 +237,7 @@ export function Landing() {
             {signedIn
               ? <RouterLink to={roleHome(role ?? 'user')} className="btn btn--primary btn--lg">{role === 'admin' ? 'Apri la dashboard' : 'Vai ai tuoi tornei'}<ArrowForwardRoundedIcon /></RouterLink>
               : <RouterLink to="/configura?formato=giornata" className="btn btn--primary btn--lg">Crea il torneo gratis<ArrowForwardRoundedIcon /></RouterLink>}
-            {signedIn ? <RouterLink to="/configura?formato=giornata" className="btn btn--ghost btn--lg glass">Nuovo torneo di un giorno</RouterLink> : <a href="#formati" className="btn btn--ghost btn--lg glass" onClick={event => { event.preventDefault(); document.getElementById('formati')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); }}>Campionati e tornei lunghi</a>}
+            {signedIn ? <RouterLink to="/configura?formato=giornata" className="btn btn--ghost btn--lg glass">Nuovo torneo</RouterLink> : <a href="#formati" className="btn btn--ghost btn--lg glass" onClick={event => { event.preventDefault(); document.getElementById('formati')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); }}>Campionati e tornei lunghi</a>}
           </motion.div>
           <motion.ul className="hero__facts" initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: .9, duration: .8 }}>
             <li><CheckRoundedIcon />Gratis con le funzioni base</li>
