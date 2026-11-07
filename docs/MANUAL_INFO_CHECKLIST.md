@@ -148,7 +148,7 @@ Procedura esterna per raccogliere e conservare i consensi firmati dei genitori. 
 
 ## Pubblicazione live (italfut.it)
 
-1. **Cloudflare Pages → Settings → Variables (Production):** `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_PAYMENTS_ENABLED=true` (e `VITE_AUTH_EMAIL_DOMAIN` se lo usi). Build command `npm run build`, output `dist`.
+1. **Cloudflare (Workers & Pages) → progetto → Settings → variabili di build (Production):** `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_PAYMENTS_ENABLED=true` (e `VITE_AUTH_EMAIL_DOMAIN` se lo usi). Build command `npm run build`. Se il progetto è un **Worker** (Workers Builds, comando di deploy `npx wrangler deploy`), la configurazione è in `wrangler.jsonc`: il campo `name` deve coincidere con il nome del Worker su Cloudflare. Se è un progetto **Pages**, output `dist`.
 2. **Dominio:** collega `italfut.it` al progetto Pages e reindirizza `www.italfut.it` → `https://italfut.it` (Redirect Rules), così canonical, sitemap e CORS coincidono.
 3. **Supabase → Authentication → URL Configuration:** Site URL `https://italfut.it`. Password: minimo 10 caratteri. “Confirm email” disattivato (già così).
 4. **Supabase → Edge Functions → Secrets:** `DOMAIN=https://italfut.it`, `STRIPE_SECRET_KEY` live (`sk_live_…`), `STRIPE_WEBHOOK_SECRET` del webhook live.

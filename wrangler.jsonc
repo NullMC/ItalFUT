@@ -1,0 +1,12 @@
+// Cloudflare Workers (static assets): deploys the Vite build in ./dist.
+// "name" must match the Worker's name in Cloudflare → Workers & Pages.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "italfut",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist",
+    // Every unknown path serves index.html: React Router handles the routes.
+    "not_found_handling": "single-page-application"
+  }
+}
