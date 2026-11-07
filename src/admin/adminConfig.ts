@@ -13,7 +13,7 @@ export const TABLES: Record<string, TableMeta> = {
   platform_admins: { label: 'Superadmin', group: 'platform', display: ['user_id', 'note', 'created_at'], hint: 'Account con accesso completo a questa dashboard.' },
   support_requests: { label: 'Richieste di supporto', group: 'platform', display: ['kind', 'message', 'status', 'user_id', 'contact', 'created_at'], hint: 'Rispondi compilando “Risposta” e impostando lo stato su “Risposta inviata”: l’utente la legge nella sua pagina Account.' },
   admin_audit_log: { label: 'Registro attività', group: 'platform', display: ['created_at', 'admin_id', 'action', 'table_name'], readOnly: true, hint: 'Ogni operazione fatta da questa dashboard, con i dati prima e dopo.' },
-  tenants: { label: 'Tornei', group: 'business', display: ['name', 'slug', 'status', 'owner_id', 'created_at'], hint: 'Imposta lo stato su “Online” per pubblicare un torneo. Un torneo creato qui riceve proprietario e moduli base.' },
+  tenants: { label: 'Tornei', group: 'business', display: ['name', 'slug', 'kind', 'event_date', 'status', 'owner_id', 'created_at'], hint: 'Imposta lo stato su “Online” per pubblicare un torneo. Un torneo di un giorno (kind = event) si chiude da solo 48 ore dopo published_at: per riaprirla, imposta published_at all’ora attuale (altre 48 ore).' },
   tenant_members: { label: 'Membri dei tornei', group: 'business', display: ['tenant_id', 'user_id', 'role', 'created_at'] },
   feature_catalog: { label: 'Catalogo moduli', group: 'business', display: ['code', 'name', 'monthly_cents', 'is_core'], hint: 'Prezzi in centesimi al mese. Ricorda di allineare anche src/lib/catalog.ts.' },
   tenant_features: { label: 'Moduli attivi', group: 'business', display: ['tenant_id', 'code', 'enabled', 'source', 'ends_at'], hint: 'Attiva un modulo per un torneo: abilitato = sì, fonte = manuale, scadenza facoltativa.' },
@@ -39,6 +39,7 @@ export const GROUPS: { id: TableMeta['group']; label: string }[] = [
 ];
 
 const COLUMN_LABELS: Record<string, string> = {
+  event_date: 'Data evento', published_at: 'Pubblicato il',
   id: 'ID', username: 'Username', email: 'Email interna', created_at: 'Creato il', updated_at: 'Aggiornato il', name: 'Nome', slug: 'Indirizzo', status: 'Stato',
   amount_cents: 'Importo (cent.)', amount_paid_cents: 'Pagato (cent.)', paid_at: 'Pagato il', features: 'Moduli', stripe_session_id: 'Sessione Stripe', stripe_payment_intent: 'Pagamento Stripe', created_by: 'Creato da', currency: 'Valuta',
   owner_id: 'Proprietario', tenant_id: 'Torneo', user_id: 'Utente', role: 'Ruolo', tagline: 'Slogan', logo_url: 'URL logo', cover_url: 'URL copertina',
@@ -60,6 +61,7 @@ const COLUMN_LABELS: Record<string, string> = {
 export const columnLabel = (name: string) => COLUMN_LABELS[name] ?? name.replace(/_/g, ' ');
 
 const EXTRA_LABELS: Record<string, string> = {
+  event: 'Un giorno', season: 'Stagione',
   draft: 'Bozza', suspended: 'Sospeso', owner: 'Proprietario', admin: 'Amministratore', editor: 'Editor', viewer: 'Lettore',
   included: 'Inclusa', manual: 'Manuale', stripe: 'Stripe', pending: 'In attesa', accepted: 'Accettato', cancelled: 'Annullato',
   approved: 'Approvata', rejected: 'Rifiutata', paid: 'Pagato', failed: 'Non riuscito', refunded: 'Rimborsato', trialing: 'In prova', past_due: 'Scaduto (da pagare)', expired: 'Scaduto',

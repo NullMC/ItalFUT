@@ -50,7 +50,7 @@ These parameters were configured in Checkout Studio and are already set correctl
 
 1. **Stripe account and sandbox.** In the Stripe Dashboard open the account picker → **Sandboxes** → create one. Copy its secret key (Developers → API keys, `sk_test_...`). The publishable key is not used: Checkout is a redirect.
 2. **Stripe Tax.** `automatic_tax` is on: in the sandbox go to Settings → Tax, set the origin (head office) address and the registrations you have. Without it, Checkout Session creation fails. Stripe Tax has its own fee: https://stripe.com/tax/pricing
-3. **Database.** Supabase → SQL Editor: run `supabase/migrations/202611060001_tenant_media.sql` (if not run yet) and then `supabase/migrations/202611070001_stripe_payments.sql`. It adds the `payments` table, `start_checkout`, `fulfill_payment`, `mark_payment`, the payments tab in the superadmin and ties publication to the paid period.
+3. **Database.** Supabase → SQL Editor, in this order (skip those already run): `202611060001_tenant_media.sql`, `202611070001_stripe_payments.sql` (payments table, `start_checkout`, `fulfill_payment`, `mark_payment`, publication tied to the paid period), `202611080001_custom_duration.sql` (1–24 months, `save_plan`), `202611090001_event_tournaments.sql` (free one-day tournaments, see below).
 4. **Secrets in Supabase** (Dashboard → Edge Functions → Secrets, or the CLI):
    ```bash
    supabase secrets set STRIPE_SECRET_KEY=sk_test_... DOMAIN=https://your-domain
@@ -96,6 +96,10 @@ src/admin/adminConfig.ts             # superadmin “Pagamenti” tab (read only
 5. The public site of a tournament is visible to visitors only while its paid period is active (tournaments published manually and never paid stay visible). Staff always see it.
 
 Refunds are made from the Stripe Dashboard. A refund marks the payment `refunded` but does not switch modules off: do that from the superadmin if needed.
+
+## One-day tournaments (free)
+
+Tournaments with `tenants.kind = 'event'` (migration `202611090001`) use the core platform for free. Only extra modules are paid, through the same Checkout flow: `start_checkout` prices them at their 1-month price each (no base fee, modules already active are skipped), and `fulfill_payment` turns them on with no end date. No subscription is created and the tournament is not published by the payment: the organizer publishes it for free from the event day (`publish_event`), then has 48 hours to edit before the console closes.
 
 ## Troubleshooting
 

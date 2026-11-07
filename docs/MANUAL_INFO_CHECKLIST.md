@@ -15,6 +15,10 @@ Le pagine legali mostrano solo i dati presenti in `src/config/legal.ts`: un camp
 Esegui, in quest’ordine, i file non ancora applicati:
 1. `supabase/migrations/202611020001_security_hardening.sql`
 2. `supabase/migrations/202611020002_email_free_auth.sql`
+3. `supabase/migrations/202611060001_tenant_media.sql`
+4. `supabase/migrations/202611070001_stripe_payments.sql`
+5. `supabase/migrations/202611080001_custom_duration.sql`
+6. `supabase/migrations/202611090001_event_tournaments.sql` (tornei di un giorno gratuiti: **obbligatoria** con il codice attuale, la console legge le colonne `kind`, `event_date`, `published_at`)
 
 Sono rieseguibili senza errori.
 

@@ -4,6 +4,7 @@ import { Link as RouterLink, NavLink } from 'react-router-dom';
 import { LEGAL_UPDATED, legalConfig, madeBy, vatNote } from '../config/legal';
 import { useCookiePreferences } from '../components/CookieNotice';
 import { paymentsEnabled } from '../lib/payments';
+import { EDIT_WINDOW_HOURS } from '../lib/plan';
 
 export type LegalPageId = 'privacy' | 'terms' | 'refund' | 'cookies' | 'business';
 type Section = { id: string; title: string; body: ReactNode };
@@ -101,12 +102,14 @@ function sections(page: LegalPageId, openPreferences: () => void): Section[] {
         <li>Sono vietati contenuti illeciti, offensivi o che violino diritti di terzi: possiamo rimuoverli e sospendere l’account dopo averti avvisato, salvo urgenze.</li>
       </ul> },
       { id: 'prezzi', title: '4. Prezzi e attivazioni', body: <>
-        <p>Il configuratore mostra prezzi mensili per la piattaforma base e per ogni modulo, gli sconti per durata e il totale, senza voci nascoste.{vatNote ? ' Prezzi ' + vatNote + '.' : ''}</p>
+        <p>Il configuratore mostra i prezzi della piattaforma base e di ogni modulo, gli sconti per durata e il totale, senza voci nascoste.{vatNote ? ' Prezzi ' + vatNote + '.' : ''}</p>
+        <p><b>Tornei di un giorno.</b> Le funzioni base (competizioni, squadre, giocatori, partite e classifiche) sono gratuite per i tornei che si svolgono in un’unica data, indicata dall’organizzatore. Le partite si programmano in quella data. Il torneo si prepara in bozza in qualsiasi momento e si pubblica dal giorno dell’evento; dalla pubblicazione l’organizzatore ha {EDIT_WINDOW_HOURS} ore per aggiornare risultati e dati, poi la console del torneo si chiude e il sito pubblico resta consultabile finché l’organizzatore o l’amministratore della piattaforma non lo elimina. I moduli aggiuntivi costano una volta sola quanto un mese di modulo e restano attivi sul sito del torneo.</p>
+        <p><b>Campionati e tornei lunghi.</b> Piattaforma base e moduli hanno un prezzo mensile e si acquistano per il periodo scelto.</p>
         {paymentsEnabled ? <ul>
           <li>Il pagamento avviene sulla pagina sicura di Stripe (carta e altri metodi proposti da Stripe). Prima di pagare vedi durata, moduli e prezzo totale; l’importo addebitato è sempre quello calcolato dalla piattaforma e mostrato da Stripe.</li>
-          <li>È un pagamento unico per il periodo scelto (da 1 a 24 mesi): <b>non c’è rinnovo automatico</b> e nessun addebito successivo senza un tuo nuovo pagamento.</li>
-          <li>Il piano e i moduli acquistati si attivano appena Stripe conferma il pagamento. Il primo pagamento pubblica il sito del torneo; un nuovo pagamento prolunga il piano dalla scadenza in corso.</li>
-          <li>Alla scadenza il sito pubblico torna visibile solo allo staff e i moduli aggiuntivi si disattivano; i dati restano nella console finché non li cancelli.</li>
+          <li>È un pagamento unico per il periodo scelto (da 1 a 24 mesi) o, per un torneo di un giorno, per i moduli scelti: <b>non c’è rinnovo automatico</b> e nessun addebito successivo senza un tuo nuovo pagamento.</li>
+          <li>Il piano e i moduli acquistati si attivano appena Stripe conferma il pagamento. Per i campionati il primo pagamento pubblica il sito del torneo e un nuovo pagamento prolunga il piano dalla scadenza in corso; un torneo di un giorno si pubblica gratuitamente dalla console.</li>
+          <li>Per i campionati, alla scadenza il sito pubblico torna visibile solo allo staff e i moduli aggiuntivi si disattivano; i dati restano nella console finché non li cancelli.</li>
           <li>La ricevuta del pagamento viene emessa da Stripe.</li>
         </ul> : <p>Allo stato attuale non è attivo alcun pagamento online e nessun importo viene addebitato. Le richieste di moduli aggiuntivi non attivano né addebitano nulla. Prima di qualsiasi acquisto riceverai il riepilogo definitivo con prezzo totale, metodo di pagamento e durata. Gli abbonamenti non si rinnovano automaticamente.</p>}
       </> },

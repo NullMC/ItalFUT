@@ -11,6 +11,9 @@ import ArticleRoundedIcon from '@mui/icons-material/ArticleRounded';
 import SyncAltRoundedIcon from '@mui/icons-material/SyncAltRounded';
 import CollectionsRoundedIcon from '@mui/icons-material/CollectionsRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import BoltRoundedIcon from '@mui/icons-material/BoltRounded';
+import EmojiEventsRoundedIcon from '@mui/icons-material/EmojiEventsRounded';
+import { EDIT_WINDOW_HOURS } from '../lib/plan';
 import { EXTRA, CORE, MODULES, formatEuro, BASE_MONTHLY } from '../lib/catalog';
 import type { FeatureCode } from '../lib/types';
 import { Backdrop } from '../components/fx/Backdrop';
@@ -99,10 +102,57 @@ function MiniRoster() {
 
 /* ── How it works: sticky 3D pitch, the ball travels as you scroll ─────────── */
 const steps = [
-  { title: 'Configura', text: 'Scegli durata e moduli. Il riepilogo dei costi si aggiorna mentre selezioni, senza voci nascoste.' },
-  { title: 'Personalizza', text: 'Dai un nome al torneo, scegli l’indirizzo pubblico e i colori. Lo spazio nasce in bozza, visibile solo a te.' },
-  { title: 'Gioca', text: 'Inserisci squadre, rose e partite dalla console. Risultati e classifiche si aggiornano sul sito del torneo.' },
+  { title: 'Scegli il formato', text: 'Torneo di un giorno gratis, o campionato con durata e moduli su misura. Il riepilogo dei costi è sempre visibile.' },
+  { title: 'Prepara', text: 'Nome, indirizzo pubblico, colori, squadre e calendario. Il torneo resta in bozza, visibile solo a te, finché non lo pubblichi.' },
+  { title: 'Gioca', text: 'Pubblica il sito e aggiorna i risultati dalla console: classifiche e statistiche si aggiornano da sole.' },
 ];
+
+/* ── Formats: free one-day tournament (main) next to the paid plan for longer competitions ── */
+function Formats({ extrasFrom }: { extrasFrom: number }) {
+  return <section className="section formats" id="formati" aria-labelledby="formats-title">
+    <div className="container">
+      <Reveal className="section-head">
+        <h2 id="formats-title" className="section-title">Un giorno o una stagione. <span className="serif-accent">Scegli tu.</span></h2>
+        <p className="lead">Il torneo di un giorno è gratis con tutte le funzioni base. Per i campionati e le competizioni più lunghe c’è il piano a periodo, senza rinnovo automatico.</p>
+      </Reveal>
+      <div className="formats__grid">
+        <Reveal as="article" className="format-card format-card--main glass">
+          <div className="format-card__inner spotlight" onPointerMove={event => trackSpotlight(event as never)}>
+            <span className="format-card__badge">Nuovo</span>
+            <span className="format-card__icon" aria-hidden="true"><BoltRoundedIcon /></span>
+            <h3>Torneo di un giorno</h3>
+            <p className="format-card__for">12 ore, quadrangolari, memorial, eventi: inizia e finisce in giornata.</p>
+            <p className="format-card__price"><b className="display-num">Gratis</b><span>funzioni base incluse</span></p>
+            <ul>
+              <li><CheckRoundedIcon />Competizioni, squadre, giocatori, partite e classifiche</li>
+              <li><CheckRoundedIcon />Sito pubblico del torneo, che resta online</li>
+              <li><CheckRoundedIcon />Prepari tutto quando vuoi, pubblichi il giorno della gara</li>
+              <li><CheckRoundedIcon />{EDIT_WINDOW_HOURS} ore dalla pubblicazione per aggiornare risultati e dati</li>
+              <li><CheckRoundedIcon />Moduli extra da {formatEuro(extrasFrom)}, una tantum</li>
+            </ul>
+            <RouterLink to="/configura?formato=giornata" className="btn btn--primary">Crea il torneo gratis<ArrowForwardRoundedIcon /></RouterLink>
+          </div>
+        </Reveal>
+        <Reveal as="article" delay={.08} className="format-card glass">
+          <div className="format-card__inner spotlight" onPointerMove={event => trackSpotlight(event as never)}>
+            <span className="format-card__icon" aria-hidden="true"><EmojiEventsRoundedIcon /></span>
+            <h3>Campionati e tornei lunghi</h3>
+            <p className="format-card__for">Giornate, gironi e stagioni su più settimane o mesi.</p>
+            <p className="format-card__price"><b className="display-num">{formatEuro(BASE_MONTHLY)}</b><span>al mese, funzioni base incluse</span></p>
+            <ul>
+              <li><CheckRoundedIcon />Tutte le funzioni base per tutta la durata</li>
+              <li><CheckRoundedIcon />Console sempre aperta: aggiorni quando vuoi</li>
+              <li><CheckRoundedIcon />Da 1 a 24 mesi, sconti da 3, 6 e 12 mesi</li>
+              <li><CheckRoundedIcon />Moduli extra da {formatEuro(extrasFrom)} al mese</li>
+              <li><CheckRoundedIcon />Nessun rinnovo automatico</li>
+            </ul>
+            <RouterLink to="/configura?formato=stagione" className="btn btn--ghost glass">Configura il campionato<ArrowForwardRoundedIcon /></RouterLink>
+          </div>
+        </Reveal>
+      </div>
+    </div>
+  </section>;
+}
 
 function Step({ index, progress, still, title, text }: { index: number; progress: MotionValue<number>; still: boolean; title: string; text: string }) {
   const start = index / steps.length, end = (index + 1) / steps.length;
@@ -176,33 +226,34 @@ export function Landing() {
       <div className="container hero__grid">
         <motion.div className="hero__copy" style={reduce ? undefined : { y: copyY, opacity: copyOpacity }}>
           <h1 id="hero-title" className="hero__title">
-            <WordReveal>Ogni torneo merita</WordReveal>{' '}
-            <WordReveal delay={.2} className="serif-accent" wordClassName="serif-accent serif-accent--glow">un grande</WordReveal>{' '}
-            <WordReveal delay={.3}>palcoscenico.</WordReveal>
+            <WordReveal>Il tuo torneo di un giorno,</WordReveal>{' '}
+            <WordReveal delay={.3} className="serif-accent" wordClassName="serif-accent serif-accent--glow">gratis.</WordReveal>
           </h1>
           <motion.p className="lead hero__lead" initial={reduce ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .55, duration: .8, ease: [.16, 1, .3, 1] }}>
-            Competizioni, squadre, partite e classifiche in un unico spazio. Organizza il tuo torneo dalla console e fallo seguire a tutti dal suo sito pubblico.
+            Dal 12 ore al quadrangolare: squadre, calendario, risultati e classifiche in tempo reale, con un sito pubblico da condividere. Lo prepari quando vuoi e lo pubblichi il giorno della gara.
           </motion.p>
           <motion.div className="hero__actions" initial={reduce ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .7, duration: .8, ease: [.16, 1, .3, 1] }}>
             {signedIn
               ? <RouterLink to={roleHome(role ?? 'user')} className="btn btn--primary btn--lg">{role === 'admin' ? 'Apri la dashboard' : 'Vai ai tuoi tornei'}<ArrowForwardRoundedIcon /></RouterLink>
-              : <RouterLink to="/configura" className="btn btn--primary btn--lg">Crea il tuo torneo<ArrowForwardRoundedIcon /></RouterLink>}
-            {signedIn ? <RouterLink to="/configura" className="btn btn--ghost btn--lg glass">Nuovo torneo</RouterLink> : <a href="#funzionalita" className="btn btn--ghost btn--lg glass" onClick={event => { event.preventDefault(); document.getElementById('funzionalita')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); }}>Scopri la piattaforma</a>}
+              : <RouterLink to="/configura?formato=giornata" className="btn btn--primary btn--lg">Crea il torneo gratis<ArrowForwardRoundedIcon /></RouterLink>}
+            {signedIn ? <RouterLink to="/configura?formato=giornata" className="btn btn--ghost btn--lg glass">Nuovo torneo di un giorno</RouterLink> : <a href="#formati" className="btn btn--ghost btn--lg glass" onClick={event => { event.preventDefault(); document.getElementById('formati')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); }}>Campionati e tornei lunghi</a>}
           </motion.div>
           <motion.ul className="hero__facts" initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: .9, duration: .8 }}>
-            <li><CheckRoundedIcon />Funzioni base incluse</li>
-            <li><CheckRoundedIcon />Moduli solo se ti servono</li>
-            <li><CheckRoundedIcon />Nessun addebito automatico</li>
+            <li><CheckRoundedIcon />Gratis con le funzioni base</li>
+            <li><CheckRoundedIcon />Sito pubblico sempre online</li>
+            <li><CheckRoundedIcon />Moduli extra solo se ti servono</li>
           </motion.ul>
         </motion.div>
         <motion.div className="hero__device" style={reduce ? undefined : { y: phoneY }}>
           <HeroPhonePreview />
         </motion.div>
       </div>
-      <a className="hero__scroll" href="#funzionalita" aria-label="Scorri alle funzionalità" onClick={event => { event.preventDefault(); document.getElementById('funzionalita')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); }}>
+      <a className="hero__scroll" href="#formati" aria-label="Scorri ai formati" onClick={event => { event.preventDefault(); document.getElementById('formati')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); }}>
         <SouthRoundedIcon />
       </a>
     </section>
+
+    <Formats extrasFrom={extrasFrom} />
 
     <section className="section features" id="funzionalita" aria-labelledby="features-title">
       <div className="container">
@@ -236,19 +287,19 @@ export function Landing() {
       <div className="container modules__grid">
         <Reveal className="modules__intro">
           <h2 id="modules-title" className="section-title">La tua competizione. <span className="serif-accent">Le tue regole.</span></h2>
-          <p className="lead">Parti dalla base con {CORE.length} funzioni incluse a {formatEuro(BASE_MONTHLY)} al mese. Aggiungi i moduli che ti servono, da {formatEuro(extrasFrom)} al mese ciascuno.</p>
+          <p className="lead">Le {CORE.length} funzioni base sono gratis per i tornei di un giorno e incluse nel piano da {formatEuro(BASE_MONTHLY)} al mese per i campionati. Aggiungi solo i moduli che ti servono: per un torneo di un giorno paghi una volta sola il prezzo di un mese.</p>
           <ul className="modules__core">
             {MODULES.filter(module => module.core).map(module => <li key={module.code}><CheckRoundedIcon />{module.name}</li>)}
           </ul>
           <RouterLink to="/configura" className="btn btn--primary">Configura i moduli<ArrowForwardRoundedIcon /></RouterLink>
-          <p className="modules__note">{paymentsEnabled ? 'Prezzi mensili. Paghi una volta per il periodo scelto su Stripe, senza rinnovo automatico.' : 'Prezzi indicativi mensili. Oggi nessun pagamento viene richiesto: i moduli extra si attivano solo dopo una conferma esplicita.'}</p>
+          <p className="modules__note">{paymentsEnabled ? 'Campionati: prezzi mensili, pagamento unico per il periodo scelto su Stripe, senza rinnovo automatico. Tornei di un giorno: stesso prezzo, pagato una volta sola.' : 'Prezzi indicativi. Oggi nessun pagamento viene richiesto: i moduli extra si attivano solo dopo una conferma esplicita.'}</p>
         </Reveal>
         <ul className="modules__list">
           {EXTRA.map((module, index) => <Reveal as="li" key={module.code} delay={index * .04} className="module-tile glass">
             <div className="module-tile__inner spotlight" onPointerMove={event => trackSpotlight(event as never)}>
               <span className="module-tile__icon" aria-hidden="true">{moduleIcons[module.code]}</span>
               <div><h3>{module.name}</h3><p>{module.description}</p></div>
-              <span className="module-tile__price"><b>{formatEuro(module.monthly)}</b>/mese</span>
+              <span className="module-tile__price"><b>{formatEuro(module.monthly)}</b>/mese<small>o una tantum per 1 giorno</small></span>
             </div>
           </Reveal>)}
         </ul>
@@ -261,10 +312,10 @@ export function Landing() {
           <Backdrop variant="cta" />
           <div className="cta__content">
             <h2 id="cta-title" className="section-title">Il prossimo torneo <span className="serif-accent serif-accent--glow">inizia qui.</span></h2>
-            <p className="lead">Configura la piattaforma in pochi minuti. Il tuo spazio resta in bozza finché non decidi di pubblicarlo.</p>
+            <p className="lead">Crea gratis il tuo torneo di un giorno in pochi minuti, oppure configura un campionato con durata e moduli su misura.</p>
             <div className="hero__actions">
-              <RouterLink to="/configura" className="btn btn--primary btn--lg">Configura ItalFUT<ArrowForwardRoundedIcon /></RouterLink>
-              <RouterLink to="/registrati" className="btn btn--ghost btn--lg glass">Crea un account</RouterLink>
+              <RouterLink to="/configura?formato=giornata" className="btn btn--primary btn--lg">Crea il torneo gratis<ArrowForwardRoundedIcon /></RouterLink>
+              <RouterLink to="/configura?formato=stagione" className="btn btn--ghost btn--lg glass">Configura un campionato</RouterLink>
             </div>
           </div>
           <div className="cta__ball"><Football3D size={260} label="Pallone da calcio 3D: trascinalo per farlo ruotare" /></div>

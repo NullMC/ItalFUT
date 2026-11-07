@@ -26,7 +26,8 @@ import CollectionsRoundedIcon from '@mui/icons-material/CollectionsRounded';
 import PlaylistAddCheckRoundedIcon from '@mui/icons-material/PlaylistAddCheckRounded';
 import ManageAccountsRoundedIcon from '@mui/icons-material/ManageAccountsRounded';
 import { useAuth } from '../auth/AuthProvider';
-import { MODULES, EXTRA, estimate, formatEuro, validMonths } from '../lib/catalog';
+import { MODULES, BASE_MONTHLY, estimate, formatEuro } from '../lib/catalog';
+import { addDays, clearDraft, EDIT_WINDOW_HOURS, eventPhase, eventTotal, formatDay, readDraft, romeToday, validEventDate, type PlanKind } from '../lib/plan';
 import { DurationStepper } from '../components/DurationStepper';
 import { client, friendlyError } from '../lib/supabase';
 import type { FeatureCode, MemberRole, Tenant, TenantFeature } from '../lib/types';
@@ -41,11 +42,11 @@ import { removeMedia } from '../lib/media';
 import { summarize, useTenantStats } from '../lib/useTenantStats';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { PlanCheckout } from '../components/PlanCheckout';
+import { EventClosed, EventDateField, EventModules, EventStatus, EventWindowNote } from '../components/EventPanel';
 import { paymentsEnabled } from '../lib/payments';
 
 type Owned = { role: MemberRole; tenants: Tenant | null };
-type PlanDraft = { months: number; modules: FeatureCode[] };
-const TENANT_COLUMNS = 'id,slug,name,tagline,logo_url,cover_url,brand_color,status,owner_id,created_at';
+const TENANT_COLUMNS = 'id,slug,name,tagline,logo_url,cover_url,brand_color,status,owner_id,created_at,kind,event_date,published_at';
 const COLOR_PRESETS = [
   { name: 'Stadio', color: '#173d32' }, { name: 'Prato', color: '#0f6b4a' }, { name: 'Laguna', color: '#227472' },
   { name: 'Notte', color: '#1d2b53' }, { name: 'Granata', color: '#7a1f2b' }, { name: 'Ambra', color: '#a35d00' },
@@ -61,12 +62,6 @@ export const EDITOR_ICONS: Record<string, ReactNode> = {
   market: <SyncAltRoundedIcon fontSize="small" />, gallery: <CollectionsRoundedIcon fontSize="small" />,
 };
 
-function draft(): PlanDraft {
-  try {
-    const value = JSON.parse(sessionStorage.getItem('italfut_configuration') ?? '{}') as Partial<PlanDraft>;
-    return { months: validMonths(Number(value.months)) ? Number(value.months) : 1, modules: (Array.isArray(value.modules) ? value.modules : []).filter(code => EXTRA.some(m => m.code === code)) };
-  } catch { return { months: 1, modules: [] }; }
-}
 function formatSlug(text: string) {
   return text.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-/, '').slice(0, 42);
 }
@@ -83,8 +78,13 @@ export function ConsoleHome() {
   const [slugEdited, setSlugEdited] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const plan = draft();
+  // Format chosen in the configurator (if any); without it the dialog asks for it.
+  const [saved, setSaved] = useState(readDraft);
+  const [kind, setKind] = useState<PlanKind>(saved?.kind ?? 'event');
+  const [eventDate, setEventDate] = useState(saved?.eventDate ?? '');
+  const plan = { months: saved?.kind === 'season' ? saved.months : 1, modules: saved?.kind === kind ? saved.modules : [] as FeatureCode[] };
   const quote = estimate(plan.months, plan.modules);
+  const openCreate = () => { const d = readDraft(); setSaved(d); setKind(d?.kind ?? 'event'); setEventDate(d?.eventDate ?? ''); setCreating(true); };
 
   useEffect(() => {
     let live = true;
@@ -101,7 +101,7 @@ export function ConsoleHome() {
 
   // Someone arriving from the configurator gets the creation dialog straight away.
   useEffect(() => {
-    try { if (!loading && sessionStorage.getItem('italfut_configuration')) setCreating(true); } catch { /* storage unavailable */ }
+    if (!loading && readDraft()) openCreate();
   }, [loading]);
 
   const create = async (event: FormEvent) => {
@@ -110,14 +110,20 @@ export function ConsoleHome() {
     const cleanSlug = formatSlug(slug || name).replace(/-$/, '');
     if (cleanName.length < 3) { setError('Il nome deve avere almeno 3 caratteri.'); return; }
     if (!SLUG_PATTERN.test(cleanSlug)) { setError('Indirizzo non valido: usa da 3 a 42 caratteri tra lettere minuscole, numeri e trattini.'); return; }
+    if (kind === 'event' && !validEventDate(eventDate)) { setError('Scegli la data del torneo: da oggi a due anni da oggi.'); return; }
     setBusy(true);
     try {
-      const { error: issue } = await client().rpc('create_tenant', { p_name: cleanName, p_slug: cleanSlug, p_months: plan.months, p_features: plan.modules });
+      const { error: issue } = await client().rpc('create_tenant', {
+        p_name: cleanName, p_slug: cleanSlug, p_months: plan.months, p_features: plan.modules,
+        p_kind: kind, p_event_date: kind === 'event' ? eventDate : null,
+      });
       if (issue) throw issue;
-      try { sessionStorage.removeItem('italfut_configuration'); } catch { /* ignore */ }
+      clearDraft();
       setCreating(false);
-      // With payments on, the new (draft) tournament goes straight to its plan page.
-      if (paymentsEnabled) navigate(`/console/${cleanSlug}/modules`, { state: { plan } });
+      // A one-day tournament is free: straight to its console. With extras chosen, or a paid
+      // plan with payments on, the new (draft) tournament goes to its plan page.
+      if (kind === 'event') navigate(plan.modules.length ? `/console/${cleanSlug}/modules` : '/console/' + cleanSlug);
+      else if (paymentsEnabled) navigate(`/console/${cleanSlug}/modules`, { state: { plan } });
       else navigate('/console/' + cleanSlug);
     } catch (cause) {
       const text = friendlyError(cause);
@@ -130,7 +136,7 @@ export function ConsoleHome() {
     <div className="container">
       <header className="console-home__head">
         <div><h1 className="page-title">Ciao{profile?.username ? ', ' : ''}<span className="serif-accent">{profile?.username ?? ''}</span></h1><p className="lead">I tuoi tornei, in un unico posto.</p></div>
-        <Button variant="contained" startIcon={<AddRoundedIcon />} onClick={() => setCreating(true)}>Nuovo torneo</Button>
+        <Button variant="contained" startIcon={<AddRoundedIcon />} onClick={openCreate}>Nuovo torneo</Button>
       </header>
       {error && !creating && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
       {loading ? <div className="center-min"><CircularProgress aria-label="Caricamento tornei" /></div>
@@ -140,18 +146,18 @@ export function ConsoleHome() {
             <RouterLink to={'/console/' + tenant.slug} className="tenant-card glass spotlight" onPointerMove={trackSpotlight}
               style={{ ['--tenant' as string]: HEX_COLOR.test(tenant.brand_color) ? tenant.brand_color : '#0f6b4a' }}>
               <span className="tenant-card__avatar">{tenant.name.charAt(0).toUpperCase()}</span>
-              <span className="tenant-card__status"><span className={'dot ' + (tenant.status === 'active' ? 'dot--live' : 'dot--wait')} />{STATUS_LABEL[tenant.status] ?? tenant.status}</span>
+              <span className="tenant-card__status"><span className={'dot ' + (tenant.status === 'active' ? 'dot--live' : 'dot--wait')} />{tenant.kind === 'event' && eventPhase(tenant).phase === 'closed' ? 'Concluso' : STATUS_LABEL[tenant.status] ?? tenant.status}</span>
               <strong>{tenant.name}</strong>
-              <small>/t/{tenant.slug} · {ROLE_LABEL[role]}</small>
+              <small>{tenant.kind === 'event' ? 'Torneo di un giorno · ' + formatDay(tenant.event_date, false) : '/t/' + tenant.slug + ' · ' + ROLE_LABEL[role]}</small>
               <ArrowForwardRoundedIcon className="tenant-card__arrow" />
             </RouterLink>
           </motion.div>)}
-          <button type="button" className="tenant-card tenant-card--new" onClick={() => setCreating(true)}><AddRoundedIcon /><strong>Crea un nuovo torneo</strong><small>Nasce in bozza, visibile solo a te</small></button>
+          <button type="button" className="tenant-card tenant-card--new" onClick={openCreate}><AddRoundedIcon /><strong>Crea un nuovo torneo</strong><small>Gratis per i tornei di un giorno</small></button>
         </div>
         : <div className="empty-state glass">
           <h2>Il tuo primo torneo ti aspetta.</h2>
           <p>Crea uno spazio per gestire squadre, partite e classifiche. Resta privato finché non viene pubblicato.</p>
-          <Button variant="contained" onClick={() => setCreating(true)} startIcon={<AddRoundedIcon />}>Crea un torneo</Button>
+          <Button variant="contained" onClick={openCreate} startIcon={<AddRoundedIcon />}>Crea un torneo</Button>
         </div>}
     </div>
     <Dialog open={creating} onClose={() => !busy && setCreating(false)} fullWidth maxWidth="sm" aria-labelledby="create-title">
@@ -165,7 +171,21 @@ export function ConsoleHome() {
             onChange={e => { setSlugEdited(true); setSlug(formatSlug(e.target.value)); }}
             helperText={window.location.origin + '/t/' + (slug || 'nome-torneo')}
             slotProps={{ htmlInput: { maxLength: 42, pattern: '[a-z0-9][a-z0-9\\-]{2,41}' } }} />
-          <Alert severity="info">Configurazione scelta: {plan.months} {plan.months === 1 ? 'mese' : 'mesi'}, {plan.modules.length} moduli facoltativi. Preventivo indicativo {formatEuro(quote.total)}. {paymentsEnabled ? 'Dopo la creazione la trovi salvata in Moduli: puoi cambiarla prima di pagare su Stripe.' : 'Nessun addebito: i moduli extra restano da attivare.'} <RouterLink to="/configura">Modifica</RouterLink></Alert>
+          <fieldset className="create-format">
+            <legend>Formato</legend>
+            <div className="create-format__options" role="radiogroup" aria-label="Formato del torneo">
+              <button type="button" role="radio" aria-checked={kind === 'event'} className={'chip-link' + (kind === 'event' ? ' is-active' : '')} onClick={() => setKind('event')}>Torneo di un giorno · gratis</button>
+              <button type="button" role="radio" aria-checked={kind === 'season'} className={'chip-link' + (kind === 'season' ? ' is-active' : '')} onClick={() => setKind('season')}>Campionato o torneo lungo</button>
+            </div>
+          </fieldset>
+          {kind === 'event' && <TextField type="date" label="Giorno del torneo" value={eventDate} required onChange={e => setEventDate(e.target.value)}
+            helperText={eventDate ? formatDay(eventDate) + ' · modificabile fino alla pubblicazione' : 'Le partite si giocano in questa data; puoi cambiarla fino alla pubblicazione.'}
+            slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: romeToday(), max: addDays(romeToday(), 730) } }} />}
+          {kind === 'event'
+            ? <Alert severity="info">Gratis con le funzioni base{plan.modules.length ? `; ${plan.modules.length} ${plan.modules.length === 1 ? 'modulo extra' : 'moduli extra'} da ${formatEuro(eventTotal(plan.modules))} una tantum, da attivare in Moduli` : ''}. Lo pubblichi dal giorno del torneo, poi hai {EDIT_WINDOW_HOURS} ore per aggiornarlo. <RouterLink to="/configura?formato=giornata">Modifica</RouterLink></Alert>
+            : saved?.kind === 'season'
+              ? <Alert severity="info">Configurazione scelta: {plan.months} {plan.months === 1 ? 'mese' : 'mesi'}, {plan.modules.length} moduli facoltativi. Preventivo indicativo {formatEuro(quote.total)}. {paymentsEnabled ? 'Dopo la creazione la trovi salvata in Moduli: puoi cambiarla prima di pagare su Stripe.' : 'Nessun addebito: i moduli extra restano da attivare.'} <RouterLink to="/configura?formato=stagione">Modifica</RouterLink></Alert>
+              : <Alert severity="info">Piano da {formatEuro(BASE_MONTHLY)} al mese: durata e moduli li scegli dopo la creazione, in Moduli. <RouterLink to="/configura?formato=stagione">Configura ora</RouterLink></Alert>}
           {error && <Alert severity="error">{error}</Alert>}
         </Stack></DialogContent>
         <DialogActions sx={{ p: 3, pt: 1 }}><Button onClick={() => setCreating(false)} disabled={busy}>Annulla</Button><Button variant="contained" type="submit" disabled={busy}>{busy ? 'Creazione…' : 'Crea torneo'}</Button></DialogActions>
@@ -262,6 +282,9 @@ export function TenantConsole() {
   if (error && !tenant) return <ErrorView code={navigator.onLine ? '503' : 'offline'} compact retry={() => window.location.reload()} detail="Non è stato possibile caricare il torneo." />;
   if (!tenant) return <ErrorView code="404" compact detail="Nessun torneo con questo indirizzo tra quelli a cui hai accesso." />;
   if (!role) return <ErrorView code="403" compact detail="Il tuo account non fa parte dello staff di questo torneo." />;
+  const isEvent = tenant.kind === 'event';
+  // One-day tournament past its 48-hour window: the console is closed, the site stays online.
+  if (isEvent && eventPhase(tenant).phase === 'closed') return <EventClosed tenant={tenant} />;
   const base = '/console/' + slug;
   const accent = HEX_COLOR.test(tenant.brand_color) ? tenant.brand_color : '#0f6b4a';
   const counts: Record<string, number | undefined> = stats ? { teams: stats.teams.length, players: stats.players, matches: stats.matches.length, competitions: stats.competitions } : {};
@@ -278,7 +301,7 @@ export function TenantConsole() {
         <RouterLink to="/console" className="side-back"><ArrowBackRoundedIcon fontSize="small" />Tutti i tornei</RouterLink>
         <div className="side-identity">
           <span className="tenant-card__avatar">{tenant.name.charAt(0).toUpperCase()}</span>
-          <div><b title={tenant.name}>{tenant.name}</b><small><span className={'dot ' + (tenant.status === 'active' ? 'dot--live' : 'dot--wait')} />{STATUS_LABEL[tenant.status]} · {ROLE_LABEL[role]}</small></div>
+          <div><b title={tenant.name}>{tenant.name}</b><small><span className={'dot ' + (tenant.status === 'active' ? 'dot--live' : 'dot--wait')} />{STATUS_LABEL[tenant.status]} · {isEvent ? formatDay(tenant.event_date, false) : ROLE_LABEL[role]}</small></div>
           <a className="side-site" href={'/t/' + tenant.slug} target="_blank" rel="noopener noreferrer" aria-label={(tenant.status === 'active' ? 'Apri il sito' : 'Apri l’anteprima') + ' in una nuova scheda'} title={tenant.status === 'active' ? 'Apri il sito' : 'Anteprima'}><ArrowOutwardRoundedIcon fontSize="small" /></a>
         </div>
       </div>
@@ -311,6 +334,7 @@ export function TenantConsole() {
       </div>
       {error && <Alert severity="error" sx={{ mb: 3 }} role="alert">{error}</Alert>}
       {notice && <Alert severity="success" sx={{ mb: 3 }} role="status" onClose={() => setNotice('')}>{notice}</Alert>}
+      {isEvent && section !== 'overview' && <EventWindowNote tenant={tenant} />}
 
       {section === 'overview' && <>
         <header className="ws-head">
@@ -323,7 +347,8 @@ export function TenantConsole() {
             {editable && enabled('matches') && <RouterLink to={base + '/matches'} className="btn btn--primary btn--sm"><AddRoundedIcon />Partita</RouterLink>}
           </div>
         </header>
-        {tenant.status !== 'active' && <div className="banner glass" role="status">
+        {isEvent && <EventStatus tenant={tenant} canManage={canBuy} base={base} onChanged={refresh} />}
+        {!isEvent && tenant.status !== 'active' && <div className="banner glass" role="status">
           <span className="banner__icon" aria-hidden="true"><InfoOutlinedIcon /></span>
           <div><b>Il torneo è in bozza.</b><p>Prepara squadre, rose e calendario: il sito pubblico resta visibile solo allo staff finché {paymentsEnabled ? 'non attivi il piano.' : 'non viene pubblicato.'}</p></div>
           {paymentsEnabled && canBuy ? <RouterLink className="btn btn--primary btn--sm" to={base + '/modules'}>Attiva il piano</RouterLink>
@@ -340,6 +365,7 @@ export function TenantConsole() {
 
       {section === 'settings' && <div className="settings">
         <header className="ws-head"><div className="ws-head__text"><h1>Identità e aspetto</h1><p>Nome, slogan, colori e immagini del sito pubblico.</p></div></header>
+        {isEvent && <EventDateField tenant={tenant} canManage={canBuy} onChanged={refresh} />}
         <div className="settings__grid">
           <form onSubmit={saveSettings} className="panel glass"><Stack spacing={2.5}>
             <TextField label="Nome del torneo" required value={fields.name} onChange={e => setFields(f => ({ ...f, name: e.target.value }))} disabled={!editable} slotProps={{ htmlInput: { maxLength: 90 } }} />
@@ -375,11 +401,15 @@ export function TenantConsole() {
         </div>
       </div>}
 
-      {section === 'modules' && paymentsEnabled && <div>
-        <header className="ws-head"><div className="ws-head__text"><h1>Piano e moduli</h1><p>Scegli durata e moduli e paga in modo sicuro su Stripe. Le funzioni base sono sempre incluse.</p></div></header>
-        <PlanCheckout tenantId={tenant.id} tenantStatus={tenant.status} canBuy={canBuy} features={features} initial={(location.state as { plan?: PlanDraft } | null)?.plan} />
+      {section === 'modules' && isEvent && <div>
+        <header className="ws-head"><div className="ws-head__text"><h1>Moduli</h1><p>Le funzioni base del torneo di un giorno sono gratis. Aggiungi solo gli extra che ti servono.</p></div></header>
+        <EventModules tenant={tenant} features={features} canBuy={canBuy} onChanged={refresh} />
       </div>}
-      {section === 'modules' && !paymentsEnabled && <div>
+      {section === 'modules' && !isEvent && paymentsEnabled && <div>
+        <header className="ws-head"><div className="ws-head__text"><h1>Piano e moduli</h1><p>Scegli durata e moduli e paga in modo sicuro su Stripe. Le funzioni base sono sempre incluse.</p></div></header>
+        <PlanCheckout tenantId={tenant.id} tenantStatus={tenant.status} canBuy={canBuy} features={features} initial={(location.state as { plan?: { months: number; modules: string[] } } | null)?.plan} />
+      </div>}
+      {section === 'modules' && !isEvent && !paymentsEnabled && <div>
         <header className="ws-head"><div className="ws-head__text"><h1>Moduli</h1><p>Le funzioni base sono incluse. I moduli aggiuntivi si richiedono qui e si attivano solo dopo conferma.</p></div></header>
         <div className="grant-list">{MODULES.map(module => {
           const active = enabled(module.code);
@@ -404,7 +434,7 @@ export function TenantConsole() {
       </div>}
 
       {selectedEditor && (enabled(selectedEditor.feature)
-        ? <CrudEditor tenantId={tenant.id} config={selectedEditor} editable={editable} />
+        ? <CrudEditor tenantId={tenant.id} config={selectedEditor} editable={editable} eventDate={isEvent ? tenant.event_date : null} />
         : <div className="empty-state glass"><LockOutlinedIcon sx={{ fontSize: 36 }} /><h2>Modulo non ancora attivo</h2><p>“{selectedEditor.label}” fa parte dei moduli aggiuntivi. {paymentsEnabled ? 'Puoi attivarlo dalla sezione Moduli.' : 'Puoi richiederne l’attivazione dalla sezione Moduli.'}</p><Button variant="contained" component={RouterLink} to={base + '/modules'}>Vai ai moduli</Button></div>)}
       {!['overview', 'settings', 'modules'].includes(section) && !selectedEditor && <div className="empty-state glass"><h2>Sezione non trovata</h2><Button component={RouterLink} to={base}>Torna alla panoramica</Button></div>}
     </div>

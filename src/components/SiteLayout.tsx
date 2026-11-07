@@ -25,10 +25,10 @@ export function Brand({ className = '', to = '/' }: { className?: string; to?: s
 }
 
 const marketingLinks = [
+  { label: 'Formati e prezzi', href: '/#formati', id: 'formati' },
   { label: 'Funzionalità', href: '/#funzionalita', id: 'funzionalita' },
   { label: 'Come funziona', href: '/#come-funziona', id: 'come-funziona' },
   { label: 'Moduli', href: '/#moduli', id: 'moduli' },
-  { label: 'Prezzi', href: '/configura', id: 'configura' },
 ];
 
 function MenuIcon({ open }: { open: boolean }) {
@@ -115,7 +115,7 @@ export function SiteLayout() {
           <ThemeToggle />
           {signedIn ? <UserMenu /> : <>
             <RouterLink to="/accesso" className="nav__login">Accedi</RouterLink>
-            <RouterLink to="/configura" className="btn btn--primary btn--sm nav__cta">Crea un torneo<ArrowForwardRoundedIcon /></RouterLink>
+            <RouterLink to="/configura?formato=giornata" className="btn btn--primary btn--sm nav__cta">Crea un torneo<ArrowForwardRoundedIcon /></RouterLink>
           </>}
           <IconButton className="nav__menu" aria-label={open ? 'Chiudi menu' : 'Apri menu'} aria-expanded={open} aria-controls="mobile-menu" onClick={() => setOpen(value => !value)}>
             <MenuIcon open={open} />

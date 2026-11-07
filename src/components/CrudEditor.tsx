@@ -117,7 +117,8 @@ function shortDate(value: unknown) {
   return Number.isNaN(date.getTime()) ? '' : new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(date);
 }
 
-export function CrudEditor({ tenantId, config, editable }: { tenantId: string; config: EditorDefinition; editable: boolean }) {
+/** eventDate (YYYY-MM-DD): one-day tournament, date-time fields are limited to that day. */
+export function CrudEditor({ tenantId, config, editable, eventDate }: { tenantId: string; config: EditorDefinition; editable: boolean; eventDate?: string | null }) {
   const [items, setItems] = useState<Row[]>([]);
   const [references, setReferences] = useState<Record<string, Option[]>>({});
   const [dialog, setDialog] = useState(false);
@@ -202,7 +203,7 @@ export function CrudEditor({ tenantId, config, editable }: { tenantId: string; c
     setGuardianDeclaration(Boolean(row?.guardian_authorization_confirmed));
     setMinorPhotoDeclaration(Boolean(row?.minor_photo_authorized));
     setValues(Object.fromEntries(config.fields.map(field => [field.key, row?.[field.key] == null
-      ? (field.key === 'age_category' ? '' : field.values && (field.required || field.key === 'status') ? field.values[0] : '')
+      ? (field.key === 'age_category' ? '' : field.values && (field.required || field.key === 'status') ? field.values[0] : field.type === 'datetime-local' && eventDate ? eventDate + 'T10:00' : '')
       : field.type === 'datetime-local' ? datetimeLocal(row[field.key]) : String(row[field.key])])));
     setDialog(true);
   };
@@ -362,9 +363,10 @@ export function CrudEditor({ tenantId, config, editable }: { tenantId: string; c
             type={field.type === 'number' || field.type === 'date' || field.type === 'datetime-local' || field.type === 'url' ? field.type : 'text'}
             multiline={field.type === 'textarea'} minRows={field.type === 'textarea' ? 3 : undefined} required={field.required}
             value={values[field.key] ?? ''} onChange={e => setValues(old => ({ ...old, [field.key]: e.target.value }))}
+            helperText={field.type === 'datetime-local' && eventDate ? 'Torneo di un giorno: scegli un orario del ' + new Intl.DateTimeFormat('it-IT', { timeZone: 'UTC', day: 'numeric', month: 'long' }).format(new Date(eventDate + 'T12:00:00Z')) : undefined}
             slotProps={{
               inputLabel: field.type === 'datetime-local' || field.type === 'date' ? { shrink: true } : undefined,
-              htmlInput: { min: field.min, max: field.max, maxLength: field.type === 'url' ? 2048 : field.maxLength ?? (field.type === 'textarea' ? 4000 : 200), inputMode: field.type === 'number' ? 'numeric' : undefined },
+              htmlInput: { min: field.type === 'datetime-local' && eventDate ? eventDate + 'T00:00' : field.min, max: field.type === 'datetime-local' && eventDate ? eventDate + 'T23:59' : field.max, maxLength: field.type === 'url' ? 2048 : field.maxLength ?? (field.type === 'textarea' ? 4000 : 200), inputMode: field.type === 'number' ? 'numeric' : undefined },
             }} />)}
           {config.key === 'players' && <>
             <Alert severity="info">Inserisci solo i dati necessari. Per i minorenni verifica l’autorizzazione del genitore o tutore prima della pubblicazione e conserva la documentazione.</Alert>
