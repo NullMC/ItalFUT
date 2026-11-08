@@ -69,7 +69,7 @@ function MiniMatch() {
 }
 
 function MiniScorers() {
-  const rows = [['F. Greco', 6], ['V. Masi', 5], ['G. Lorusso', 4], ['R. Esposito', 3]] as const;
+  const rows = [['Giocatore 9', 6], ['Giocatore 7', 5], ['Giocatore 11', 4], ['Giocatore 10', 3]] as const;
   return <div className="mini-bars">
     {rows.map(([name, goals], index) => <div key={name} className="mini-bars__row">
       <span>{name}</span>
@@ -83,7 +83,7 @@ function MiniScorers() {
 function MiniSite() {
   return <div className="mini-site">
     <div className="mini-site__bar"><i /><i /><i /><span>/t/il-tuo-torneo</span></div>
-    <div className="mini-site__hero"><b>Street Cup</b><small>Stagione 2026/27</small></div>
+    <div className="mini-site__hero"><b>Il tuo torneo</b><small>Stagione 2026/27</small></div>
     <div className="mini-site__tabs"><span className="is-on">Partite</span><span>Classifica</span><span>Squadre</span></div>
   </div>;
 }

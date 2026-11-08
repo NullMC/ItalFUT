@@ -135,7 +135,7 @@ export function HeroPhonePreview() {
   const straighten = () => { rotateX.set(0); rotateY.set(-4); rotateZ.set(0); };
   const restoreTilt = () => { rotateX.set(TILT.x); rotateY.set(TILT.y); rotateZ.set(TILT.z); };
   const isMain = navigation.some(item => item.id === route.page);
-  const title = route.page === 'home' ? 'Street Cup'
+  const title = route.page === 'home' ? 'Il tuo torneo'
     : route.page === 'matches' ? 'Calendario'
     : route.page === 'standings' ? 'Classifica'
     : route.page === 'teams' ? 'Squadre'
@@ -156,7 +156,7 @@ export function HeroPhonePreview() {
         <div className="itf-phone-competition">
           <div className="itf-phone-competition-title">
             <span className="itf-phone-cup"><EmojiEventsRoundedIcon sx={{ fontSize: 22 }} /></span>
-            <div><strong>Street Cup</strong><small>Stagione 2026/27</small></div>
+            <div><strong>Il tuo torneo</strong><small>Stagione 2026/27</small></div>
           </div>
           <div className="itf-phone-competition-metrics">
             <span><b>{demoTeams.length}</b> squadre</span>
@@ -214,7 +214,7 @@ export function HeroPhonePreview() {
         <p className="itf-demo-footnote">3 punti per vittoria · Classifica calcolata dai risultati.</p>
       </div>}
       {route.page === 'teams' && <div className="itf-phone-content itf-demo-page">
-        <div className="itf-demo-page-heading"><span>Street Cup</span><strong>Squadre</strong></div>
+        <div className="itf-demo-page-heading"><span>Il tuo torneo</span><strong>Squadre</strong></div>
         <label className="itf-demo-search">
           <SearchRoundedIcon sx={{ fontSize: 17 }} aria-hidden="true" />
           <span className="itf-demo-sr-only">Cerca squadra o città</span>

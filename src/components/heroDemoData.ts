@@ -1,7 +1,9 @@
 /** Deterministic, internally consistent illustrative tournament data.
+ * Names are deliberately generic (Squadra 1, Giocatore 9, Campo 1) so the demo never
+ * resembles a real team or tournament.
  * No Supabase calls or fabricated live availability; the iPhone is a local demo.
  */
-export type TeamId = 'bari' | 'atletico' | 'levante' | 'real' | 'nord' | 'stella';
+export type TeamId = 't1' | 't2' | 't3' | 't4' | 't5' | 't6';
 export type DemoPlayer = { number: number; name: string; role: string };
 export type DemoTeam = {
   id: TeamId; name: string; short: string; color: string; district: string;
@@ -17,66 +19,66 @@ export type TeamStats = {
 };
 
 export const demoTeams: DemoTeam[] = [
-  { id: 'bari', name: 'Bari FC', short: 'BFC', color: '#378463', district: 'Bari',
-    coach: 'M. De Santis', players: [
-      { number: 1, name: 'D. Rizzo', role: 'Portiere' },
-      { number: 4, name: 'L. Moretti', role: 'Difensore' },
-      { number: 8, name: 'A. Marino', role: 'Centrocampista' },
-      { number: 9, name: 'F. Greco', role: 'Attaccante' },
+  { id: 't1', name: 'Squadra 1', short: 'S1', color: '#378463', district: 'Città 1',
+    coach: 'Mister 1', players: [
+      { number: 1, name: 'Giocatore 1', role: 'Portiere' },
+      { number: 4, name: 'Giocatore 4', role: 'Difensore' },
+      { number: 8, name: 'Giocatore 8', role: 'Centrocampista' },
+      { number: 9, name: 'Giocatore 9', role: 'Attaccante' },
     ] },
-  { id: 'atletico', name: 'Atletico', short: 'ATL', color: '#856dca', district: 'Molfetta',
-    coach: 'A. Caputo', players: [
-      { number: 1, name: 'P. Leone', role: 'Portiere' },
-      { number: 5, name: 'F. Testa', role: 'Difensore' },
-      { number: 10, name: 'N. Basile', role: 'Centrocampista' },
-      { number: 11, name: 'G. Lorusso', role: 'Attaccante' },
+  { id: 't2', name: 'Squadra 2', short: 'S2', color: '#856dca', district: 'Città 2',
+    coach: 'Mister 2', players: [
+      { number: 1, name: 'Giocatore 1', role: 'Portiere' },
+      { number: 5, name: 'Giocatore 5', role: 'Difensore' },
+      { number: 10, name: 'Giocatore 10', role: 'Centrocampista' },
+      { number: 11, name: 'Giocatore 11', role: 'Attaccante' },
     ] },
-  { id: 'levante', name: 'Levante', short: 'LEV', color: '#4196a2', district: 'Trani',
-    coach: 'G. Russo', players: [
-      { number: 1, name: 'E. Fiore', role: 'Portiere' },
-      { number: 3, name: 'S. Gallo', role: 'Difensore' },
-      { number: 7, name: 'M. Gentile', role: 'Centrocampista' },
-      { number: 9, name: 'V. Masi', role: 'Attaccante' },
+  { id: 't3', name: 'Squadra 3', short: 'S3', color: '#4196a2', district: 'Città 3',
+    coach: 'Mister 3', players: [
+      { number: 1, name: 'Giocatore 1', role: 'Portiere' },
+      { number: 3, name: 'Giocatore 3', role: 'Difensore' },
+      { number: 7, name: 'Giocatore 7', role: 'Centrocampista' },
+      { number: 9, name: 'Giocatore 9', role: 'Attaccante' },
     ] },
-  { id: 'real', name: 'Real Sud', short: 'RSD', color: '#ce7959', district: 'Monopoli',
-    coach: 'M. Ferrara', players: [
-      { number: 1, name: 'D. Longo', role: 'Portiere' },
-      { number: 2, name: 'C. Bianco', role: 'Difensore' },
-      { number: 6, name: 'L. Ricci', role: 'Centrocampista' },
-      { number: 9, name: 'R. Esposito', role: 'Attaccante' },
+  { id: 't4', name: 'Squadra 4', short: 'S4', color: '#ce7959', district: 'Città 4',
+    coach: 'Mister 4', players: [
+      { number: 1, name: 'Giocatore 1', role: 'Portiere' },
+      { number: 2, name: 'Giocatore 2', role: 'Difensore' },
+      { number: 6, name: 'Giocatore 6', role: 'Centrocampista' },
+      { number: 9, name: 'Giocatore 9', role: 'Attaccante' },
     ] },
-  { id: 'nord', name: 'Nord United', short: 'NRD', color: '#bd9c4e', district: 'Bitonto',
-    coach: 'S. Parisi', players: [
-      { number: 1, name: 'A. Caruso', role: 'Portiere' },
-      { number: 4, name: 'N. Resta', role: 'Difensore' },
-      { number: 8, name: 'P. Romanelli', role: 'Centrocampista' },
-      { number: 11, name: 'T. Sala', role: 'Attaccante' },
+  { id: 't5', name: 'Squadra 5', short: 'S5', color: '#bd9c4e', district: 'Città 5',
+    coach: 'Mister 5', players: [
+      { number: 1, name: 'Giocatore 1', role: 'Portiere' },
+      { number: 4, name: 'Giocatore 4', role: 'Difensore' },
+      { number: 8, name: 'Giocatore 8', role: 'Centrocampista' },
+      { number: 11, name: 'Giocatore 11', role: 'Attaccante' },
     ] },
-  { id: 'stella', name: 'Stella 06', short: 'STL', color: '#b86c88', district: 'Modugno',
-    coach: 'L. Vitale', players: [
-      { number: 1, name: 'V. Fabbri', role: 'Portiere' },
-      { number: 3, name: 'C. Orlando', role: 'Difensore' },
-      { number: 6, name: 'L. Neri', role: 'Centrocampista' },
-      { number: 10, name: 'F. Colonna', role: 'Attaccante' },
+  { id: 't6', name: 'Squadra 6', short: 'S6', color: '#b86c88', district: 'Città 6',
+    coach: 'Mister 6', players: [
+      { number: 1, name: 'Giocatore 1', role: 'Portiere' },
+      { number: 3, name: 'Giocatore 3', role: 'Difensore' },
+      { number: 6, name: 'Giocatore 6', role: 'Centrocampista' },
+      { number: 10, name: 'Giocatore 10', role: 'Attaccante' },
     ] },
 ];
 
 export const demoMatches: DemoMatch[] = [
-  { id: 'm1', round: 1, home: 'bari', away: 'stella', date: '2026-10-04T17:30', venue: 'Campo Sportivo Nord', score: [2, 0] },
-  { id: 'm2', round: 1, home: 'atletico', away: 'nord', date: '2026-10-04T18:30', venue: 'Campo Sportivo Nord', score: [1, 1] },
-  { id: 'm3', round: 1, home: 'levante', away: 'real', date: '2026-10-04T19:30', venue: 'Campo Sportivo Nord', score: [0, 1] },
-  { id: 'm4', round: 2, home: 'bari', away: 'nord', date: '2026-10-11T17:30', venue: 'Campo Sportivo Nord', score: [2, 1] },
-  { id: 'm5', round: 2, home: 'stella', away: 'real', date: '2026-10-11T18:30', venue: 'Campo Sportivo Nord', score: [1, 3] },
-  { id: 'm6', round: 2, home: 'atletico', away: 'levante', date: '2026-10-11T19:30', venue: 'Campo Sportivo Nord', score: [2, 2] },
-  { id: 'm7', round: 3, home: 'bari', away: 'real', date: '2026-10-18T17:30', venue: 'Campo Sportivo Nord', score: [3, 1] },
-  { id: 'm8', round: 3, home: 'nord', away: 'levante', date: '2026-10-18T18:30', venue: 'Campo Sportivo Nord', score: [0, 2] },
-  { id: 'm9', round: 3, home: 'stella', away: 'atletico', date: '2026-10-18T19:30', venue: 'Campo Sportivo Nord', score: [0, 1] },
-  { id: 'm10', round: 4, home: 'bari', away: 'levante', date: '2026-10-25T17:30', venue: 'Campo Sportivo Nord', score: [2, 2] },
-  { id: 'm11', round: 4, home: 'real', away: 'atletico', date: '2026-10-25T18:30', venue: 'Campo Sportivo Nord', score: [1, 2] },
-  { id: 'm12', round: 4, home: 'nord', away: 'stella', date: '2026-10-25T19:30', venue: 'Campo Sportivo Nord', score: [2, 0] },
-  { id: 'm13', round: 5, home: 'bari', away: 'atletico', date: '2026-11-08T17:30', venue: 'Campo Sportivo Nord' },
-  { id: 'm14', round: 5, home: 'levante', away: 'stella', date: '2026-11-08T18:30', venue: 'Campo Sportivo Nord' },
-  { id: 'm15', round: 5, home: 'real', away: 'nord', date: '2026-11-08T19:30', venue: 'Campo Sportivo Nord' },
+  { id: 'm1', round: 1, home: 't1', away: 't6', date: '2026-10-04T17:30', venue: 'Campo 1', score: [2, 0] },
+  { id: 'm2', round: 1, home: 't2', away: 't5', date: '2026-10-04T18:30', venue: 'Campo 1', score: [1, 1] },
+  { id: 'm3', round: 1, home: 't3', away: 't4', date: '2026-10-04T19:30', venue: 'Campo 1', score: [0, 1] },
+  { id: 'm4', round: 2, home: 't1', away: 't5', date: '2026-10-11T17:30', venue: 'Campo 1', score: [2, 1] },
+  { id: 'm5', round: 2, home: 't6', away: 't4', date: '2026-10-11T18:30', venue: 'Campo 1', score: [1, 3] },
+  { id: 'm6', round: 2, home: 't2', away: 't3', date: '2026-10-11T19:30', venue: 'Campo 1', score: [2, 2] },
+  { id: 'm7', round: 3, home: 't1', away: 't4', date: '2026-10-18T17:30', venue: 'Campo 1', score: [3, 1] },
+  { id: 'm8', round: 3, home: 't5', away: 't3', date: '2026-10-18T18:30', venue: 'Campo 1', score: [0, 2] },
+  { id: 'm9', round: 3, home: 't6', away: 't2', date: '2026-10-18T19:30', venue: 'Campo 1', score: [0, 1] },
+  { id: 'm10', round: 4, home: 't1', away: 't3', date: '2026-10-25T17:30', venue: 'Campo 1', score: [2, 2] },
+  { id: 'm11', round: 4, home: 't4', away: 't2', date: '2026-10-25T18:30', venue: 'Campo 1', score: [1, 2] },
+  { id: 'm12', round: 4, home: 't5', away: 't6', date: '2026-10-25T19:30', venue: 'Campo 1', score: [2, 0] },
+  { id: 'm13', round: 5, home: 't1', away: 't2', date: '2026-11-08T17:30', venue: 'Campo 1' },
+  { id: 'm14', round: 5, home: 't3', away: 't6', date: '2026-11-08T18:30', venue: 'Campo 1' },
+  { id: 'm15', round: 5, home: 't4', away: 't5', date: '2026-11-08T19:30', venue: 'Campo 1' },
 ];
 
 export const teamById = (id: TeamId): DemoTeam =>
