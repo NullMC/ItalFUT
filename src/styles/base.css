@@ -54,6 +54,10 @@ p { text-wrap: pretty; }
   background: linear-gradient(100deg, #f4ffd6 0%, var(--lime) 45%, var(--emerald) 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(0 0 28px rgba(198, 243, 106, .25));
+  /* background-clip: text only paints inside the box: italic serif glyphs (the tail of
+     "g", the last stroke of "n") overhang it and were cut. Extra padding gives the
+     gradient room; the matching negative margin keeps spacing and line height unchanged. */
+  padding: .04em .16em .24em; margin: -.04em -.16em -.24em;
 }
 .display-num { font-family: var(--font-display); font-weight: 700; letter-spacing: .005em; font-variant-numeric: tabular-nums; }
 .lead { font-size: clamp(1.02rem, 1.2vw, 1.18rem); line-height: 1.6; color: var(--ink-2); max-width: 54ch; }
